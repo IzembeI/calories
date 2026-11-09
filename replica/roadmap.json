@@ -1,0 +1,573 @@
+{
+ "market_summary_ru": "Рынок в России делят крупные зарубежные трекеры (YAZIO с аудиторией 50M+, FatSecret, Lifesum, MyFitnessPal), бесплатные локальные приложения («Худеем вместе» 4.9, Wayout, TASAGER, «Мой здоровый рацион») и бесплатный ИИ-ассистент Сбера и Минздрава «Худеем на здоровье» (октябрь 2026). Главные претензии к лидерам: платные подписки, которые из России трудно оплатить (посредники берут 450–550 ₽ комиссии), реклама и баннеры после каждой записи, навязанные поздравления и стрики, редизайны с лишними тапами, ошибки и дубли в базе продуктов, сканер не видит российские штрихкоды, нет экспорта данных, неработа при отключениях мобильного интернета (11 700+ отключений в 2025 году). Сильные идеи конкурентов, которые стоит забрать: линия тренда веса и адаптивный расчёт расхода (MacroFactor), нормы микронутриентов и поиск продуктов по нутриенту (Cronometer), калорийный график по дням недели (Lose It, FatSecret), виджеты. Позиционирование «Калорий»: бесплатно, без аккаунта, без рекламы, все данные на телефоне, работает офлайн, учитывает российскую еду и нормы МР 2.3.1.0253-21. На ИИ не конкурируем: делаем ставку на приватность, надёжность и точность.",
+ "complaints_to_avoid_ru": [
+  "Никаких всплывающих поздравлений, стриков, наград и анимаций после записи еды. Если появится мотивационный текст, он выключается одним переключателем, который действительно работает.",
+  "Никакого пейволла, рекламы и баннеров: все функции бесплатны и не требуют аккаунта.",
+  "Каждый лишний тап при записи еды считается регрессией: сканер всегда рядом с поиском, приёмы пищи всегда развёрнуты на экране дневника.",
+  "Кнопка «Добавить» всегда отвечает сразу. Запись никогда не уезжает в другой день и не пропадает. День ведётся по местному времени, не по UTC.",
+  "Не показывать красные цифры и упрёки при превышении нормы. Не предлагать «отработать» переедание.",
+  "Не показывать в поиске дубли с разной калорийностью без пометки источника.",
+  "Приложение не должно ломаться без интернета: дневник, избранное, свои продукты и уже найденные продукты работают офлайн.",
+  "Не открывать отсканированный продукт со 100 г по умолчанию, когда известна упаковка или прошлая порция.",
+  "Не держать устаревшую норму калорий: при новом весе предложить пересчёт и показать формулу.",
+  "Не показывать оценки витаминов как точные данные и не пугать «дефицитом» по одному дню. Предупреждать только при среднем за 7–14 дней ниже 70% нормы и с пометкой «оценка».",
+  "Не прогнозировать дату цели по линейному правилу 7700 ккал/кг: показывать диапазон дат.",
+  "Не показывать процент жира с ложной точностью: только «около X% (±4%)» и тренд.",
+  "Не предлагать норму ниже 1200 ккал для женщин и 1500 ккал для мужчин без явного предупреждения.",
+  "Не обещать синхронизацию через iCloud и push-уведомления: при подписи через TrollStore они не работают. Резервные копии только файлами через «Файлы».",
+  "Не делать длинный онбординг, сосредоточенный на весе: должен быть вариант «просто считать калории».",
+  "Не делать напоминания, которые стыдят пользователя, и баннеры, которые нельзя отключить."
+ ],
+ "items": [
+  {
+   "id": "w1-trend-weight",
+   "title_ru": "Вес каждый день и линия тренда",
+   "what_ru": "Вес можно записать за один тап прямо с дневника. На графике поверх точек взвешиваний видна сглаженная линия тренда, а сверху написано, например: «Тренд 82,4 кг · −0,45 кг/нед». Колебания воды больше не пугают.",
+   "why": "Тренд веса упоминают во всех источниках. Hackers Diet и MacroFactor принимают решения по тренду, а не по весу на весах. В отзывах на YAZIO жалуются, что у веса нет трендов и графиков. Адаптивный расход (w2) и прогноз опираются на этот тренд и требуют частых взвешиваний, поэтому быстрый ввод веса нужен в том же пункте.",
+   "impact": 5,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS, без новых нативных модулей и entitlements. Нужна обычная пересборка IPA в GitHub Actions.",
+   "implementation": "New app/src/lib/trend.ts: ewma(points:{date,value}[]) sorted by date; T0=first value; for each next point d=diffDays(prev,cur), a=1-0.9^d, T=T+a*(W-T); returns {date,raw,trend}[]. slopePerWeek(trend, days=14): linear interpolation of trend at today-14 vs today, divided by 2. ui/charts.tsx LineChart gets an optional `trend?: Point[]` prop: raw values drawn as small dots, trend as a solid path with the accent color. app/(tabs)/progress.tsx: compute the series from series(db,'weight') and show the headline 'Тренд X кг · ±Y кг/нед' instead of the last raw value; same on app/series/[type].tsx when type==='weight'. Quick weight: in app/(tabs)/index.tsx add a 'Вес сегодня' chip in the summary card that opens a small modal (NumField plus a save button) and calls setMeasurement(db, date,'weight',v). The (date,type) unique key is already there, so daily and weekly entries share the measurements table and need no migration. Setting 'weigh_hint' ('daily'|'weekly'), shown as a one-line tip on the progress tab, never as a pop-up.",
+   "sources": [
+    "https://www.fourmilab.ch/hackdiet/e4/signalnoise.html",
+    "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+    "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2"
+   ]
+  },
+  {
+   "id": "w1-goal-transparency",
+   "title_ru": "Понятная норма калорий и её пересчёт",
+   "what_ru": "На экране целей видно, как получилась норма: базовый обмен по Миффлину, коэффициент активности, дефицит и нижний порог. При новом весе приложение предлагает пересчитать норму, например «1850 → 1810 ккал». Слишком быстрый темп и норма ниже безопасной подсвечиваются предупреждением.",
+   "why": "В отзывах на YAZIO норму называют то завышенной на 400–600 ккал, то заниженной. Среди повторяющихся тегов отзывов «Худеем вместе» есть «норма не пересчитывается при смене веса». Клинические рекомендации Минздрава «Ожирение»: дефицит 500–700 ккал, темп 0,5–1 кг в неделю. По Helms 2014 темп 0,5–1% массы тела в неделю. В onboarding YAZIO жалуются на навязанные вопросы о весе.",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "lib/nutrition.ts: add explainGoal(b) that returns {bmr, factor, tdee, delta, floorApplied, kcal}, and paceAsPctBW(pace, weight). app/goals.tsx: a 'Как считается норма' card with lines such as 'Базовый обмен 10×вес+6,25×рост−5×возраст−161 = 1420', '× 1,375 (низкая активность) = 1950', '− 550 (0,5 кг/нед)', 'Итог 1400'. Pace chips 0,25 / 0,5 / 0,75 / 1 кг with % of body weight next to them. Show a neutral warning when the pace is above 1% BW/week or the deficit is above 1000. Keep the existing floors 1200/1500 and add the text 'ниже — только под наблюдением врача'. Recalculation: after setMeasurement for 'weight' (in measurements.tsx and the quick-weight modal), if profile.kcal_auto===1, compute dailyKcalGoal with the new weight. If |new−old|>=20, show an Alert 'Норма: 1850 → 1810 ккал' with the buttons Обновить / Оставить, then call saveProfile. app/onboarding.tsx: add a first option 'Просто считать калории', which sets goal='maintain' and target_weight=start_weight and skips the target and pace steps.",
+   "sources": [
+    "https://www.trustpilot.com/review/yazio.com",
+    "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+    "https://legalacts.ru/doc/klinicheskie-rekomendatsii-ozhirenie-utv-minzdravom-rossii/",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:24864135%20AND%20SRC:MED&resultType=core&format=json",
+    "https://grand-screen.com/apps/yazio-ai-calorie-tracker/reviews/"
+   ]
+  },
+  {
+   "id": "w1-protein-gkg",
+   "title_ru": "Белок в граммах на кг веса",
+   "what_ru": "Третий режим цели по белку: г на кг веса, с готовыми вариантами 1,2 / 1,6 / 2,0 г/кг. Жиры не опускаются ниже безопасного минимума. Приём пищи, где белка меньше 20 г, получает тихую серую пометку.",
+   "why": "Позиция ISSN 2026: 1,2–1,6 г/кг для всех, 1,6–2,2 г/кг при силовых тренировках. PROT-AGE: 1,0–1,2 г/кг для людей старше 65. По ISSN 2017 на один приём нужно около 0,25 г/кг или 20–40 г белка. Helms 2014 советует держать жиры на 15–30% калорий, а МР 2.3.1.0253-21 ограничивает их 30%. Режимы в % и в граммах уже есть, режим г/кг продолжает ту же логику.",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и миграция SQLite.",
+   "implementation": "Append a migration to db/migrations.ts: alter table profile add column protein_gkg real (null = mode is off). lib/nutrition.ts macroTargets: if protein_gkg is set, protein_g = protein_gkg × refWeight, where refWeight is the current weight; when BMI ≥ 30, use the weight at BMI 27 (a design choice, shown in the UI). fat = max(fat_pct share, 0.2×kcal/9); carbs take the remainder; if the remainder < 0, lower protein to 1.2 g/kg first. app/goals.tsx: a third segment 'г/кг' with chips 1,2 / 1,6 / 2,0 / 2,2 and the hint 'Старше 65 — 1,0–1,2; при болезни почек обсудите с врачом'. app/(tabs)/index.tsx meal header: if the meal has entries and the protein sum is < 20 g, show a grey 'Б 12 г' text without a warning color (setting 'protein_hint' on by default).",
+   "sources": [
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22International%20Society%20of%20Sports%20Nutrition%20position%20stand%3A%20diets%20for%20body%20weight%20reduction%22&resultType=core&format=json&pageSize=2",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:28642676%20AND%20SRC:MED&resultType=core&format=json",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:23867520%20AND%20SRC:MED&resultType=core&format=json",
+    "https://legalacts.ru/doc/mr-2310253-21-231-gigiena-gigiena-pitanija-ratsionalnoe-pitanie-normy/"
+   ]
+  },
+  {
+   "id": "w1-calm-diary",
+   "title_ru": "Спокойный дневник и отмена действий",
+   "what_ru": "При превышении нормы цифра не краснеет, а рядом спокойно написано «сверх нормы на 150 ккал». После добавления еды внизу на 4 секунды появляется плашка «Добавлено: гречка 150 г · 165 ккал · Отменить». Удаление записи тоже можно отменить.",
+   "why": "MacroFactor специально не показывает красных цифр и упрёков, и рецензенты это хвалят. Пользователи YAZIO жалуются, что красные предупреждения давят. Честные записи важны для адаптивного расчёта. В трёх российских отзывах на YAZIO (сентябрь 2024) пишут, что кнопка «Готово» перестаёт отвечать. Сейчас app/(tabs)/index.tsx красит остаток в t.danger, когда он меньше нуля.",
+   "impact": 3,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "app/(tabs)/index.tsx line ~108: replace color={left<0?t.danger:t.text} with a neutral color and the label 'сверх нормы на X'. Do the same in the progress bars and in progress.tsx. Optional setting 'over_red' off by default. ui/components.tsx: add a Toast host (an Animated View at the bottom plus a ToastContext in lib/app-state.tsx) with show({text, action}). food/[id].tsx and add-food: after addFoodEntry, router.back() and show the toast; 'Отменить' calls deleteEntry(id). entry/[id].tsx delete: keep the Entry object in memory, and Undo re-inserts it with the same id (new repo.restoreEntry(e)). Disable the save button while the promise is pending and catch errors into an Alert, so a tap never 'does nothing'. Do not add any congratulation screens.",
+   "sources": [
+    "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+    "https://outlift.com/macrofactor-review/",
+    "https://apps.apple.com/UA/app/id946099227",
+    "https://apps.apple.com/ru/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+   ]
+  },
+  {
+   "id": "w1-csv-export",
+   "title_ru": "Экспорт в CSV для Excel и нутрициолога",
+   "what_ru": "Рядом с PDF и резервной копией появится экспорт в CSV за выбранный период: все записи с продуктами, итоги по дням и замеры. Файлы сразу открываются в Excel и Google Таблицах с русскими буквами.",
+   "why": "Нет экспорта: это частая жалоба на YAZIO (Trustpilot 2026, t-j.ru). Появился даже отдельный пакет yazio-exporter. Пользователи TASAGER просят CSV или XLSX для замеров и питания. PDF и JSON уже есть, CSV стоит дёшево.",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS: expo-file-system и expo-sharing уже стоят.",
+   "implementation": "New lib/csv.ts: toCsv(rows, headers) with ';' as the separator, decimal comma, quoted fields, and a '﻿' BOM so Excel in Russian opens UTF-8. Builders: entriesCsv(db,from,to) from entriesBetween (дата;приём;продукт;граммы;порция;ккал;белки;жиры;углеводы); daysCsv from dailyTotals plus the kcal goal and the weight of that date; measurementsCsv from measurementsBetween pivoted to one row per date with columns вес;шея;грудь;бицепс;талия;ягодицы;бедро. Write with new File(Paths.cache, `kalorii-${kind}-${from}_${to}.csv`) and share with Sharing.shareAsync(uri,{mimeType:'text/csv', UTI:'public.comma-separated-values-text'}). app/export.tsx: a format segment PDF / CSV / JSON that reuses the existing date range and its validation. For CSV, add checkboxes for the three files and share them one after another.",
+   "sources": [
+    "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+    "https://t-j.ru/apps-yazio/",
+    "https://pypi.org/project/yazio-exporter/",
+    "https://www.rustore.ru/catalog/app/com.tasager.health/reviews"
+   ]
+  },
+  {
+   "id": "w1-auto-backup",
+   "title_ru": "Автокопия в «Файлы»",
+   "what_ru": "Раз в неделю приложение само сохраняет резервную копию в папку «На iPhone → Калории» в приложении «Файлы». Оттуда её можно перенести в iCloud Drive. Восстановление работает через тот же выбор файла.",
+   "why": "Данные хранятся только локально, а IPA через TrollStore можно случайно удалить. Пользователи YAZIO теряли данные при смене телефона. Синхронизация через iCloud-контейнер с фейковой подписью невозможна, а системный выбор файлов и общий доступ к Documents работают без entitlements.",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Новых модулей нет. В app.json добавить ios.infoPlist UIFileSharingEnabled=true и LSSupportsOpeningDocumentsInPlace=true, потом пересобрать IPA. Entitlements iCloud не нужны.",
+   "implementation": "lib/backup.ts: split exportBackup into buildBackupJson(db) and the share step. Add autoBackup(db): if getSetting('last_auto_backup') is older than 7 days, write new File(Paths.document,'Backups',`kalorii-${todayKey()}.json`) (create the Directory if needed), keep the 8 newest files and delete older ones, then setSetting('last_auto_backup', today). Call it from app/_layout.tsx on mount and on AppState 'active'. Extend TABLES whenever new tables are added (day_status, day_notes and so on). app/settings.tsx: a toggle 'Автокопия раз в неделю' plus the line 'Последняя: 03.11, папка «Файлы → На iPhone → Калории»'. importBackup already uses DocumentPicker, so the copied files can be picked from Files.",
+   "sources": [
+    "https://developer.apple.com/documentation/uikit/uidocumentpickerviewcontroller",
+    "https://docs.expo.dev/versions/v58.0.0/sdk/document-picker/",
+    "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+   ]
+  },
+  {
+   "id": "w1-norms",
+   "title_ru": "Нормы витаминов по полу и возрасту, клетчатка и сахар",
+   "what_ru": "Проценты витаминов и минералов считаются по российским нормам МР 2.3.1.0253-21 для вашего пола и возраста. Клетчатка показывается рядом с Б/Ж/У в итогах дня. Лимит добавленного сахара считается от вашей нормы калорий. «Возможный недостаток» показывается только по среднему за 7–14 дней.",
+   "why": "На t-j.ru пишут, что в YAZIO у витаминов нет норм. Cronometer хвалят за прогресс-бары до нормы. В МР 2.3.1.0253-21 нормы различаются: железо 10/18 мг, кальций 1000/1200 мг после 65, витамин D 15/20 мкг, клетчатка 20–25 г, добавленный сахар до 10% калорий (до 5% при лишнем весе). Пользователи TASAGER просят показывать клетчатку рядом с БЖУ. Сейчас в lib/micros.ts одна норма для всех (например, железо 14).",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "New data/norms.ts: Record<NutrientKey, {male:number|[ageMax,value][], female:...}> filled from MR 2.3.1.0253-21: Fe 10/18, Ca 1000 (1200 from 65), vit D 15 (20 from 65), B12 3, B9 400, Mg 420, K 3500, Na limit 2000, fiber 25 (setting 25/30/35). lib/micros.ts: dvFor(key, profile) uses sex and ageFrom(birth_date). pctDV and microsScore take a profile argument. The added_sugar dv is computed as 0.10×kcal_goal/4, or 0.05×kcal_goal/4 when bmi(currentWeight) ≥ 25. app/nutrients.tsx: a 7/14-day average mode using microsByDay over logged days only. Show the 'возможный недостаток' badge only when at least 7 days are logged and the average is below 70%, and show 'выше лимита' for limit nutrients. Every value is prefixed with '≈'. app/(tabs)/index.tsx summary: add a 'Клетчатка X / 25 г' row next to the macros, using the dayMicros already loaded near line 169. At a kcal goal below 1500, show a static hint card about vitamin D, iodine and vitamin E with 'обсудите с врачом' wording (Calton 2010).",
+   "sources": [
+    "https://legalacts.ru/doc/mr-2310253-21-231-gigiena-gigiena-pitanija-ratsionalnoe-pitanie-normy/",
+    "https://t-j.ru/apps-yazio/",
+    "https://www.promealplan.com/en/blog/cronometer-review-2026",
+    "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Calton%20%22prevalence%20of%20micronutrient%20deficiency%20in%20popular%20diet%20plans%22&resultType=core&format=json&pageSize=2"
+   ]
+  },
+  {
+   "id": "w1-body-composition",
+   "title_ru": "Процент жира и отношение талии к росту",
+   "what_ru": "Из уже введённых замеров (талия, шея, ягодицы, рост) приложение оценивает процент жира по формуле ВМС США как «около 24% (±4%)», жировую и безжировую массу и строит их график. Отдельно показывается отношение талии к росту с зонами риска.",
+   "why": "Замеры у пользователя уже есть, поэтому функция почти бесплатная. Формула Navy опубликована (calculator.net), её погрешность против DXA около ±4% (Hodgdon). NICE NG246 для WHtR: 0,4–0,49 норма, 0,5–0,59 повышенный риск, 0,6 и выше высокий. Рекомендации Минздрава «Ожирение»: абдоминальное ожирение при талии больше 94 см у мужчин и больше 80 см у женщин. Безжировая масса также нужна для потолка дефицита.",
+   "impact": 3,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "New lib/body.ts: navyBodyFat(sex, heightCm, waist, neck, hips): men 495/(1.0324−0.19077·log10(waist−neck)+0.15456·log10(h))−450; women 495/(1.29579−0.35004·log10(waist+hips−neck)+0.22100·log10(h))−450. Use the 'hips' measurement type (ягодицы). Return null on invalid input (waist ≤ neck). whtr(waist,h). aceCategory(sex,bf). abdominalFlag(sex,waist) with 94/80. app/measurements.tsx: a 'Состав тела (оценка)' card computed from latestMeasurements: 'около X% (±4%) · жир Y кг · без жира Z кг' and 'Талия/рост 0,52 — повышенный риск', with WHtR hidden when BMI ≥ 35. app/series/[type].tsx: support a virtual type 'bodyfat' that joins dates where waist and neck (plus hips for women) exist. lib/pdf.ts: add both rows to the measurements section.",
+   "sources": [
+    "https://www.calculator.net/body-fat-calculator.html",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Hodgdon%20Beckett%20prediction%20of%20percent%20body%20fat%20circumference%20Navy&resultType=core&format=json&pageSize=3",
+    "https://gpnotebook.com/pages/obesity/waist-to-height-ratio-whr",
+    "https://legalacts.ru/doc/klinicheskie-rekomendatsii-ozhirenie-utv-minzdravom-rossii/"
+   ]
+  },
+  {
+   "id": "w1-datamatrix",
+   "title_ru": "Сканирование кодов «Честный ЗНАК»",
+   "what_ru": "Сканер читает квадратные DataMatrix-коды маркировки на молочке, воде и других товарах. Он достаёт из них штрихкод товара и ищет продукт как обычно. Это удобно, когда EAN на упаковке плохо читается.",
+   "why": "Маркировка «Честный ЗНАК» обязательна для молочной продукции, воды и других категорий. Ни одно российское приложение для подсчёта калорий её не поддерживает. Сканер в российских отзывах — главная жалоба. expo-camera уже умеет тип datamatrix, так что новых модулей не нужно.",
+   "impact": 3,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS: тип кода уже есть в expo-camera.",
+   "implementation": "app/scanner.tsx: add 'datamatrix' to barcodeScannerSettings.barcodeTypes. New lib/gs1.ts: normalizeScan(type, data): for datamatrix, strip the ']d2' prefix and the leading \\x1d (GS), find AI '01' at the start and take 14 digits; if gtin14 starts with '0', drop it to get the EAN-13. Validate the GS1 check digit and ignore the crypto tail (AI 21/91/92). Return null if the code is not GS1, then show 'Это не код товара'. Pass the result to the existing getFoodByBarcode → offByBarcode → food-edit flow. Unit-test parsing with 3–4 sample strings in a small tools/ script run by node.",
+   "sources": [
+    "https://apps.apple.com/RU/app/id1400723804",
+    "https://www.securitylab.ru/blog/personal/Technolady/361961.php",
+    "https://apps.apple.com/us/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%BC%D0%BE%D0%B9-%D1%80%D0%B0%D1%86%D0%B8%D0%BE%D0%BD/id1575349217?l=ru"
+   ]
+  },
+  {
+   "id": "w1-search-trust",
+   "title_ru": "Чистый поиск: метки источника и без дублей",
+   "what_ru": "В результатах поиска у каждого продукта видна метка: «база» (проверено), «мой» или «OFF» (народная база). Одинаковые продукты с похожими калориями свёрнуты в одну строку «+2 варианта». Русские и продаваемые в России товары идут первыми.",
+   "why": "На t-j.ru жалуются: одно блюдо — несколько вариантов с разной калорийностью. По данным агрегатора, 18% негативных отзывов о трекерах калорий — про ошибки базы. На Trustpilot и в российском App Store жалуются на иностранные продукты в выдаче. В repo.searchFoods своё уже поднимается (+3), но метки «база» и группировки нет, а OFF не фильтруется по стране.",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "app/add-food.tsx renderItem: a small source chip (builtin='база ✓', custom='мой', off='OFF'). Group results by normalized name (lowercase, ё→е, punctuation stripped) when kcal differs by ≤10%; show the most used one with '+N' to expand. If kcal differs by more than 10%, keep separate rows but show the kcal clearly. db/repo.ts searchFoods score: +2 if the name has Cyrillic letters, +2 if the barcode starts with 460–469, +1 if builtin. lib/off.ts offSearch: on the client, sort hits with product_name_ru or Cyrillic product_name first and barcodes 46x next. Optionally make a first Search-a-licious request filtered by countries_tags=en:russia (check the query syntax against the API docs) and fall back to the current request. Keep the 'search on submit only' rate rule.",
+   "sources": [
+    "https://t-j.ru/apps-yazio/",
+    "https://unstar.app/blog/calorie-tracking-apps-ranked-1-star-reviews-2026",
+    "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+    "https://apps.apple.com/ru/app/yazio-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%B8-%D0%B4%D0%B8%D0%B5%D1%82%D0%B0/id946099227"
+   ]
+  },
+  {
+   "id": "w1-product-fix",
+   "title_ru": "Исправление карточки продукта и проверка КБЖУ",
+   "what_ru": "Любой продукт из Open Food Facts или базы можно исправить прямо в карточке. Ваша правка сохраняется и больше не перезаписывается. Если калории не сходятся с Б/Ж/У или углеводы указаны вместе с клетчаткой (американский формат), приложение подскажет и предложит пересчитать.",
+   "why": "В отзывах TASAGER и «Худеем вместе» жалуются на неверные БЖУ и невозможность править карточку. На Trustpilot (2026) пишут, что отсканированные продукты приходят с неверными макросами. Отзыв на Trustpilot (июль 2026): американский формат считает клетчатку в углеводах дважды. Проверка 4Б+9Ж+4У простая и ловит ошибки ввода.",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и миграция SQLite.",
+   "implementation": "Migration: alter table foods add column edited integer not null default 0. app/food/[id].tsx: an 'Исправить' button for source 'off' and 'builtin' that opens food-edit with the id. saveFood keeps id, source and barcode and sets edited=1. Wherever an OFF product is re-fetched and upserted by barcode (scanner), skip the overwrite when edited=1. lib/nutrition.ts: kcalCheck(f): est=4P+9F+4C; if |kcal−est|/kcal>0.15, return a mismatch. If fiber>0 and |kcal−(4P+9F+4(C−fib)+2fib)| is clearly smaller, return 'carbs_include_fiber'. food-edit and food/[id] show a neutral hint 'По составу ≈ 230 ккал, указано 310' and the action 'Углеводы с клетчаткой → вычесть'. Run the same check in lib/off.ts mapProduct for barcodes starting with 0 or 1 (US/CA) and store the flag so the card shows it.",
+   "sources": [
+    "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+    "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+    "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+    "https://www.fatsecret.com/ru/fatsecret-справка-приложения/начало-работы/не-можете-найти-продукт"
+   ]
+  },
+  {
+   "id": "w1-last-portion",
+   "title_ru": "Порция как в прошлый раз",
+   "what_ru": "Продукт открывается с той порцией, которую вы брали в прошлый раз. Отсканированный товар открывается с весом упаковки, а не со 100 г. В «Недавних» есть кнопка «+», которая повторяет прошлую порцию одним тапом.",
+   "why": "В отзыве на «Худеем вместе» просят порцию по умолчанию вместо 100 г, разработчик обещал рассмотреть. MacroFactor (отчёт за 2025) хранит избранные порции. Отзывы о FatSecret хвалят быстрый повтор. lib/off.ts уже разбирает порцию и упаковку в servings, но экран продукта их не использует как значение по умолчанию.",
+   "impact": 4,
+   "effort": "S",
+   "wave": 1,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и миграция SQLite.",
+   "implementation": "Migration: alter table foods add column last_grams real; add column last_serving text. repo.addFoodEntry and updateEntryGrams: update foods set last_grams=?, last_serving=? where id=?. app/food/[id].tsx initial unit/amount: if last_grams is set, use last_serving (a matching serving) or grams. Else, when params.from==='scanner', use the 'упаковка' serving, then 'порция'. Else 100 g. Show a chip 'как в прошлый раз · 250 г'. scanner.tsx passes from:'scanner'. app/add-food.tsx recent/favourite rows: a trailing '+' IconButton that calls addFoodEntry(db,date,meal,food,last_grams??100,last_serving) and shows the undo toast from w1-calm-diary.",
+   "sources": [
+    "https://apps.apple.com/us/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D1%85%D1%83%D0%B4%D0%B5%D0%B5%D0%BC-%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%B5/id889574511?l=ru",
+    "https://macrofactor.com/annual-report-2025/",
+    "https://calorie-trackers.com/reviews/fatsecret/"
+   ]
+  },
+  {
+   "id": "w2-adaptive-tdee",
+   "title_ru": "Реальный расход и еженедельная проверка нормы",
+   "what_ru": "Через 2–4 недели приложение считает ваш реальный расход калорий по съеденному и линии тренда веса. Раз в неделю оно предлагает новую норму с объяснением, например «Расход ≈ 2380 ккал (±200). Вес снижается медленнее плана, предлагаем 1880 вместо 1950». Пропущенные и незаполненные дни не портят расчёт.",
+   "why": "Это самая хвалимая функция MacroFactor во всех источниках и главная причина уходить из MFP. Sanghvi 2015 проверил метод по изменению веса двойной меченой водой: среднее по группе в пределах 40 ккал. MacroFactor V3 приостанавливает пересчёт, если пропущено больше 3 из 7 дней, использует одинаковый ρ для набора и снижения и стабилизируется за 14–30 дней. Ни у одного российского приложения такого нет.",
+   "impact": 5,
+   "effort": "L",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и миграция SQLite.",
+   "implementation": "Migration: create table day_status(date text primary key, complete integer, tag text); create table expenditure_log(week_start text primary key, tdee real, band real, kcal_goal real, accepted integer, reason text). Diary: a 'День заполнен ✓' toggle at the bottom of index.tsx. A day counts as logged if it is marked complete, or if it has entries and kcal ≥ 40% of the goal and it is not marked incomplete. New lib/expenditure.ts: window 21–28 days; logged days only; pause when more than 3 of the last 7 days are unlogged. adaptive = mean(intake over logged days) − (trendEnd−trendStart)·7700/spanDays, using lib/trend.ts. w = clamp((loggedDays−7)/21,0,1); tdee = w·adaptive + (1−w)·nutrition.tdee(profile). Clamp the weekly change to ±150. band = 200 kcal, shrinking to 120 after 28 days. Target = tdee − pace·7700/7 for 'lose' (respecting the w1-goal-transparency floors), +delta for 'gain', 0 delta for 'maintain'. Never compensate past weeks. app/(tabs)/progress.tsx: on the first open on or after Monday, show a check-in card with the reason text and the buttons Принять (saveProfile kcal_goal, kcal_auto stays 1) / Оставить. Store the row in expenditure_log. Add both tables to backup TABLES.",
+   "sources": [
+    "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+    "https://macrofactor.com/expenditure-v3/",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Sanghvi%20validation%20inexpensive%20accurate%20mathematical%20method%20long-term%20changes%20free-living%20energy%20intake&resultType=core&format=json&pageSize=2",
+    "https://outlift.com/macrofactor-review/",
+    "https://gummysearch.com/tools/best-products/calorie-tracking-app/"
+   ]
+  },
+  {
+   "id": "w2-offline-queue",
+   "title_ru": "Работа без интернета и очередь штрихкодов",
+   "what_ru": "Если мобильный интернет отключили, отсканированный штрихкод попадает в очередь «уточнить позже». Еду можно сразу записать примерно (название и калории). Когда сеть вернётся, приложение само найдёт продукт и предложит заменить оценку точными данными. Недавние поиски в Open Food Facts тоже работают офлайн.",
+   "why": "Rozetked насчитал больше 11 700 отключений мобильного интернета в России за 2025 год; Open Food Facts не входит в белые списки. Пользователь TASAGER на RuStore просит именно офлайн-режим и отложенную синхронизацию сканов. Сейчас scanner.tsx при сетевой ошибке предлагает только создать продукт вручную.",
+   "impact": 5,
+   "effort": "M",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS. NetInfo не нужен: повтор запроса при возврате приложения на экран.",
+   "implementation": "Migration: create table pending_barcodes(code text primary key, entry_id text, meal_type text, date text, created_at text, tries integer default 0); create table off_cache(query text primary key, json text, ts text). scanner.tsx: on OffError kind 'network', show an Alert 'Нет интернета' with the buttons 'Записать примерно' (router to quick-add with params name='Штрихкод …1234', barcode) / 'Создать продукт' / 'Отмена'. quick-add.tsx saves addQuickEntry and inserts into pending_barcodes. New lib/pending.ts resolvePending(db): on AppState 'active' (app/_layout.tsx), at most 5 codes per run because of OFF's 15 reads/min; on a hit, saveFood and set the setting 'pending_found'. index.tsx shows a banner 'Найдены продукты для 2 записей' that opens a list: for each one, ask the grams and replace the quick entry with addFoodEntry, deleting the placeholder. lib/off.ts offSearch: store the mapped results JSON in off_cache. On a network error, return cached results for the same query with the label 'сохранённые результаты'. Purge entries older than 30 days.",
+   "sources": [
+    "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+    "https://rozetked.me/articles/43447-belye-spiski-chto-eto-i-kakie-resursy-dostupny"
+   ]
+  },
+  {
+   "id": "w2-cooked-dish",
+   "title_ru": "Домашнее блюдо по весу готовой кастрюли",
+   "what_ru": "В блюде можно указать вес готовой кастрюли, а приложение вычтет вес самой кастрюли из списка «моих кастрюль». КБЖУ на 100 г считается по реальному готовому весу, и записать можно просто «взял 350 г борща». Ингредиенты можно вставить списком текстом.",
+   "why": "Российские гайды (vc.ru, ichip.ru) объясняют, что вес готового блюда нельзя вывести из ингредиентов из-за испарения и впитывания воды, поэтому надо взвесить. Одно приложение хвалят именно за выбор кастрюли. Сейчас repo.logMeal записывает блюдо как отдельные ингредиенты: на порцию супа так считать неудобно. Импорт рецептов есть у Cronometer и MacroFactor.",
+   "impact": 4,
+   "effort": "M",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и миграция SQLite.",
+   "implementation": "Migration: alter table meals add column cooked_weight_g real; alter table foods add column meal_id text (a hidden food row that represents the dish). Setting 'pans': [{name, tare_g}]. app/meal-edit.tsx: a field 'Вес готового блюда, г' and a 'Кастрюля' picker (subtract the tare). Per 100 g = sum of ingredient kcal/macros ÷ net weight × 100. On save, upsert the hidden food (source 'custom', category 'dish', name = dish name, servings [{name:'порция', grams: default}]) with deleted=0 and exclude it from the my-foods list via meal_id. add-food.tsx: when a meal with cooked_weight_g is tapped, open food/[id] for its hidden food (grams input), which creates a single diary entry. Without a cooked weight, keep the current per-ingredient logMeal. meal-edit 'Вставить списком': parse lines with /^(.+?)\\s+(\\d+[.,]?\\d*)\\s*(г|гр|мл)?$/i, match via searchFoods top-1, and show a confirm list where each match can be changed.",
+   "sources": [
+    "https://vc.ru/food/2780467-kak-poschitat-kalorinost-bluda",
+    "https://ichip.ru/sovety/ekspluataciya/kak-schitat-kalorii-933902",
+    "https://www.promealplan.com/en/blog/cronometer-review-2026",
+    "https://macrofactor.com/annual-report-2025/"
+   ]
+  },
+  {
+   "id": "w2-household-measures",
+   "title_ru": "Ложки, стаканы и «сухая или варёная»",
+   "what_ru": "У базовых продуктов появятся бытовые меры: ст. ложка, ч. ложка, стакан 250 мл, штука, ломтик. Можно считать без весов. Крупы, макароны и мясо есть парами «сухая / варёная», а при выборе есть подсказка «вы взвешиваете сухую или готовую?».",
+   "why": "Роспотребнадзор выпускает памятку «Определяем порцию без кулинарных весов». На Хабре спрашивают, где взять таблицу мер, то есть готового открытого источника нет. Пользовательские записи варёной гречки на health-diet.ru разбросаны от 80 до 362 ккал/100 г. По данным КП, сухая гречка 340 ккал, варёная около 105. Поле servings в foods уже есть.",
+   "impact": 4,
+   "effort": "M",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS: данные и миграция.",
+   "implementation": "data/basic-foods.ts: add servings per item (for example мука: ст. ложка 25 г, ч. ложка 8 г; сахар 25/8; масло растительное: ст. ложка 17 г; молоко: стакан 250 г; яйцо: штука 55 г; хлеб: ломтик 30 г; суп: тарелка 300 г) and a pair key (pair:'buckwheat', state:'dry'|'cooked'). Add the missing variants: гречка, рис, овсянка, пшено, булгур, макароны (сухие / варёные), курица и говядина (сырая / варёная / жареная). Migration: for builtin rows whose servings='[]', update servings from BASIC_FOODS by name; insert missing variants with the same seed helper as seedBasicFoods. app/food/[id].tsx: if the food has a pair, show the chip 'Есть вариант «варёная» — 105 ккал' to switch, and a one-line hint about weighing. The add-food result row shows 'сух.' or 'вар.' tags.",
+   "sources": [
+    "https://nizhnedevickij-r20.gosweb.gosuslugi.ru/netcat_files/userfiles/Informatsiya_dlya_naseleniya_rospotrebnadzor/Opredelyaem_portsiyu_bez_vesov.doc",
+    "https://qna.habr.com/q/612421",
+    "https://health-diet.ru/table_calorie_users/2000783/",
+    "https://www.kp.ru/family/eda/kalorijnost-varenoj-grechki/"
+   ]
+  },
+  {
+   "id": "w2-copy-move",
+   "title_ru": "Выбор нескольких записей: копировать и переносить",
+   "what_ru": "Долгое нажатие на запись включает выбор нескольких продуктов. Их можно скопировать или перенести в другой приём пищи или день, в том числе кнопками «Сегодня» и «Завтра». Целый день можно скопировать в другой.",
+   "why": "У MacroFactor есть Select Day, To Today/To Tomorrow и Multi-Paste, и это одна из причин, почему логирование там быстрее MFP. Отзыв на Lifesum просит мультивыбор недавних. Сейчас есть только копирование приёма пищи (repo.copyMeal).",
+   "impact": 3,
+   "effort": "M",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "db/repo.ts: copyEntries(db, ids, toDate, toMeal) (insert copies with a new uuid and created_at), moveEntries(db, ids, toDate, toMeal) (update date, meal_type, updated_at), copyDay(db, from, to). app/(tabs)/index.tsx: selection state Set<string>. Long-press an entry to enter selection mode with checkboxes. A bottom action bar offers Копировать / Перенести / Удалить. The target sheet has Сегодня, Завтра, a date picker (the existing ui/calendar) and a meal choice. After pasting, keep the selection so the same items can go to another day, until 'Готово'. The day menu gets 'Скопировать весь день в…'. Show the undo toast for moves and deletes.",
+   "sources": [
+    "https://macrofactor.com/timeline-based-food-logger/",
+    "https://macrofactor.com/10-macrofactor-features/",
+    "https://apps.apple.com/us/app/-/id286906691"
+   ]
+  },
+  {
+   "id": "w2-forecast",
+   "title_ru": "Реалистичный прогноз даты цели",
+   "what_ru": "На графике веса пунктиром показан прогноз, который замедляется по мере снижения веса. Дата цели дана диапазоном, например «75 кг: ориентировочно март–апрель 2027», а не одной точной датой по правилу 7700 ккал.",
+   "why": "Thomas 2013: правило 3500 ккал на фунт сильно завышает потерю веса. Hall 2008/2011: расход падает вместе с весом. Прогнозы — платная функция у Carb Manager и YAZIO PRO, а отзывы на Lose It называют прогноз любимой функцией.",
+   "impact": 3,
+   "effort": "M",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "New lib/forecast.ts: simulate(W0, intake, tdeeNow, factor, target): daily loop W += (I − (tdeeNow + 10·factor·(W−W0)))/7700, stop at the target or after 540 days, return points every 7 days. Run three times with I = avg logged intake over the last 14 days (or kcal_goal if fewer than 7 logged days) ±100 kcal, which gives the date range. tdeeNow comes from w2-adaptive-tdee if available, else nutrition.tdee. ui/charts.tsx LineChart: an optional `forecast?: Point[]` drawn dashed, plus the target line. progress.tsx: the text 'ориентировочно <месяц>–<месяц> <год>'. Hide it with 'при текущем темпе цель не приближается' if the trend moves the other way.",
+   "sources": [
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Thomas%20%22Can%20a%20weight%20loss%20of%20one%20pound%20a%20week%20be%20achieved%20with%20a%203500-kcal%20deficit%22&resultType=core&format=json&pageSize=2",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:21872751%20AND%20SRC:MED&resultType=core&format=json",
+    "https://www.niddk.nih.gov/bwp",
+    "https://apps.apple.com/us/app/id410089731"
+   ]
+  },
+  {
+   "id": "w2-my-foods-manager",
+   "title_ru": "Удобный менеджер своих продуктов и блюд",
+   "what_ru": "«Мои продукты» получат поиск, сортировку (А–Я, недавние), фильтры «Продукты / Блюда / Исправленные», удаление с отменой и объединение дублей. Можно создать продукт «как этот» и поделиться блюдом текстом с КБЖУ.",
+   "why": "На Trustpilot пользователь YAZIO потратил 4 часа и не смог удалить мусорные записи. Пользователи TASAGER просят поиск и сортировку рецептов, «Худеем вместе» — делиться блюдом, FatSecret — редактировать рецепты. Сейчас app/my-foods.tsx — простой список без поиска.",
+   "impact": 3,
+   "effort": "S",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "app/my-foods.tsx: a search TextField filtering in JS, a sort segment, filter chips, and a swipe or long-press delete that calls the existing soft delete (foods.deleted=1) with the undo toast (repo.restoreFood sets deleted=0). Merge: select two foods, keep one, run `update diary_entries set food_id=? where food_id=?` and the same for meal_items, then soft-delete the other. food-edit.tsx: a 'Создать похожий' action that pushes food-edit with params copyFrom=id (prefilled, no id). meal-edit.tsx: a 'Поделиться' action via Share.share({message}) with the name, per-100 g KBJU, ingredients with grams and the cooked weight.",
+   "sources": [
+    "https://www.trustpilot.com/review/yazio.com",
+    "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+    "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+    "https://apps.apple.com/ru/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%BE%D1%82-fatsecret/id347184248"
+   ]
+  },
+  {
+   "id": "w2-nutrient-sources",
+   "title_ru": "Откуда нутриент и где его взять",
+   "what_ru": "Нажмите на витамин или минерал и увидите, какие продукты за период дали его больше всего, в процентах. Ниже показан список ваших и базовых продуктов, богатых этим нутриентом на 100 г и на 100 ккал. 2–3 важных нутриента можно закрепить в итогах дня.",
+   "why": "У MacroFactor «nutrition contributors» и закрепление нутриентов — ключевые функции. Fortune выделяет Oracle в Cronometer (поиск продуктов по нутриенту). Расчёт оценок по продуктам уже есть в lib/micros.ts, поэтому нужен только экран.",
+   "impact": 3,
+   "effort": "S",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "New route app/nutrient/[key].tsx (params key, from, to). Contributors: entriesBetween → for each entry with food_id, getFood → microsPer100 → scale by grams; group by food name, sort by share %. 'Где взять': select foods where deleted=0 and (source!='off' or use_count>0); compute microsPer100 per 100 g and per 100 kcal; show the top 15 with a '≈' marker; tap opens food/[id]. app/nutrients.tsx rows become pressable. Setting 'pinned_nutrients' (max 3), toggled with a star on the nutrient screen. index.tsx summary renders the pinned ones from the dayMicros it already loads.",
+   "sources": [
+    "https://macrofactor.com/10-macrofactor-features/",
+    "https://fortune.com/article/cronometer-review/",
+    "https://www.promealplan.com/en/blog/cronometer-review-2026"
+   ]
+  },
+  {
+   "id": "w3-meal-slots",
+   "title_ru": "Свои приёмы пищи: второй завтрак, полдник",
+   "what_ru": "Приёмы пищи можно переименовать, переставить и добавить до 6 штук, например «Второй завтрак», «Полдник», «После тренировки». У каждого приёма остаются свои итоги калорий.",
+   "why": "Многие в России едят 5 раз в день. «Мой здоровый рацион» рекламирует до 9 приёмов. Пользователи «Худеем вместе» постоянно просят перекус. Cronometer сделал Diary Groups для всех. Сейчас в diary_entries стоит CHECK (meal_type in 4 values), поэтому таблицу придётся перестроить.",
+   "impact": 4,
+   "effort": "L",
+   "wave": 3,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и миграция SQLite.",
+   "implementation": "Migration: create table meal_slots(key text primary key, title text, sort integer, hidden integer default 0) seeded with the 4 current slots. Rebuild diary_entries without the CHECK inside the migration transaction: create diary_entries_new with the same columns, insert…select, drop, rename, recreate the diary_date index. PRAGMA foreign_keys has to be off during the rebuild; run it outside the transaction in migrate() for this version. lib/nutrition.ts: MealType becomes string; MEALS and mealTitle move into lib/app-state.tsx context, loaded from meal_slots. Update index.tsx, add-food, quick-add, food/[id] (ui/portion meal chips), copyMeal, pdf.ts, and reminders.ts (a reminder per slot). New app/meal-slots.tsx from settings: rename, reorder with up/down buttons, add up to 6, hide (no deleting a slot with entries). Backup includes meal_slots, and an older backup without it maps to the defaults.",
+   "sources": [
+    "https://lifehacker.ru/14-prilozhenij-dlya-poxudeniya/amp/",
+    "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+    "https://cronometer.com/blog/cronometer-updates-whats-new-improved"
+   ]
+  },
+  {
+   "id": "w3-calorie-schedule",
+   "title_ru": "Калорийный график по дням недели",
+   "what_ru": "Можно сделать выходные или тренировочные дни калорийнее, например +300 ккал в субботу и воскресенье. Остальные дни уменьшатся так, чтобы недельная сумма не изменилась. В дневнике видно, сколько осталось на неделю.",
+   "why": "Lose It продвигает «Flexible Weekender». FeastGood хвалит бесплатное чередование дней у FatSecret. У Cronometer есть Macro Scheduler. Отзыв на YAZIO в US App Store просит калорийные выходные.",
+   "impact": 3,
+   "effort": "M",
+   "wave": 3,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "Setting 'kcal_schedule': {enabled, bonus: {weekdayIndex: kcal}}. lib/nutrition.ts goalForDate(profile, date): base = kcal_goal; sumBonus = Σ bonus; others = 7 − count(bonus days); for a bonus day return base+bonus, else base − sumBonus/others (floored at 1200/1500). Replace direct profile.kcal_goal reads in index.tsx, progress.tsx (bar target line), pdf.ts, expenditure (the target is still weekly) and the widget snapshot with goalForDate. Macros: protein and fat stay fixed, carbs absorb the difference. goals.tsx: weekday chips Пн…Вс with a ±kcal stepper and a preview of each day's kcal. index.tsx: the line 'Неделя: осталось 6 200 из 13 300 ккал' (from weekStart).",
+   "sources": [
+    "https://screensdesign.com/showcase/lose-it-calorie-counter",
+    "https://feastgood.com/?p=22615",
+    "https://cronometer.com/blog/cronometer-updates-whats-new-improved",
+    "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+   ]
+  },
+  {
+   "id": "w3-plateau-maintenance",
+   "title_ru": "Плато, перерыв в диете и режим удержания",
+   "what_ru": "Если вес стоит три недели при полном дневнике, приложение спокойно объясняет причину и предлагает выбор: снизить норму на 100–200 ккал, взять перерыв на поддержании или потренироваться удерживать вес. Дни перерыва, начала креатина, болезни и цикла можно отметить, и они не сбивают расчёт. После цели включается режим удержания с коридором ±1,5 кг.",
+   "why": "MATADOR (Byrne 2018): чередование по 2 недели дало больше жиросжигания, чем непрерывный дефицит. Peos 2021: перерыв даёт +0,6 кг воды без жира. Polidori 2016: аппетит растёт примерно на 100 ккал в день на каждый потерянный кг. MacroFactor: креатин и скачки углеводов сбивают расчёт на 1–2 недели. Минздрав рекомендует удерживать результат год. Работает поверх w2-adaptive-tdee.",
+   "impact": 3,
+   "effort": "M",
+   "wave": 3,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "Reuse day_status.tag with the values 'diet_break','refeed','creatine','illness','cycle','travel', set from a day menu in index.tsx. lib/expenditure.ts: exclude tagged days and the following 7 days for creatine and diet_break, and skip the weekly change if more than half of the window is tagged. Diet break: setting {from,to}; goalForDate returns the adaptive TDEE with the carbs absorbing the extra; before starting, show the text 'вес может вырасти на 0,5–1 кг за счёт воды и гликогена'. lib/plateau.ts: slope of the trend over 21 days < 0.1% BW/week, mean intake ≤ target, and logging complete → a progress.tsx card with the explanation and the three actions. Maintenance: when the trend reaches the target or goal='maintain', the target is the adaptive TDEE; change it by ±100 only when the trend leaves target±1.5 kg. Show a one-line note when 5% or 10% has been lost, never a pop-up.",
+   "sources": [
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=MATADOR%20intermittent%20energy%20restriction%20Byrne%202018&resultType=core&format=json&pageSize=2",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Peos%20ICECAP%20intermittent%20diet%20breaks%20resistance-trained&resultType=core&format=json&pageSize=2",
+    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Polidori%20%22How%20strongly%20does%20appetite%20counter%20weight%20loss%22&resultType=core&format=json&pageSize=2",
+    "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+    "https://macrofactor.com/10-macrofactor-features/",
+    "https://legalacts.ru/doc/klinicheskie-rekomendatsii-ozhirenie-utv-minzdravom-rossii/"
+   ]
+  },
+  {
+   "id": "w3-day-notes",
+   "title_ru": "Заметка дня и самочувствие",
+   "what_ru": "К каждому дню можно добавить заметку и метки самочувствия: сон, вздутие, цикл, тренировка или свои. Заметки видны в календаре, рядом с весом и калориями в истории и в PDF.",
+   "why": "Отзывы на YAZIO в US App Store (2020, 2022) называют раздел заметок о настроении и симптомах любимым и просят свои теги. Метки также помогают объяснить скачки веса (связано с w3-plateau-maintenance).",
+   "impact": 3,
+   "effort": "S",
+   "wave": 3,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и миграция SQLite.",
+   "implementation": "Migration: create table day_notes(date text primary key, text text, tags text not null default '[]', updated_at text). Setting 'note_tags' with defaults ['Хорошее самочувствие','Плохой сон','Вздутие','Цикл','Тренировка','Стресс'], editable in settings. index.tsx: a 'Заметка' card at the bottom with tag chips and a multiline TextField, saved on blur. ui/calendar.tsx: a dot marker for days with notes. series/[type].tsx weight: tapping a point shows that day's note. lib/pdf.ts and the CSV days export get a notes column. Add the table to backup TABLES.",
+   "sources": [
+    "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+   ]
+  },
+  {
+   "id": "w3-weekly-report",
+   "title_ru": "Итоги недели",
+   "what_ru": "По понедельникам на вкладке «Прогресс» появляется карточка за прошлую неделю: средние калории к норме, белок, клетчатка, изменение тренда веса и замеров, три главных нутриента «ниже нормы», сколько дней заполнено. Её можно отправить тренеру или врачу в PDF.",
+   "why": "Cronometer в 2025 добавил виджет Nutrition Report Summary. Life Score у Lifesum считается за неделю. FeastGood хвалит FatSecret за автоматические отчёты для диетолога. Всё нужное уже считается локально.",
+   "impact": 3,
+   "effort": "M",
+   "wave": 3,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "New lib/weekly.ts weeklySummary(db, profile, weekStartKey): dailyTotals for Mon–Sun, logged days (day_status logic), average kcal against goalForDate, average protein and fiber (microsByDay), trend delta from lib/trend.ts, measurement deltas via latestMeasurements at week end versus start, the top-3 nutrients under 70% from w1-norms, and notes count. progress.tsx: a card shown when the setting last_report_seen < this week's Monday, which can be closed. 'Поделиться': lib/pdf.ts buildWeeklyPdf (same expo-print HTML template style) → sharePdf. Optional local reminder 'Итоги недели готовы' in reminders.ts, off by default.",
+   "sources": [
+    "https://cronometer.com/blog/cronometer-updates-whats-new-improved",
+    "https://www.active.com/nutrition/articles/lifesum-review",
+    "https://feastgood.com/?p=22615"
+   ]
+  },
+  {
+   "id": "w3-chains-pack",
+   "title_ru": "Меню сетей и магазинов",
+   "what_ru": "Офлайн-набор популярных позиций «Вкусно — и точка», Rostic's, «Теремок», «Додо», «Шоколадница» и готовой еды ВкусВилл с КБЖУ на порцию. В «Быстрых калориях» есть шаблоны для кафе вроде «бизнес-ланч ≈ 700 ккал». Свои продукты можно помечать магазином: ВкусВилл, Пятёрочка, Перекрёсток, Магнит.",
+   "why": "Автор Т—Ж называет кафе главным источником тревоги при подсчёте. «Вкусно — и точка» публикует КБЖУ. ВкусВилл встроил весь ассортимент в счётчик калорий Спортмастера (декабрь 2025), и это показывает реальную потребность. Раньше FatSecret хвалили как раз за российские сети.",
+   "impact": 3,
+   "effort": "M",
+   "wave": 3,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS и данные.",
+   "implementation": "New data/chains.ts: about 200–300 items {brand, name, grams, kcal, protein, fat, carbs}, hand-collected from the chains' published nutrition pages (numbers only, no copied descriptions), with a 'данные на 11.2026' stamp. Migration: insert them as source 'builtin', brand = chain, category 'restaurant', servings [{name:'порция', grams}], kcal converted to per 100 g. The existing brand search makes 'теремок блин' work. quick-add.tsx: preset chips (Бизнес-ланч 700, Шаурма 600, Пицца кусок 250, Роллы 8 шт 350, Капучино 250 мл 110) that prefill the form with the label 'примерно'. food-edit.tsx: brand field suggestion chips for the 4 chains, and my-foods can filter by brand. Refresh the data in later releases.",
+   "sources": [
+    "https://t-j.ru/schitayu-kalorii/",
+    "https://www.retail.ru/rbc/pressreleases/vkusno-i-tochka-predlagaet-gostyam-sbalansirovannye-nabory-kaloriynostyu-do-600-kkal-/",
+    "https://vkusvill.ru/media/journal/schitat-kalorii-stalo-proshche-so-vkusvillom-i-sportmasterom.html",
+    "https://www.iphones.ru/iNotes/381736"
+   ]
+  },
+  {
+   "id": "w4-quick-actions-haptics",
+   "title_ru": "Быстрые действия на иконке и тактильный отклик",
+   "what_ru": "Долгое нажатие на иконку даёт меню «Сканировать штрихкод», «Добавить еду», «Быстрые калории», «Вес». При добавлении еды и удачном скане телефон отвечает лёгкой вибрацией, и её можно выключить.",
+   "why": "Документация Expo: до 4 действий, entitlements не нужны, работает через TrollStore, на реализацию уходят часы. expo-haptics тоже без entitlements. Меньше тапов до записи еды — главный запрос в отзывах.",
+   "impact": 3,
+   "effort": "S",
+   "wave": 4,
+   "offline_ok": true,
+   "trollstore_notes": "Новые нативные модули expo-quick-actions и expo-haptics: нужна пересборка IPA. Entitlements не требуются. Вибрация не срабатывает при активной камере, поэтому на сканере её вызывать после закрытия камеры.",
+   "implementation": "npx expo install expo-quick-actions expo-haptics (the versions that match SDK 58). app.json plugins: ['expo-quick-actions', {iosActions:[{id:'scan',title:'Сканировать штрихкод',icon:'symbol:barcode.viewfinder',params:{href:'/scanner'}}, {id:'add',title:'Добавить еду',icon:'symbol:plus',params:{href:'/add-food'}}, {id:'quick',title:'Быстрые калории',icon:'symbol:bolt',params:{href:'/quick-add'}}, {id:'weight',title:'Вес',icon:'symbol:scalemass',params:{href:'/quick-weight'}}]}]. app/_layout.tsx: useQuickActionRouting(), always mounted. The meal is chosen from the time of day (lib/nutrition mealForNow). Add a route app/quick-weight.tsx (the modal from w1-trend-weight). New lib/haptics.ts that wraps Haptics with getSetting('haptics', true): selection() for the date and meal pickers, light() after addFoodEntry, success() after the scanner navigates away. Settings toggle.",
+   "sources": [
+    "https://expo.dev/blog/expo-quick-actions",
+    "https://www.npmjs.com/package/expo-quick-actions",
+    "https://docs.expo.dev/versions/v58.0.0/sdk/haptics/"
+   ]
+  },
+  {
+   "id": "w4-widgets",
+   "title_ru": "Виджеты «Калории сегодня» и на экране блокировки",
+   "what_ru": "Виджет на домашнем экране показывает кольцо «съедено / осталось» и полоски Б/Ж/У. На экране блокировки есть круглый счётчик оставшихся калорий и строка Б/Ж/У. На iOS 17 они работают и в режиме StandBy.",
+   "why": "Пользователи TASAGER прямо просят виджеты. Отзывы на YAZIO хвалят виджеты. У Cronometer и MacroFactor они есть. expo-widgets — официальный пакет, стабилен с SDK 56. Виджеты экрана блокировки работают на iOS 16, что важно при потолке TrollStore на 17.0.",
+   "impact": 4,
+   "effort": "L",
+   "wave": 4,
+   "offline_ok": true,
+   "trollstore_notes": "Сначала проверить версию iOS: SDK 58 требует 16.4+, а TrollStore поддерживает до 16.6.1 и 17.0. В GitHub Actions подписать PlugIns/*.appex через ldid ДО основного приложения, со своим widget.plist: com.apple.security.application-groups = group.app.kalorii.personal и com.apple.private.security.container-required = bundle id виджета. Основному приложению container-required не добавлять. Работу App Group под TrollStore надо проверить на устройстве (issue #873). Запрещённые entitlements не добавлять.",
+   "implementation": "npx expo install expo-widgets @expo/ui. app.json: the expo-widgets plugin with a 'TodayKcal' widget, supportedFamilies systemSmall, systemMedium, accessoryCircular, accessoryRectangular, accessoryInline; groupIdentifier group.app.kalorii.personal. New src/widgets/TodayKcal.tsx ('widget' directive): props only, no hooks; @expo/ui Gauge/ProgressView plus AccessoryWidgetBackground. New lib/widget.ts pushSnapshot(db): totals for today, goalForDate, macro goals → updateSnapshot. updateTimeline with a midnight entry that shows 0 eaten and the full goal. Call pushSnapshot from one place: a repo write hook (an onDiaryChanged callback in lib/app-state.tsx after add/update/delete/copy/move entry and after goal changes) and on AppState 'active'. settings.tsx: show the iOS version (Platform.Version) and hide widget hints below 16.4. .github/workflows/ios-ipa.yml: add an entitlements file per binary in the repo (tools/entitlements/app.plist, widget.plist), with the ldid -S steps in order (appex, then app). Interactive buttons are left for later (iOS 17.0 only; they would need an App Intent).",
+   "sources": [
+    "https://docs.expo.dev/versions/v58.0.0/sdk/widgets.md",
+    "https://expo.dev/blog/home-screen-widgets-and-live-activities-in-expo",
+    "https://github.com/opa334/TrollStore/issues/873",
+    "https://github.com/opa334/TrollStore",
+    "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+    "https://docs.expo.dev/versions/v58.0.0"
+   ]
+  },
+  {
+   "id": "w4-healthkit",
+   "title_ru": "Связь с Apple Здоровьем",
+   "what_ru": "По желанию приложение записывает в «Здоровье» калории, белки, жиры, углеводы, клетчатку, вес и талию. Вес с умных весов оно может подтягивать само. Функция по умолчанию выключена, и при запрете доступа приложение работает как раньше.",
+   "why": "Почти все российские конкуренты (FatSecret, «Худеем вместе», «Таблица калорийности») синхронизируются с Apple Health. Hi-Tech Mail называет отсутствие интеграций главным минусом «Моего здорового рациона». Пользователи TASAGER жалуются, что вес не импортируется. Приложение HealthLens под TrollStore добавляет entitlement HealthKit фейковой подписью.",
+   "impact": 3,
+   "effort": "L",
+   "wave": 4,
+   "offline_ok": true,
+   "trollstore_notes": "В ldid-plist основного приложения добавить com.apple.developer.healthkit (и при необходимости com.apple.developer.healthkit.access = []). Что чтение и запись реально работают с фейковой подписью, нигде не подтверждено: проверить на устройстве до релиза. Отказ в доступе нельзя запросить повторно, пользователь меняет его в приложении «Здоровье».",
+   "implementation": "npx expo install @kingstinct/react-native-healthkit react-native-nitro-modules (do not use react-native-health). app.json: the plugin with NSHealthShareUsageDescription 'Чтение веса с умных весов' and NSHealthUpdateUsageDescription 'Запись питания и замеров в Здоровье'; turn background delivery off. Migration: alter table diary_entries add column hk_id text; alter table measurements add column source text. New lib/health.ts: guarded by setting 'health_enabled'. requestAuthorization only for dietaryEnergyConsumed, dietaryProtein, dietaryFatTotal, dietaryCarbohydrates, dietaryFiber, dietarySugar, bodyMass, waistCircumference (read: bodyMass). On an entry write, save a correlation or quantity samples with metadata {entryId}, store hk_id, and delete or replace on edit or delete. For measurements, save bodyMass and waistCircumference. Import on AppState active: read bodyMass since the last sync and insert setMeasurement if that date has no weight (source 'health'). Wrap every call in try/catch and never read a type that is not authorized. settings.tsx: a toggle plus the help text 'Здоровье → Доступ к данным → Калории'.",
+   "sources": [
+    "https://cdn.jsdelivr.net/npm/@kingstinct/react-native-healthkit@14.0.1/README.md",
+    "https://github.com/1024y/HealthLens-Releases/releases/tag/v1.0.0",
+    "https://github.com/agencyenterprise/react-native-health",
+    "https://apps.apple.com/ru/app/%D1%82%D0%B0%D0%B1%D0%BB%D0%B8%D1%86%D0%B0-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9%D0%BD%D0%BE%D1%81%D1%82%D0%B8-%D0%B8-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B8/id477039928",
+    "https://hi-tech.mail.ru/compilations/126261-luchshie-prilozheniya-dlya-pokhudeniya/",
+    "https://www.rustore.ru/catalog/app/com.tasager.health/reviews"
+   ]
+  },
+  {
+   "id": "w4-siri-spotlight",
+   "title_ru": "Siri, Команды и поиск Spotlight",
+   "what_ru": "Голосом можно сказать «Добавь в Калории 300 ккал» или спросить «Сколько осталось в Калориях». Утреннюю запись веса можно автоматизировать через «Команды». В поиске iPhone по слову «гречка» находится ваш продукт и сразу открывается для записи.",
+   "why": "expo-app-intents работает на iOS 16.4+ и не требует отдельного entitlement. Spotlight через CoreSpotlight тоже без entitlements. Пакет пока в альфе, фразы статичны и меняются только с новой сборкой, поэтому приоритет низкий. Функция сокращает путь до записи, как и быстрые действия.",
+   "impact": 2,
+   "effort": "L",
+   "wave": 4,
+   "offline_ok": true,
+   "trollstore_notes": "Entitlements не нужны, но работу App Intents и Spotlight под фейковой подписью надо проверить на устройстве. IndexedEntity и схемы App Intents требуют iOS 18, это выше потолка TrollStore, их не использовать.",
+   "implementation": "npx expo install expo-app-intents (alpha; pin the exact version). Declare 3 AppIntents in Swift via the package's config: AddKcalIntent(kcal:Int, meal?), RemainingKcalIntent, LogWeightIntent(kg:Double). Russian phrases must contain \\(.applicationName), for example 'Добавь калории в \\(.applicationName)', 'Сколько осталось в \\(.applicationName)', 'Запиши вес в \\(.applicationName)'. JS handler in app/_layout.tsx via useAppIntents: AddKcal → addQuickEntry(mealForNow), LogWeight → setMeasurement, Remaining → reply with goalForDate − today's kcal. Deduplicate by invocation id, then call removePendingInvocationAsync. Spotlight: npx expo install expo-core-spotlight. lib/spotlight.ts indexes favourites, custom foods and dishes (id, title, 'X ккал/100 г') after saveFood or saveMeal. A tap deep-links to kalorii://food/<id>, handled by expo-router.",
+   "sources": [
+    "https://docs.expo.dev/versions/v58.0.0/sdk/app-intents.md",
+    "https://expo.dev/changelog/sdk-58",
+    "https://awesome.ecosyste.ms/projects/github.com%2Fhuextrat%2Fexpo-core-spotlight",
+    "https://unpkg.com/react-native-spotlight-search@2.2.0/README.md"
+   ]
+  },
+  {
+   "id": "w2-day-start",
+   "title_ru": "Начало дня в 4 утра",
+   "what_ru": "В настройках можно указать, во сколько начинается день, например в 04:00. Тогда ночной перекус в 01:30 попадёт во вчерашний день. Это удобно для сов и для работы в ночную смену.",
+   "why": "Единственный, но конкретный запрос от довольного пользователя YAZIO в US App Store (январь 2024). Реализация тривиальна, потому что все даты проходят через lib/dates.ts todayKey().",
+   "impact": 2,
+   "effort": "S",
+   "wave": 2,
+   "offline_ok": true,
+   "trollstore_notes": "Только JS.",
+   "implementation": "lib/dates.ts: a module-level dayStartHour (default 0) set from getSetting('day_start_hour') in lib/app-state.tsx at startup. todayKey() = toKey(new Date(Date.now() − dayStartHour·3600e3)). Keep toKey/fromKey as pure calendar functions. app/settings.tsx: a picker 00:00–05:00. Check that reminders (reminders.ts) and the midnight widget timeline use the shifted boundary. Add a small node test script in tools/ for the edges 03:59 and 04:00 and for DST-free Moscow time.",
+   "sources": [
+    "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+   ]
+  }
+ ]
+}

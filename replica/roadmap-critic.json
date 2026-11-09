@@ -1,0 +1,200 @@
+{
+ "corrections": [
+  {
+   "id": "w1-trend-weight",
+   "problem": "slopePerWeek compares the trend at today-14 with the trend today. If the last weigh-in is days old, the code extrapolates a stale trend and reports it as current. Today the user weighs in only weekly, so 14 days hold 2-3 points and the slope is mostly noise. The EWMA also lags about 10 days, so the headline understates a recent change in rate.",
+   "fix": "Anchor the trend and slope at the last weigh-in date and show 'на DD.MM'. Show the kg/week figure only with at least 4 weigh-ins in the last 14 days; otherwise show 'мало взвешиваний для темпа'. Show the trend line from the 3rd point. Use the trend value, not raw weight, as currentWeight in every later feature (goal recalculation, protein g/kg, Navy fat mass).",
+   "drop": false
+  },
+  {
+   "id": "w1-goal-transparency",
+   "problem": "(1) The recalculation runs on every raw weight save and opens an Alert. With daily weigh-ins and water noise this nags, and it breaks the roadmap's own 'no pop-ups' rule. (2) It writes kcal_goal whenever kcal_auto=1, so once w2-adaptive-tdee exists it silently overwrites an accepted adaptive goal with Mifflin. (3) 'Просто считать калории' still needs sex, birth_date, height and start_weight, which are NOT NULL in profile, so it cannot skip the body questions. It only skips target and pace.",
+   "fix": "Recalculate from trend weight, at most once a week. Show the result as an inline card on goals/progress, not an Alert. Add profile.kcal_mode ('formula'|'adaptive'|'manual') through a migration that replaces the kcal_auto semantics. Formula recalculation runs only in 'formula' mode, and the adaptive check-in owns the goal in 'adaptive' mode. For the simple onboarding path, either keep the 4 body questions and say why, or allow a manual kcal goal and store placeholder body values marked as unknown.",
+   "drop": false
+  },
+  {
+   "id": "w1-protein-gkg",
+   "problem": "(1) The grey '<20 g protein' marker will flag the 'Перекусы' meal almost every day; ISSN per-meal guidance is about main meals. (2) Using the weight at BMI 27 when BMI ≥30 is a design inference: the ISSN 2026 stand (Aragon, JISSN 23(1), verified) uses body weight. (3) The g/kg mode must be mutually exclusive with the existing grams mode: macroTargets returns grams only when all three of protein_g/fat_g/carbs_g are set.",
+   "fix": "Skip the snack slot for the per-meal hint, and add the day-level variant ('белковых приёмов: 2 из 3'). Label the reference weight 'расчётный вес (ИМТ 27)' and let the user switch to actual weight. Use trend weight. In macroTargets, put protein_gkg first and clear protein_g/fat_g/carbs_g when this mode is chosen.",
+   "drop": false
+  },
+  {
+   "id": "w1-calm-diary",
+   "problem": "Partly built already. add-food.tsx already shows a 1.8 s 'X добавлено' banner after quick add, and food/[id] already disables the button through saving/loading. The plan reads as if both are new.",
+   "fix": "Turn the existing add-food banner into the shared Toast with Undo instead of adding a second mechanism. The effort stays S.",
+   "drop": false
+  },
+  {
+   "id": "w1-csv-export",
+   "problem": "Calling Sharing.shareAsync three times in a row opens three separate share sheets, and each one must be dismissed before the next can open, so the UX is awkward. A ';' separator with decimal commas opens correctly in Russian Excel, but Google Sheets parses it only with a ru locale; the claim 'opens in Excel and Google Таблицы' is too broad.",
+   "fix": "Give each file its own share button, or write all three to Documents/Export (visible in Files once UIFileSharingEnabled from w1-auto-backup is on) and share one at a time. Add a format option: 'Excel (;)' as default and 'универсальный (,)'.",
+   "drop": false
+  },
+  {
+   "id": "w1-auto-backup",
+   "problem": "The core rationale is wrong. Paths.document is inside the app's data container, and deleting the app in TrollStore deletes that container together with the 'automatic' backups. So the feature does NOT protect against the stated risk (accidental IPA deletion) unless the user copies files out by hand. Also, exportBackup exports builtin foods only when they are favourites or used, so builtin rows edited in w1-product-fix (edited=1, never used) would be lost on restore. Files visibility of a TrollStore-installed app's Documents is not confirmed.",
+   "fix": "Say honestly that the copies sit inside the app and are lost when it is deleted. Add a weekly inline card 'Сохраните копию в iCloud Drive' that opens the share sheet or document picker export. Optionally try expo-file-system Directory.pickDirectoryAsync to an iCloud Drive folder, after checking on the device that the security-scoped access survives app restarts. Extend the backup foods filter to `or edited = 1 or last_grams is not null`. Check on the device that 'На iPhone → Калории' appears under TrollStore.",
+   "drop": false
+  },
+  {
+   "id": "w1-norms",
+   "problem": "(1) The research notes say the MR 2.3.1.0253-21 tables were truncated, so several values (age bands, Ca/vit D thresholds at 60 or 65, vit A 900/800 and other sex differences beyond iron) are unverified. The plan lists only a subset of the 24 NutrientKeys. (2) 'Клетчатка X / 25 г' next to the macros is mostly an estimate (carbs × fiber_per_carb when the food has no fiber value), yet it would sit beside real KBJU. (3) Iodine is in the low-kcal hint, but it is not a tracked NutrientKey, so the app cannot ever show iodine status.",
+   "fix": "Fill data/norms.ts from the full MR tables (all keys, with the MR's own age bands) and cite the table number in a comment. Prefix the fiber row with '≈' unless every entry of the day has a real fiber value. Keep iodine only as static advice text.",
+   "drop": false
+  },
+  {
+   "id": "w1-body-composition",
+   "problem": "The Navy formula is correct, but only for its own measurement sites: men measure the waist at the navel, women at the narrowest point, the neck just below the larynx, and the hips at the widest point of the buttocks. The app's waist and 'Ягодицы' fields have no defined sites, so values taken elsewhere move the estimate by several %. The 'lean mass for deficit ceiling' rationale refers to the Alpert limit, which is not in the roadmap.",
+   "fix": "Add a short how-to-measure hint on the waist, neck and hips fields (and in the measurements screen), and show the estimate only after the user confirms the method once. Either drop the deficit-ceiling sentence or add the Alpert cap (see missing ideas).",
+   "drop": false
+  },
+  {
+   "id": "w1-datamatrix",
+   "problem": "Честный ЗНАК codes on dairy and water use AI 93 (a 4-char crypto key) after the 21 serial, not 91/92. iOS AVFoundation never returns the ']d2' symbology prefix, and GS (\\x1d) handling varies. More important, the GTIN inside is the same EAN already on the pack, so this does not fix the main complaint that Russian products are missing from OFF. It helps only when the linear barcode is damaged or unreadable.",
+   "fix": "Parse '01'+14 digits at the start (after an optional leading \\x1d), ignore everything after it, and validate the check digit. Lower impact to 2. Keep it because it is cheap.",
+   "drop": false
+  },
+  {
+   "id": "w1-search-trust",
+   "problem": "Partly built: add-food rows already show 'мой' for custom foods, and searchFoods already ranks non-OFF results +3. The OFF results come from a separate network list and are not in foods until tapped, so 'group duplicates' means merging two lists, local and OFF. The Search-a-licious countries_tags filter syntax is unverified. A 460-469 prefix means the barcode was registered with GS1 Russia, not that the product is sold in Russia.",
+   "fix": "Add only the 'база' and 'OFF' chips and merge across the local and OFF lists by normalised name (and by barcode when present). Test the countries filter against search.openfoodfacts.org before relying on it, and keep the client-side Cyrillic sort as the main rule.",
+   "drop": false
+  },
+  {
+   "id": "w1-product-fix",
+   "problem": "(1) The scanner already reads the local DB first (getFoodByBarcode), so a rescan never overwrites. The real overwrite path is add-food openOff → saveFood, which upserts by barcode, and its guard protects only source='custom'. (2) The kcalCheck 4P+9F+4C rule gives false positives for polyols (~2.4 kcal/g, 'без сахара'), alcohol (7 kcal/g), organic acids and low-kcal rounding. (3) Edited builtin rows are excluded from backup. (4) The US fiber-in-carbs check is tied to barcode prefix 0/1, but OFF stores whatever the label convention was.",
+   "fix": "In saveFood, extend the guard to `existing.edited = 1` (or set source='custom' on edit, which the current guard already protects). Skip kcalCheck when kcal < 40, for alcoholic drinks, and for names with 'без сахара|подсластит'. Run the fiber check whenever fiber > 0, regardless of prefix. Add edited=1 rows to the backup filter.",
+   "drop": false
+  },
+  {
+   "id": "w1-last-portion",
+   "problem": "Mostly built already. food/[id].tsx already opens with servingsOf(f)[0] at amount 1, so scanned OFF products already default to 'порция' or 'упаковка', not 100 g. add-food rows already have a '+' quickAdd button with the first serving and a confirmation banner. Also the proposed order (упаковка first after a scan) is wrong for big packs: 900 ml milk or a 1 kg cereal box would default to the whole pack.",
+   "fix": "Scope the item to remembering last_grams/last_serving, then use the order last portion → 'порция' → 'упаковка' only when ≤250 g → 100 g. Make the existing '+' use last_grams. Effort XS-S, impact 3.",
+   "drop": false
+  },
+  {
+   "id": "w2-adaptive-tdee",
+   "problem": "(1) The user currently weighs in weekly, so a 21-28 day window holds 3-4 weigh-ins. A trend slope from so few points carries an error of several hundred kcal/day, worse than the ±200 band shown. (2) It shares the kcal_goal ownership conflict with w1-goal-transparency. (3) It does not handle water events such as creatine or diet breaks; w3 only patches this partly.",
+   "fix": "Require at least 8 weigh-ins in the window and at least 14 logged days before giving the adaptive estimate any weight (w > 0); otherwise show 'нужно больше взвешиваний'. Widen the band when there are few weigh-ins. Use the kcal_mode='adaptive' ownership rule. Add pending tables to backup and drop expenditure_log from restore conflicts.",
+   "drop": false
+  },
+  {
+   "id": "w2-offline-queue",
+   "problem": "The OFF limit of 15 product reads/min is confirmed by the OFF API docs, so batching 5 per run is right. But during whitelist-mode shutdowns, requests often hang until the 12 s timeout rather than failing fast, so every scan waits 12 s before the offline path. pending_barcodes is not added to the backup TABLES.",
+   "fix": "Lower the barcode lookup timeout to about 5 s, or race it against a quick connectivity probe, and offer 'Записать примерно' while the request is still running. Add pending_barcodes to TABLES; leave off_cache out of backups. Consider the bundled OFF Russia subset (see missing ideas) as the real offline fix.",
+   "drop": false
+  },
+  {
+   "id": "w2-cooked-dish",
+   "problem": "The hidden food row would get micros from guessCategory(name) on the dish name. That gives wrong vitamins for a 'Борщ' made of known ingredients, while the real values could be computed from them. The hidden food also goes stale when an ingredient food is edited. The plan hides dish foods from 'my foods' but does not say whether search finds them, and users will type 'борщ'.",
+   "fix": "On saveMeal, compute the micros JSON from the ingredients (sum of microsPer100 × grams ÷ net weight) and store it as real data. Recompute the hidden food whenever the meal or one of its ingredient foods is saved. Let searchFoods return dish foods with a 'блюдо' chip.",
+   "drop": false
+  },
+  {
+   "id": "w2-household-measures",
+   "problem": "Largely built already. data/basic-foods.ts already gives about 129 items servings (стакан, ст./ч. ложка, шт, ломтик), and dry/cooked pairs exist (гречка, рис, овсяные хлопья, макароны сухие vs варёные; куриная грудка сырая vs варёная). The file is APPEND ONLY because ids are positional (builtin-N), and seedBasicFoods runs only in migration 0, so new items never reach existing installs unless a new migration calls the seed again. 'Update servings by name' would also overwrite user-edited builtins.",
+   "fix": "Reduce to S, impact 3. Add the pair key and the 'сухая/варёная' chip, and append the missing variants (пшено, булгур, перловка, киноа сухие; говядина and свинина сырые). Add a migration that re-runs the insert-or-ignore seed, and update servings only where servings='[]' and edited=0.",
+   "drop": false
+  },
+  {
+   "id": "w2-forecast",
+   "problem": "An intake range of ±100 kcal is narrower than the real uncertainty in expenditure (Sanghvi 2015 individual RMSE is about 215 kcal/d, and the plan's own band is 200). So the 'range' of dates will look falsely precise.",
+   "fix": "Use ±band from w2-adaptive-tdee (200 at first, 120 later) for the low and high runs. Also hide the forecast until there are at least 14 logged days.",
+   "drop": false
+  },
+  {
+   "id": "w2-my-foods-manager",
+   "problem": "The effort is underestimated. Search, sort, 3 filters, swipe delete with undo, merge with FK rewrites, 'create similar' and text share are more like M than S. Merging also changes the KBJU of saved dishes (meal_items) without telling the user.",
+   "fix": "Set effort to M, or split it: S = search, sort and delete with undo; M later = merge and share. Before a merge, show 'изменится КБЖУ блюд: N'.",
+   "drop": false
+  },
+  {
+   "id": "w2-nutrient-sources",
+   "problem": "'Где взять' ranks individual foods by estimated micros. Those estimates are USDA category averages scaled by the food's KBJU, so within a category the ranking reflects calories and macros, not real nutrient content, and the result is a misleading 'Oracle'. The contributors loop (getFood per entry) is an N+1 query, while dayMicros already uses a join.",
+   "fix": "For 'Где взять', rank categories from micro-ref.ts ('бобовые, орехи, крупы — магний') plus individual foods that carry real label micros (OFF). Build the contributors list from the existing join query in lib/micros.ts.",
+   "drop": false
+  },
+  {
+   "id": "w2-day-start",
+   "problem": "A module-level dayStartHour set asynchronously at startup means the first render (and the initial date state in AppStateProvider, useState(todayKey())) can use hour 0 before the setting loads. For a user opening the app at 01:30, that opens the wrong day.",
+   "fix": "Load day_start_hour before AppStateProvider initialises date: read it synchronously with expo-sqlite getFirstSync, or gate the diary on the loaded flag. Then set date. Add the 03:59/04:00 test as planned.",
+   "drop": false
+  },
+  {
+   "id": "w3-calorie-schedule",
+   "problem": "The 1200/1500 floor on low days breaks the 'weekly total stays the same' promise without telling the user. A large weekend bonus with a low base would push weekdays below the floor.",
+   "fix": "Cap the bonus so that every other day stays at or above the floor, and show 'максимум +X ккал' in the stepper. The adaptive weekly check-in should compare the weekly sum, not daily values.",
+   "drop": false
+  },
+  {
+   "id": "w3-plateau-maintenance",
+   "problem": "(1) Excluding tagged days plus the following 7 days removes their intake but not the water step in the weight trend. A creatine or diet-break jump of +0.5-1 kg stays in trendEnd−trendStart and biases TDEE for the whole 28-day window. (2) day_status.tag is a single text column, so a day cannot be both 'cycle' and 'illness'. (3) It overlaps with the w3-day-notes tags ('Цикл', 'Тренировка'): two separate tag systems for the same thing.",
+   "fix": "After a creatine start, or a diet break start or end, pause check-ins until the event is outside the window (about 14-28 days), as MacroFactor does. Do not try to exclude the days. Use one tag store (day_notes.tags JSON array) where some tags carry an 'affects calculations' flag, and drop day_status.tag.",
+   "drop": false
+  },
+  {
+   "id": "w3-day-notes",
+   "problem": "It duplicates the tag system in w3-plateau-maintenance (see above).",
+   "fix": "Make day_notes.tags the only tag store and let lib/expenditure.ts read the calculation-relevant tags from it. Build this item before w3-plateau-maintenance.",
+   "drop": false
+  },
+  {
+   "id": "w3-chains-pack",
+   "problem": "(1) Inserted as source 'builtin', the chain items would get the 'база ✓' trust chip from w1-search-trust, although they are a dated third-party snapshot. (2) They cannot go into the positional BASIC_FOODS. Later data refreshes need update-by-id that skips edited rows, which insert-or-ignore does not do. (3) Menus (Вкусно — и точка, Додо) change often, so the data needs ongoing upkeep.",
+   "fix": "Use stable ids such as 'chain-<brand>-<slug>', a seed migration per data release with an upsert that skips edited=1, a separate chip 'сеть · 11.2026', and a visible data date. Start with 2-3 chains (about 100 items) and the quick-add café presets, which cost nothing to maintain.",
+   "drop": false
+  },
+  {
+   "id": "w4-quick-actions-haptics",
+   "problem": "expo-quick-actions is NOT an official Expo SDK package: the README says 'not an official Expo SDK package' (EvanBacon). Its version table stops at SDK 57 → 6.1.0, with no SDK 58 row. So `npx expo install` does not pick a matched version, and compatibility with RN 0.88 is unverified. mealForNow does not exist in lib/nutrition.ts yet. expo-haptics is fine (official; silent while the camera is active, as noted).",
+   "fix": "Pin and test the latest expo-quick-actions on an SDK 58 prebuild in CI first. If it fails, write a small local Expo module (static UIApplicationShortcutItems in Info.plist plus an AppDelegate subscriber that emits the href). Add mealForNow to lib/nutrition.ts.",
+   "drop": false
+  },
+  {
+   "id": "w4-widgets",
+   "problem": "expo-widgets exists in the SDK 58 docs (recommended ~58.0.27, interactive widgets need iOS 17+; verified). But the docs do not label it 'stable since SDK 56', so that claim is unverified. The whole feature depends on the App Group working under TrollStore fakesigning, which no source confirms: a search found nothing beyond issue #873. If the App Group fails, the widget cannot read any data, so all L effort is wasted. The CI pipeline also has to build the extension unsigned, sign each .appex with ldid, and keep the extension deployment target ≤16.4.",
+   "fix": "Start with a 1-day spike: a minimal expo-widgets widget built in CI with the container-required entitlement on the appex, checking on the device that updateSnapshot data shows up. Commit to the full item only if the spike passes. Check the extension's IPHONEOS_DEPLOYMENT_TARGET after prebuild.",
+   "drop": false
+  },
+  {
+   "id": "w4-healthkit",
+   "problem": "Compatibility of @kingstinct/react-native-healthkit (Nitro) with RN 0.88 and SDK 58 is not checked. It also has the same TrollStore uncertainty as the widgets: HealthLens shows only that the entitlement can be injected. com.apple.developer.healthkit.access is for clinical records and is not needed here.",
+   "fix": "Do a device spike first: request authorization and write one bodyMass sample. Leave out healthkit.access. Pin the library version that lists support for RN 0.88 / new architecture, and write only real values (macros, fiber, measured weight and waist), never estimated micros.",
+   "drop": false
+  },
+  {
+   "id": "w4-siri-spotlight",
+   "problem": "expo-app-intents is officially alpha with frequent breaking changes (verified). Intents are written in Swift in an app-intents directory with experiments.inlineModules, not through 'the package's config'. The docs say nothing about localization, so Russian Siri phrases are unverified. expo-core-spotlight is a third-party package of unknown maintenance. With impact 2, effort L and an unverified fakesign path, the item costs more than it returns.",
+   "fix": "Drop it from the roadmap. Revisit only if quick actions and widgets land and expo-app-intents leaves alpha. A later minimal version is a single LogWeight App Shortcut for Shortcuts automations.",
+   "drop": true
+  },
+  {
+   "id": "complaints_to_avoid_ru",
+   "problem": "'Не обещать … push-уведомления: при подписи через TrollStore они не работают' reads in Russian as 'notifications do not work'. In fact local reminders already work, and only remote APNs push does not.",
+   "fix": "Reword to 'удалённые push (APNs) не работают; локальные напоминания работают'.",
+   "drop": false
+  }
+ ],
+ "missing": [
+  "Bundled offline OFF subset for Russia: a build-time script on GitHub Actions filters the OFF JSONL/CSV dump to countries_tags=en:russia (about tens of thousands of products), keeping barcode, name and KBJU per 100 g, and ships it as a SQLite asset of a few MB. Barcode scans then work during mobile-internet shutdowns. This is the real fix for the offline complaint (ODbL: attribution plus share-alike for the extracted DB).",
+  "Optional local meal photo diary, without recognition: expo-image-picker or the camera, the photo stored in Documents, a thumbnail in the day view and the PDF. This is distinct from the excluded AI recognition.",
+  "'Log by calories/macros': enter 'заполнить 400 ккал' or '30 г белка' and the app computes the grams of the chosen food (MacroFactor feature). Cheap, fully offline, useful at dinner.",
+  "'Explode' a saved dish at logging time: log its ingredients separately so one can be changed this time, needed once w2-cooked-dish makes dishes single entries.",
+  "Хлебные единицы (ХЕ, 1 ХЕ ≈ 10-12 g carbs, setting) per meal and day for diabetics. Russia-specific, trivial to add.",
+  "Net carbs toggle (carbs minus fiber) for low-carb users, consistent with the fiber-convention handling in w1-product-fix.",
+  "Alpert limit as an advanced warning: max deficit ≈ 69 kcal per kg of fat mass per day, using Navy fat mass. Warn lean users that a requested deficit above the cap risks lean-mass loss; label it a theoretical model.",
+  "Composition-weighted ρ for adaptive TDEE (9440·f_fat + 1816·(1−f_fat) kcal/kg) instead of a flat 7700, with the same ρ for gain and loss (MacroFactor V3).",
+  "Weekday pattern insights on progress: 'по пятницам в среднем +400 ккал', 'в дни с белковым завтраком ужин меньше на 250 ккал' (Lose It positive patterns). Local SQL only.",
+  "Meal plan ahead: planned (greyed) entries on future days that become logged with one tap, plus a shopping list that merges duplicate ingredients from planned dishes.",
+  "Day/food quality score (protein density, fiber, added sugar, sat fat, micronutrient coverage) shown as a weekly 0-100 score with a breakdown, labelled as an estimate.",
+  "Custom biometrics beyond the 7 measurements (blood pressure, resting pulse, sleep hours, glucose), each with a chart and a row in the PDF and CSV.",
+  "Volumetric ml servings for own foods and dishes (половник 250 мл, стакан кефира), next to grams.",
+  "'Спокойный режим' (awareness mode): hide exact kcal numbers or show ranges and focus on protein portions plus the weekly trend, for users at risk of obsessive counting.",
+  "Diet-style safety notes: when the macro split is very-low-carb or keto, note the higher lean-mass loss (ISSN 2026) and stress protein and resistance training.",
+  "Day-level protein distribution hint ('белковых приёмов 2 из 3', ISSN 2026: at least 3 protein-rich occasions per day), not only the per-meal marker.",
+  "Backfill old weigh-ins (bulk entry of past dates) so the adaptive TDEE calibrates faster from history.",
+  "Regression tests (a node script in tools/) for local-day bucketing, entry date assignment and the midnight rollover in app-state. These protect the 'запись никогда не уезжает в другой день' promise, which the roadmap states but never tests outside w2-day-start.",
+  "In-app font-size scale (0.85x-1.4x) independent of Dynamic Type (Cronometer 2025).",
+  "'Что ещё влезает' suggestions: from the remaining kcal and protein, propose the user's own foods and dishes with exact grams that fit."
+ ]
+}

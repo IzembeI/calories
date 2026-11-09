@@ -1,0 +1,1144 @@
+[
+ {
+  "angle": "yazio-reviews",
+  "findings": [
+   {
+    "idea": "No forced gamification. Never show interruptive pop-ups, congratulation screens, streak or reward prompts, or unskippable animations after logging food. If any motivational message is added, give a single off switch that really works.",
+    "evidence": "This is the most repeated 2026 complaint on Trustpilot. Reviews from Mar, Apr, May, Jun and Aug 2026 say paying PRO users still get streak and reward pop-ups and food lectures, that disabling them in settings does not stop them, and that click-through animations make logging slower. A Russian App Store review (Oct 2024) from a subscriber says congratulation messages after every product cannot be turned off and asks for plain calorie counting only.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://www.trustpilot.com/review/yazio.com?page=3",
+     "https://www.trustpilot.com/review/yazio.com?page=10",
+     "https://apps.apple.com/ru/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Keep logging to a minimum number of taps, and treat every extra step as a regression. Show each meal's food list expanded right on the diary screen, without opening a submenu per meal.",
+    "evidence": "Russian App Store reviewers (2019 and 2020) say each update adds steps to log food. One review titled roughly 'they ruined everything' asks to bring back the expanded list of eaten foods instead of a submenu per meal. Google Play reviews (Oct 2025) say the latest update made the app more complicated and food search slow. Trustpilot reviewers who like YAZIO mostly praise simplicity and a clutter-free UI.",
+    "sources": [
+     "https://apps.apple.com/ru/app/yazio-calorie-counter-diet/id946099227?see-all=reviews",
+     "https://apps.apple.com/ru/app/yazio-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%B8-%D0%B4%D0%B8%D0%B5%D1%82%D0%B0/id946099227",
+     "https://grand-screen.com/apps/yazio-ai-calorie-tracker/reviews/",
+     "https://www.trustpilot.com/review/yazio.com?page=3"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Put the barcode scanner one tap away, next to the search field on the add-food screen, and never move it. When a scanned product has wrong or missing KBJU, let the user correct it in place and save the fix as a local override for that barcode.",
+    "evidence": "A Russian App Store review titled 'Bring back barcode scanning!!!' says scanning took about 3 seconds before a redesign moved the scanner. The developer had to explain where the icon went. A US review (Jan 2025) is unhappy that barcode scanning became paid. Trustpilot reviews from May 2026 say barcode scanning is unreliable and macros are wrong for many products. A Google Play review says some scanned products are missing from the database.",
+    "sources": [
+     "https://apps.apple.com/ru/app/yazio-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%B8-%D0%B4%D0%B8%D0%B5%D1%82%D0%B0/id946099227",
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews",
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://www.trustpilot.com/review/yazio.com?page=10"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Reduce duplicate and conflicting search results. Group results with the same name, show the source (built-in, Open Food Facts, own food) with a 'trusted' badge, and rank built-in and own foods above crowdsourced entries.",
+    "evidence": "A T-Zh (t-j.ru) commenter says searching one dish returns several variants with different calorie counts. Trustpilot reviewers in 2026 cite inaccurate nutrition data for many products and ask YAZIO to re-verify user-added entries (Aug 2026). An aggregator says 18% of 1-3 star calorie-app reviews are about database errors that persist for years. A competitor summary of Reddit also lists duplicate entries with conflicting values (treat as biased).",
+    "sources": [
+     "https://t-j.ru/apps-yazio/",
+     "https://www.trustpilot.com/review/yazio.com?page=3",
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://unstar.app/blog/calorie-tracking-apps-ranked-1-star-reviews-2026",
+     "https://nutrola.app/en/blog/why-is-yazio-so-bad-now"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Show reference norms for vitamins and minerals: % of daily need by sex and age, with clear 'deficit' or 'excess' highlighting on the day and period screens. The app already estimates nutrients, but numbers without norms are hard to act on.",
+    "evidence": "A t-j.ru commenter says YAZIO tracks vitamins without reference norms, so deficiencies are hard to see. In Russia, full vitamin and mineral analytics are PRO-only. A competitor summary of Reddit says users who track nutrition in detail leave for Cronometer because micronutrient depth is limited (treat as biased).",
+    "sources": [
+     "https://t-j.ru/apps-yazio/",
+     "https://nutrola.app/en/blog/what-do-reddit-users-say-about-yazio-2026"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Add a machine-readable export (CSV per day and per food entry, with a date-range picker) next to the existing PDF and JSON backup. Add a PDF option that includes the full list of foods for a coach or doctor.",
+    "evidence": "A Trustpilot reviewer (Jul 2026) says they cannot download their own data, and YAZIO pointed them to a GDPR request. A t-j.ru commenter says support told them no export exists or is planned. A competitor guide says YAZIO's only export is a PRO-only PDF summary without custom foods, water, notes or most micronutrients (treat as biased). The yazio-exporter package on PyPI exists only to pull YAZIO data out as JSON, CSV or SQLite.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://t-j.ru/apps-yazio/",
+     "https://nutrola.app/en/blog/how-to-export-data-from-yazio",
+     "https://pypi.org/project/yazio-exporter/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Add a setting for when the day starts (for example 04:00), so late-night food counts toward the previous day for night-shift workers and night owls.",
+    "evidence": "A US App Store reviewer (Jan 2024) who otherwise loves the app asks to set when the day starts for a night-shift schedule.",
+    "sources": [
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Add calorie cycling: a different kcal and macro goal per weekday (for example higher on weekends or training days), with the weekly total kept on target.",
+    "evidence": "The same US App Store reviewer (Jan 2024) asks to pick custom 'weekend' days with a higher calorie allowance.",
+    "sources": [
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Make the kcal goal transparent and self-correcting. Show the formula, the activity factor and the chosen deficit. Offer an adaptive recalculation from the real weight trend against logged intake after 2-3 weeks. Allow a manual override.",
+    "evidence": "Trustpilot (Oct 2026): a reviewer says the default target is about 400-600 kcal too high because it assumes maintenance. A US App Store reviewer (Jan 2025) says the target seemed too low. A 2021 review says coach recipes did not match the user's meal calorie target.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com",
+     "https://www.trustpilot.com/review/yazio.com?page=3",
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Make weight progress richer: a smoothed trend line (moving average) over raw weigh-ins, the rate per week, and a projected date to reach the goal. Add small charts inside each tracker or measurement card.",
+    "evidence": "A Trustpilot 1-2 star review (Jul 2026) says weight tracking lacks history, trends or charts. Another reviewer (Sep 2026) asks for charts on the trackers. 'Long-term progress forecasts' is a selling point in YAZIO's PRO description.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://www.trustpilot.com/review/yazio.com",
+     "https://apps.apple.com/ru/app/yazio-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%B8-%D0%B4%D0%B8%D0%B5%D1%82%D0%B0/id946099227"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Handle the fiber convention explicitly. Russian and EU labels list carbs without fiber, while US data (some Open Food Facts entries) includes fiber in carbs. Detect or let the user choose the convention per product so fiber is not counted twice.",
+    "evidence": "A Trustpilot reviewer (Jul 2026) says YAZIO uses the US convention, which double-counts fiber as carbs, and asks for a European setting.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Support flexible units per food: grams and ml for liquids, plus pieces, spoons, glass and package with gram equivalents. Remember the last unit and amount used for each food.",
+    "evidence": "A Trustpilot reviewer (Jul 2026) finds the default units (spoons, cups) inconvenient. A Google Play sample complains the app could not log milk in grams. A Trustpilot reviewer (Oct 2026) spent hours logging toast with butter.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://www.trustpilot.com/review/yazio.com"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Localize search results: rank Russian-language and Russia-sold products first in Open Food Facts results (filter or boost by countries=ru and lang=ru), so foreign-language entries do not flood the search.",
+    "evidence": "A Trustpilot reviewer (Jul 2026) says manual search shows German foods despite Italian language settings. A Russian App Store reviewer (2019) complains that many items and recipes are in English. A competitor summary says YAZIO's database is strong in DACH and thin elsewhere (treat as biased).",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://apps.apple.com/ru/app/yazio-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%B8-%D0%B4%D0%B8%D0%B5%D1%82%D0%B0/id946099227",
+     "https://nutrola.app/en/blog/what-do-reddit-users-say-about-yazio-2026"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Make saving rock-solid: the add-food confirm button must always respond, entries must never move to another day or vanish, and the current day must always load offline. Add a regression test for date and timezone bucketing, and show an immediate visual confirmation on save.",
+    "evidence": "Three Russian App Store reviews (Sep 2024) report that the 'done' button after adding a product stops responding and the app must be restarted. A 2017 Russian review says entries moved to other days or were deleted. Google Play reviews (Oct 2025) say the current day often fails to load and some days are missing while others repeat.",
+    "sources": [
+     "https://apps.apple.com/ru/app/yazio-calorie-counter-diet/id946099227?see-all=reviews",
+     "https://grand-screen.com/apps/yazio-ai-calorie-tracker/reviews/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Keep onboarding short and skippable. Let a user who does not want weight tracking choose 'just count calories' or 'maintain' without answering weight-centric questions, and edit everything later in settings.",
+    "evidence": "A Google Play reviewer (Oct 2025) says sign-up was long and weight-focused, and they had to give false answers to get through it. A Trustpilot reviewer (Jul 2026) felt pushed through signup screens toward a paid plan.",
+    "sources": [
+     "https://grand-screen.com/apps/yazio-ai-calorie-tracker/reviews/",
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Make own foods and dishes easy to edit and delete, with a 'My foods' manager (search, edit KBJU, merge duplicates, delete with undo). Prefill a new custom food from a similar existing one.",
+    "evidence": "A Trustpilot reviewer (Oct 2026, 2 stars) spent about four hours trying to log toast with butter, made junk custom entries, and found them hard to delete. A t-j.ru commenter says homemade food takes a lot of manual input, while the reviewer liked that homemade dishes are saved for reuse.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com",
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://t-j.ru/apps-yazio/"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Add a daily note with optional mood and well-being tags (for example bloating, sleep or cycle), and let tags be custom. Show notes next to weight and kcal in history.",
+    "evidence": "US App Store reviewers (2020, 2022) single out the notes section for mood and symptoms as a favourite. They ask for more and custom note tags.",
+    "sources": [
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Let the user attach an optional photo to a meal entry as a visual diary (no recognition, photo stored locally) and view it in day history and the PDF.",
+    "evidence": "A Trustpilot reviewer (May 2026) wants the meal photos they take to be saved automatically. Others want to add more detail and editable values to photo-logged foods. Attaching a photo meets this need without AI recognition.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?page=10"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Add a daily overview with gentle suggestions: remaining kcal and macros, plus 'what fits' picks from the user's own foods and dishes, and lower-calorie swap hints. Use exact gram amounts, not vague recipes.",
+    "evidence": "A Trustpilot reviewer (May 2026) likes the remaining-calorie totals and low-calorie swap tips. Another (May 2026) asks for a full-day overview with meal tips and macros. A US App Store reviewer (2021) cancelled because coach recipes lacked measurements and did not fit their per-meal calorie target.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?page=10",
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Optionally write nutrition and weight to Apple Health and read weight from smart scales through HealthKit. TrollStore can grant the HealthKit entitlement to a fakesigned IPA. Make it opt-in, write-only by default, and fail gracefully.",
+    "evidence": "Apple Health sync is listed as a plus in t-j.ru and US reviews. Integration failures are recurring 2026 complaints on Trustpilot (Health Connect write-back broken after many support emails, Garmin will not connect) and in the US App Store (repeated Fitbit reconnect prompts, Dec 2025). An aggregator puts sync at 8% of 1-3 star calorie-app reviews.",
+    "sources": [
+     "https://t-j.ru/apps-yazio/",
+     "https://www.trustpilot.com/review/yazio.com",
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews",
+     "https://unstar.app/blog/calorie-tracking-apps-ranked-1-star-reviews-2026"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Use the fact that the app is local, has no account and has no paywall as a design principle. Never lock existing features behind upsells, and keep everything working offline after a phone change through backup and restore.",
+    "evidence": "The most common complaints are subscription related: auto-renew surprises, refunds not arriving, PRO not activating after an Apple purchase, a misleading price ladder at signup (Trustpilot, Apr-Sep 2026), and a full-screen subscription banner after every meal (Russian App Store, Sep and Oct 2023). An aggregator puts paywall complaints at 29% of 1-3 star calorie-app reviews. In Russia, PRO became hard to pay for (t-j.ru). A US reviewer (2022) lost access to recipes after a phone switch because of login problems.",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://apps.apple.com/ru/app/yazio-calorie-counter-diet/id946099227?see-all=reviews",
+     "https://unstar.app/blog/calorie-tracking-apps-ranked-1-star-reviews-2026",
+     "https://t-j.ru/apps-yazio/",
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "If a logging streak is ever added, make it forgiving (missed days do not wipe it, or a 'freeze' is used automatically) and fully disable-able. Do not send reminders that guilt-trip the user.",
+    "evidence": "Trustpilot (May 2026): streaks reset because of an apparent system error and could not be turned off. Another reviewer (Jun 2026) says streak prompts continue after disabling. A US App Store review (Dec 2025) complains about reward chests that would not open. An aggregator puts 'streak anxiety' at 6% of negative calorie-app reviews. Some users do like streaks (Trustpilot, Sep 2026).",
+    "sources": [
+     "https://www.trustpilot.com/review/yazio.com?stars=1&stars=2",
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews",
+     "https://unstar.app/blog/calorie-tracking-apps-ranked-1-star-reviews-2026",
+     "https://www.trustpilot.com/review/yazio.com?page=3"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Keep the current strengths users praise in YAZIO: a clean, uncluttered diary with clear 'eaten / remaining' totals, saved homemade dishes, recipes and dishes in reusable form, and quick-log widgets. A home-screen widget showing remaining kcal and macros would match a feature US reviewers single out.",
+    "evidence": "A US App Store review (2024) praises the organized design and the widgets for quick logging. Trustpilot positive reviews (Aug-Nov 2026) repeatedly cite ease of use, a clear structure, an accurate macro overview and long-term motivation. The t-j.ru reviewer liked that homemade dishes are saved for reuse.",
+    "sources": [
+     "https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227?see-all=reviews",
+     "https://www.trustpilot.com/review/yazio.com",
+     "https://www.trustpilot.com/review/yazio.com?page=3",
+     "https://t-j.ru/apps-yazio/"
+    ],
+    "frequency": "very common"
+   }
+  ],
+  "complaints": [
+   "Forced gamification: streak and reward pop-ups, congratulation messages after every logged food, and unskippable animations that cannot be turned off, even for paying users (Trustpilot 2026, Russian App Store 2024)",
+   "Aggressive monetization: a full-screen subscription banner or ad after every meal entry, video ads, previously free features such as the barcode scanner moved behind PRO, and a confusing price ladder at signup",
+   "Billing problems: auto-renew surprises, refunds not arriving, PRO not activating after an Apple purchase, and features cut off while still paid",
+   "Redesigns that add taps: the barcode scanner moved, the expanded meal list removed, and each update makes logging slower",
+   "Reliability bugs: the 'done' button stops responding after adding food, the day fails to load, days are missing or duplicated, and entries jump to other days or disappear",
+   "Inaccurate or duplicate database entries with conflicting kcal for the same food, wrong macros on scanned barcodes, and US fiber-in-carbs convention double-counting fiber",
+   "Search in the wrong language or region (German foods for an Italian user, English recipes for Russian users)",
+   "No real data export: PDF only on PRO, no CSV, users told to file GDPR requests, and third-party exporter tools needed",
+   "Default kcal target perceived as wrong (too high or too low) with no transparency",
+   "Vitamins shown without reference norms, and micronutrient analytics locked behind PRO",
+   "Third-party sync failures (Health Connect, Garmin, Fitbit) and repetitive canned support answers",
+   "Long, weight-centric onboarding that forces irrelevant answers",
+   "Hard to create, edit and delete custom foods; inflexible units (cannot log milk in grams, spoons and cups as defaults)",
+   "Note: Reddit (r/loseit, r/CICO) could not be fetched directly (blocked), so Reddit sentiment comes only from a competitor-written summary (nutrola.app) and is treated as biased. The Google Play store page and the YAZIO feature-vote board returned no reviews or 403, so Google Play evidence comes from a third-party mirror (grand-screen.com)."
+  ]
+ },
+ {
+  "angle": "competitors",
+  "findings": [
+   {
+    "idea": "Trend weight line (MacroFactor): show a smoothed weight trend (exponentially weighted moving average, recent days weighted more) over the raw weigh-ins. Make the trend the headline number on the Progress tab and in weekly stats.",
+    "evidence": "MacroFactor's own write-up describes trend weight as a long-window weighted average. It filters water, salt and gut-content noise and reacts to real change in about 4-5 days. Reviewers call it central to the app: a salty meal barely moves the trend. Our app already logs weight weekly; daily weigh-ins plus a trend line would cost little to add.",
+    "sources": [
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+     "https://outlift.com/macrofactor-review/",
+     "https://calorie-trackers.com/reviews/macrofactor/"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Adaptive TDEE with a weekly check-in: back-solve real expenditure from logged kcal and the change in trend weight (about 7700 kcal/kg). Start from the Mifflin-St Jeor estimate. Once a week, offer a new kcal goal for the chosen weekly rate. Show 'why it changed' in plain words. Fits fully offline in local SQLite.",
+    "evidence": "This is MacroFactor's most praised feature in every source. The estimate moves after about 1 week and stabilizes in 14-30 days. Each week stands on its own, and past overeating is not 'made up'. Users like that the app explains why targets changed. Reddit summaries name it the main reason to switch from MFP.",
+    "sources": [
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+     "https://outlift.com/macrofactor-review/",
+     "https://macaron.im/playbook/macrofactor-reviews",
+     "https://gummysearch.com/tools/best-products/calorie-tracking-app/",
+     "https://calorie-trackers.com/reviews/macrofactor/"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Tolerate missed and partial days in the TDEE math. Exclude days marked incomplete or unlogged; do not count them as 0 kcal. Carry the last confident estimate forward over gaps. Add a 'day complete / incomplete' toggle in the diary and a way to backfill old weigh-ins.",
+    "evidence": "MacroFactor carries the last high-confidence expenditure forward when logging or weigh-ins lapse. It lets users backfill 14-30 days to calibrate faster, and lets a skipped check-in wash out anomalies such as travel. Outlift praises that a missed day is assumed to be a normal day.",
+    "sources": [
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+     "https://outlift.com/macrofactor-review/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Adherence-neutral UI: no red numbers, warnings or guilt popups when the user goes over the goal. Use neutral colors and show 'over by X' as information. Optionally re-balance the rest of the week instead.",
+    "evidence": "MacroFactor deliberately shows no warnings or red numbers over target, and Outlift lists 'no penalties for off weeks' as a strength. In App Store reviews, a paying Yazio user complains that red warnings and big calorie numbers feel pushy.",
+    "sources": [
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+     "https://outlift.com/macrofactor-review/",
+     "https://apps.apple.com/UA/app/id946099227"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Dynamic maintenance mode: when the goal is 'maintain', keep kcal at estimated TDEE while trend weight stays inside a band (for example ±0.7 kg of target). Nudge kcal slowly only when the trend drifts outside the band.",
+    "evidence": "MacroFactor's '10 features you might have missed' lists dynamic maintenance. It keeps intake close to expenditure while trend weight is within about 1.5 lb of goal and corrects slowly beyond that.",
+    "sources": [
+     "https://macrofactor.com/10-macrofactor-features/"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Goal projection: show the date the target weight will be reached at the current trend or planned rate, with a forecast line on the weight chart. Recompute after each check-in.",
+    "evidence": "Carb Manager Premium advertises a 'weight loss prediction engine' and projections in its reports. MyFitnessPal's meal planner builds a timeline toward a goal date. Lose It user reviews in search results single out goal projection as their favorite feature.",
+    "sources": [
+     "https://apps.apple.com/us/app/id410089731",
+     "https://www.iphoneincanada.ca/2025/08/14/myfitnesspals-new-meal-planning-tool-is-a-great-new-addition-to-the-app/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Calorie schedule within a weekly budget: let the user plan higher days (for example Sat/Sun +300 kcal) and auto-lower the other days so the weekly total stays the same. Show the weekly budget remaining.",
+    "evidence": "The Lose It App Store copy and a UI teardown highlight a 'Flexible Weekender' calorie schedule with higher and lower days. FeastGood praises FatSecret for free high- and low-calorie day scheduling inside a weekly target.",
+    "sources": [
+     "https://screensdesign.com/showcase/lose-it-calorie-counter",
+     "https://feastgood.com/?p=22615"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Macro scheduler or carb cycling: different macro and kcal targets per weekday (for example training vs rest days). This extends the existing % or grams macro goals.",
+    "evidence": "Cronometer has a Macro Scheduler (renamed from Target Scheduler) with %-based macro ratios. Carb Manager Premium lists carb cycling.",
+    "sources": [
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved",
+     "https://apps.apple.com/us/app/id410089731"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Nutrient contributors: tap a vitamin or mineral on the day or period screen to see which logged foods supplied it (ranked list with % share). Let the user pin 2-4 chosen nutrients (for example fiber, iron, added sugar) to the diary header.",
+    "evidence": "MacroFactor lists 'nutrition contributors' among its key features: foods that supply each micronutrient, trends over time, and pinning nutrients to the dashboard. Cronometer is praised everywhere for micronutrient progress bars against daily targets.",
+    "sources": [
+     "https://macrofactor.com/10-macrofactor-features/",
+     "https://www.promealplan.com/en/blog/cronometer-review-2026",
+     "https://fortune.com/article/cronometer-review/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "'Oracle' nutrient search: pick a nutrient that is low today (for example magnesium) and list built-in or own foods richest in it per 100 g and per 100 kcal. Can run fully offline over the local food DB and the estimated nutrient table.",
+    "evidence": "Fortune names Cronometer's Oracle, a search for foods rich in specific nutrients, as a standout. Cronometer Gold also has nutrient-based food suggestions.",
+    "sources": [
+     "https://fortune.com/article/cronometer-review/",
+     "https://www.promealplan.com/en/blog/cronometer-review-2026"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "'Log by calories or macros': the user enters a target (for example 'fill 400 kcal' or '30 g protein') and the app computes the grams of the chosen food or foods that meet it. Useful for fitting the remaining budget at dinner.",
+    "evidence": "MacroFactor lists 'log by calories or macros' among its key features: enter a kcal or macro target and see the amount of the selected foods that meets it.",
+    "sources": [
+     "https://macrofactor.com/10-macrofactor-features/"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Stronger copy and paste. Support multi-select of single foods, a whole meal or a whole day; 'to today' and 'to tomorrow' shortcuts; multi-paste to several days without clearing the clipboard; and move instead of copy. Our app has only copy meal today.",
+    "evidence": "MacroFactor's timeline logger and help pages describe Select Day, an Hour button, To Today/To Tomorrow, and Multi-Paste across days. These are framed as meal-planning tools. Reviewers say MacroFactor logging is faster than MFP.",
+    "sources": [
+     "https://macrofactor.com/timeline-based-food-logger/",
+     "https://macrofactor.com/10-macrofactor-features/",
+     "https://macaron.im/playbook/macrofactor-reviews"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Favourites with saved serving presets: each favourite food stores 1-3 preferred portions (for example 'my mug 250 ml', '2 eggs'). The app remembers the last-used serving per food so a repeat log takes one tap.",
+    "evidence": "MacroFactor's 2025 annual report lists 'Favorite Foods' with preferred serving sizes and multiple presets per food. FatSecret reviewers praise meal history for quick re-entry. A Lifesum App Store reviewer asks for multi-select of recent foods.",
+    "sources": [
+     "https://macrofactor.com/annual-report-2025/",
+     "https://calorie-trackers.com/reviews/fatsecret/",
+     "https://apps.apple.com/us/app/-/id286906691"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "'Explode' a saved dish when logging: break an own dish or meal into its ingredients in the diary so one ingredient can be changed or removed this time, without editing the saved recipe.",
+    "evidence": "MacroFactor lists 'explode recipes' as a key feature. A Lose It review says it is tedious that mixed meals require searching and adjusting each part.",
+    "sources": [
+     "https://macrofactor.com/10-macrofactor-features/",
+     "https://amyfoodjournal.com/blog/lose-it-app-review"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Recipe import from pasted text (ingredient list with grams) or a URL. Parse lines locally against the built-in, OFF and own-food DB, let the user confirm matches, and set servings or the cooked weight.",
+    "evidence": "Cronometer (2025-26 review), Carb Manager (ruled.me) and MacroFactor's 2025 importer (web links, plus photos of cookbook ingredient lists) all import recipes. FatSecret's and Yazio's recipe builders are praised for saving home-cooked meals.",
+    "sources": [
+     "https://www.promealplan.com/en/blog/cronometer-review-2026",
+     "https://www.ruled.me/?p=874",
+     "https://macrofactor.com/annual-report-2025/",
+     "https://calorie-trackers.com/reviews/yazio/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Meal plan ahead plus a shopping list. Let the user drop own dishes into future days as 'planned' entries that turn into logged entries with one tap. Generate a shopping list from the planned days that merges duplicate ingredients and has checkboxes.",
+    "evidence": "MFP added a Premium+ meal planner in 2025 with a weekly plan, a grocery list where you cross off what you have, and per-meal macros for easy logging. Lifesum, Yazio and Lose It Premium include meal plans or shopping lists. A Lifesum reviewer complains that duplicate ingredients were not combined and swapped meals did not update the list.",
+    "sources": [
+     "https://www.iphoneincanada.ca/2025/08/14/myfitnesspals-new-meal-planning-tool-is-a-great-new-addition-to-the-app/",
+     "https://apps.apple.com/us/app/-/id286906691",
+     "https://apps.apple.com/UA/app/id946099227",
+     "https://www.fitbudd.com/post/lose-it-premium-review"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Food, meal and day quality rating: a simple local score per food or day, from protein density, fiber, added sugar, sat fat and micronutrient coverage. Show it as a letter grade or a 0-100 weekly score with a short breakdown.",
+    "evidence": "Lifesum has food, meal and day ratings plus a weekly Life Score, and its 2025 update promises deeper scores and breakdowns. Carb Manager has a keto grading system for foods. Cronometer added Nutrition Scores (Women's and Men's Health) and a Calcium Absorption Score.",
+    "sources": [
+     "https://www.active.com/nutrition/articles/lifesum-review",
+     "https://apps.apple.com/us/app/-/id286906691",
+     "https://www.ruled.me/?p=874",
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Weekly report card: an auto-generated Monday summary covering average kcal vs goal, protein, fiber, trend-weight change, measurement deltas, top 3 nutrient gaps and logged-days count. Add an optional share as image or PDF for a trainer or doctor.",
+    "evidence": "Cronometer added a Nutrition Report Summary dashboard widget in 2025. Lifesum's Life Score is weekly. FeastGood praises FatSecret for free sharing of data and automatic progress reports with a dietitian or doctor.",
+    "sources": [
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved",
+     "https://www.active.com/nutrition/articles/lifesum-review",
+     "https://feastgood.com/?p=22615"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Positive-pattern insights: local correlations such as 'days with a protein breakfast had 250 kcal less at dinner' or 'Fridays average +400 kcal'. Show them as cards on the Progress tab.",
+    "evidence": "Lose It Premium has 'Positive Pattern' alerts showing which meals are linked to lower calorie intake later in the day.",
+    "sources": [
+     "https://www.fitbudd.com/post/lose-it-premium-review"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Net carbs toggle: switch the diary and macro view between total and net carbs (carbs minus fiber), with an optional net-carb goal for low-carb users.",
+    "evidence": "Carb Manager's core strength is automatic net carbs. Reviewers praise that totals update with no manual math, unlike MFP. Its listing says net carb tracking is always free.",
+    "sources": [
+     "https://www.ruled.me/?p=874",
+     "https://apps.apple.com/us/app/id410089731",
+     "https://www.welling.ai/articles/best-calorie-tracker-apps-expert-reviews-rankings"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Custom diary groups and meal slots: let the user rename, add or remove meal sections (for example 'Перекус 2', 'После тренировки') instead of fixed 4 meals. Keep per-meal kcal subtotals visible.",
+    "evidence": "Cronometer rolled out Diary Groups to all users. Lose It Premium has per-meal macro breakdowns and targets. A Lifesum reviewer complains that a redesign put all foods in one long list with no per-meal calories.",
+    "sources": [
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved",
+     "https://www.fitbudd.com/post/lose-it-premium-review",
+     "https://apps.apple.com/us/app/-/id286906691"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Extra custom biometrics beyond the 7 body measurements: user-defined metrics such as blood pressure, resting pulse, sleep hours or body fat %. Each gets a chart and goes into the PDF export.",
+    "evidence": "Lose It Premium offers goals for blood pressure, blood glucose, sleep and body measurements. Cronometer added time-series entries for blood glucose and temperature. Carb Manager tracks glucose, ketones and insulin. Yazio Pro tracks mood, symptoms and body metrics.",
+    "sources": [
+     "https://www.fitbudd.com/post/lose-it-premium-review",
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved",
+     "https://apps.apple.com/us/app/id410089731",
+     "https://apps.apple.com/UA/app/id946099227"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Volumetric servings for own foods and dishes: define density or ml-based portions (soup ladle 250 ml, glass of kefir) next to grams.",
+    "evidence": "Cronometer added volumetric (mL) serving sizes for custom foods and recipes in 2024.",
+    "sources": [
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Accessibility: an in-app font-size scale (for example 0.85x-1.4x), independent of the iOS Dynamic Type setting.",
+    "evidence": "Cronometer shipped an adjustable font size (0.75x to 1.5x) in 2025.",
+    "sources": [
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Home-screen widget showing kcal left, a macro ring and the logging streak. This needs a WidgetKit extension in the Expo prebuild; check that it works with fakesigned TrollStore builds.",
+    "evidence": "Cronometer added an iOS Streaks home-screen widget and a Nutrition Report widget. MacroFactor added Android widgets in winter 2024-25.",
+    "sources": [
+     "https://cronometer.com/blog/cronometer-updates-whats-new-improved",
+     "https://macrofactor.com/annual-report-2025/"
+    ],
+    "frequency": "occasional"
+   }
+  ],
+  "complaints": [
+   "Core features moved behind a paywall, above all the barcode scanner (MFP in 2024, Lose It for new accounts). It is the top reason users switch apps.",
+   "Ads and upsell popups after every food entry; tips and promo banners that cannot be turned off (Yazio, MFP free tier, Carb Manager).",
+   "Red warnings and big over-goal numbers feel shaming or pushy (Yazio). Users prefer MacroFactor's neutral, no-penalty approach.",
+   "Redesigns that add taps or scrolling to simple logging, or that remove per-meal grouping and per-meal calories (Lifesum, Yazio).",
+   "Crowdsourced databases with wrong macros, odd serving sizes and duplicates (MFP, FatSecret, Lose It).",
+   "Mixed and home-cooked meals are tedious: every ingredient must be searched and adjusted separately.",
+   "Shopping lists that do not merge duplicate ingredients or update when a meal is swapped (Lifesum).",
+   "Reminder banners that cannot be disabled and must be dismissed several times a day (Yazio).",
+   "Apps that lag or load slowly, or fail to load the current day (MFP, Lose It, Carb Manager, Yazio).",
+   "Adaptive targets need 2+ weeks of consistent logging and regular weigh-ins, and can underestimate needs for lean or fast-metabolism users. A steep, clinical learning curve puts off beginners (MacroFactor).",
+   "Missing micronutrient data for packaged foods makes a diet look less nutritious than it is (MacroFactor). Estimated nutrients should be labeled as estimates.",
+   "Being pushed toward AI or text logging when the user wants scan-and-add (Lifesum).",
+   "Childish mascots and cluttered gamification. Some users want a minimalist mode (Yazio).",
+   "Limited or no data export (Lifesum, FatSecret)."
+  ]
+ },
+ {
+  "angle": "russia",
+  "findings": [
+   {
+    "idea": "Make the app work fully offline during mobile internet shutdowns. Cache every Open Food Facts result locally. If a barcode lookup fails with no network, save the scan to a 'look up later' queue and let the user log a placeholder (name + kcal) now. Resolve the queue automatically when the network returns. Optionally bundle a compact offline index of popular Russian EAN-13 codes (prefixes 460-469).",
+    "evidence": "A TASAGER user on RuStore asks for exactly this: offline use of favourites and history, plus barcode and photo adds that sync later, citing internet restrictions in Russia. Another review there reports a 'no internet' error that blocked data entry. Rozetked counts over 11,700 mobile internet shutdowns in Russia in 2025, daily in dozens of regions; Moscow was affected 199 days. Only whitelisted services (banks, VK, Ozon and similar) keep working, and Open Food Facts is not one of them.",
+    "sources": [
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+     "https://rozetked.me/articles/43447-belye-spiski-chto-eto-i-kakie-resursy-dostupny"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "When a barcode is not found, go straight to a 'create from label' form. The scanned EAN is already attached; fields are KBJU per 100 g plus package weight. Save it as an own food so the next scan of that code hits instantly. Optionally add a 'suggest to Open Food Facts' toggle.",
+    "evidence": "Barcode misses are the most common complaint in Russian reviews. A 'Мой рацион' user says the scanner did not recognise a single barcode. A YAZIO review says the scanner finds the wrong product or nothing. 'Худеем вместе' carries a review tag for scanner and photo recognition failures. The Habr barcode dump excludes food, which shows how scarce open Russian food barcode data is.",
+    "sources": [
+     "https://apps.apple.com/us/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%BC%D0%BE%D0%B9-%D1%80%D0%B0%D1%86%D0%B8%D0%BE%D0%BD/id1575349217?l=ru",
+     "https://apps.apple.com/ru/app/yazio-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%B8-%D0%B4%D0%B8%D0%B5%D1%82%D0%B0/id946099227",
+     "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+     "https://habr.com/en/articles/699606"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Read 'Честный ЗНАК' DataMatrix codes in the scanner (expo-camera supports the datamatrix type). Parse the GS1 element string: AI (01) holds a 14-digit GTIN, and dropping its leading 0 gives the EAN-13. Then run the normal product lookup. Russian dairy, bottled water and other labelled goods carry DataMatrix next to or instead of an easy-to-read EAN.",
+    "evidence": "The official Честный ЗНАК app scans DataMatrix and shows composition, shelf life and manufacturer. Guides note that the code is printed on mandatory-labelled categories, dairy among them. No Russian calorie app reviewed mentions DataMatrix support, so this is a niche gap.",
+    "sources": [
+     "https://apps.apple.com/RU/app/id1400723804",
+     "https://www.securitylab.ru/blog/personal/Technolady/361961.php"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "After a scan, default the amount to the package weight or a saved typical portion instead of 100 g. Remember the last amount used for each product.",
+    "evidence": "A 'Худеем вместе' App Store review asks for scanned products to default to a portion, not 100 g, so users do not have to weigh food or read the package; the developer promised to consider it. A FatSecret RU review asks for the opposite case too: show calories per gram, not only per 'порция'. Both point to flexible units with a smart default.",
+    "sources": [
+     "https://apps.apple.com/us/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D1%85%D1%83%D0%B4%D0%B5%D0%B5%D0%BC-%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%B5/id889574511?l=ru",
+     "https://apps.apple.com/ru/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%BE%D1%82-fatsecret/id347184248"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Add Russian household measures to the built-in foods: 'ст. ложка', 'ч. ложка', 'стакан 250 мл', 'штука (среднее яйцо, яблоко)', 'ломтик хлеба', 'тарелка супа'. Each measure maps to a gram weight per food. This allows logging without kitchen scales.",
+    "evidence": "Rospotrebnadzor publishes a public brochure 'Определяем порцию без кулинарных весов', which shows official interest in estimating portions without scales. A Habr Q&A asks how to build a table of product measures for a Russian calorie site, which suggests no ready open source exists. None of the reviewed RU app listings advertise spoon or glass measures.",
+    "sources": [
+     "https://nizhnedevickij-r20.gosweb.gosuslugi.ru/netcat_files/userfiles/Informatsiya_dlya_naseleniya_rospotrebnadzor/Opredelyaem_portsiyu_bez_vesov.doc",
+     "https://qna.habr.com/q/612421"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Build a home-dish calculator around the cooked weight. Sum the raw ingredients, ask for the weight of the finished pot, and let the user save 'my pans' with their tare weight so the app subtracts it. KBJU per 100 g then comes from the real cooked weight. Logging is then 'I took 350 g of борщ'.",
+    "evidence": "Russian guides say the finished weight cannot be derived from ingredients because water evaporates or is absorbed. The only accurate method is to weigh the finished dish and divide. One RU source mentions an app where you pick your pot from a list and it counts only the борщ weight. The vc.ru guide repeats the method of weighing the finished dish and computing per 100 g.",
+    "sources": [
+     "https://vc.ru/food/2780467-kak-poschitat-kalorinost-bluda",
+     "https://ichip.ru/sovety/ekspluataciya/kak-schitat-kalorii-933902"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Show raw vs cooked variants explicitly for grains, pasta and meat: 'гречка (сухая)' 340 kcal vs 'гречка варёная на воде' about 100-110 kcal. Show a hint chip 'вы взвешиваете сухую или готовую?' when one is picked. Keep the two variants paired in search results.",
+    "evidence": "User-created entries for cooked buckwheat on health-diet.ru ('Мой здоровый рацион') range from 80.5 to 362 kcal/100 g, probably because dry values were entered as cooked. KP and other guides list 340-350 kcal dry vs about 100-110 kcal cooked on water and 120-150 kcal on milk.",
+    "sources": [
+     "https://www.kp.ru/family/eda/kalorijnost-varenoj-grechki/",
+     "https://health-diet.ru/table_calorie_users/2000783/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Mark the data source and trust level on every food: built-in (checked), Open Food Facts (crowd), own. Let users edit any imported product card and keep their own correction. Warn when KBJU does not add up, for example kcal far from 4P+9F+4C.",
+    "evidence": "TASAGER reviews say user-created products often have wrong БЖУ and ask to edit product cards. 'Худеем вместе' carries the review tag 'Неточный подсчёт калорий и КБЖУ'. FatSecret's own help admits generic items may not match the brand-specific product.",
+    "sources": [
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+     "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+     "https://www.fatsecret.com/ru/fatsecret-справка-приложения/начало-работы/не-можете-найти-продукт"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Make 'free, no subscription, no account, no ads, all features' the central positioning in any presentation or comparison. Russians struggle to pay for foreign subscriptions, and free local apps are rated highly for exactly this.",
+    "evidence": "vc.ru (Oct 2026) says paying YAZIO Pro from Russia needs intermediaries: rented foreign cards for about 450-550 RUB in fees on a 1,500-2,000 RUB subscription, plus App Store region-mismatch errors. MyFitnessPal's barcode scanner is now paid. FatSecret RU lists premium at 645-925 RUB per month and up to 3,990 RUB per year. TASAGER users report failed payments via Tinkoff and SBP. 'Худеем вместе' reviewers praise it for being free with no mandatory subscriptions or ads, and it holds 4.9 from 4.5K ratings.",
+    "sources": [
+     "https://vc.ru/services/2899110-kak-oplatit-yazio-pro",
+     "https://www.directline.pro/connect/p/kak-oplatit-yazio-v-rossii/",
+     "https://apps.apple.com/ru/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%BE%D1%82-fatsecret/id347184248",
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+     "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+     "https://skillbox.ru/media/health/calorie-counter-apps/"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Keep logging to the fewest taps and avoid forced gamification. No unskippable 'congrats' popups. Add a setting to turn off celebrations and streaks, and keep the scanner one tap from the meal screen.",
+    "evidence": "YAZIO RU reviews complain that every update adds steps to log food. A paying user is annoyed by congratulations after every logged product that cannot be disabled; she only wants to count calories. Others complain that the barcode button was moved deeper into the UI and that confirm buttons sometimes do not respond. 'Таблица калорийности' users praise 'no extra frills'.",
+    "sources": [
+     "https://apps.apple.com/ru/app/yazio-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%B8-%D0%B4%D0%B8%D0%B5%D1%82%D0%B0/id946099227",
+     "https://apps.apple.com/ru/app/%D1%82%D0%B0%D0%B1%D0%BB%D0%B8%D1%86%D0%B0-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9%D0%BD%D0%BE%D1%81%D1%82%D0%B8-%D0%B8-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B8/id477039928"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Bundle a small offline pack of popular Russian chain menu items with published KBJU: Вкусно — и точка, Rostic's, Додо, Теремок, Шоколадница, ВкусВилл ready meals. Add a 'кафе / ресторан' quick estimate (typical portion presets) for eating out.",
+    "evidence": "A Т—Ж author who counted calories in FatSecret names cafés and parties as the main source of anxiety and lost time, because she had to search for similar dishes and guess. 'Вкусно — и точка' publishes composition and calories on its site, app and kiosks. FatSecret was praised early on for including the most popular Russian chains.",
+    "sources": [
+     "https://t-j.ru/schitayu-kalorii/",
+     "https://www.retail.ru/rbc/pressreleases/vkusno-i-tochka-predlagaet-gostyam-sbalansirovannye-nabory-kaloriynostyu-do-600-kkal-/",
+     "https://www.iphones.ru/iNotes/381736"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Support Russian grocery private labels by chain. Allow tagging own foods with a store (ВкусВилл, Пятёрочка, Перекрёсток, Магнит), searching 'вкусвилл сырники', and optionally importing a chain's published KBJU list. ВкусВилл products show КБЖУ on every product page.",
+    "evidence": "In December 2025 ВкусВилл put its entire product line into the calorie counter inside the Sportmaster app, with barcode scan and automatic KBJU updates for ready meals. This shows that chain-specific ready food is a real logging need in Russia. ВкусВилл product pages carry KBJU.",
+    "sources": [
+     "https://vkusvill.ru/media/journal/schitat-kalorii-stalo-proshche-so-vkusvillom-i-sportmasterom.html",
+     "https://vkusvill.ru/goods/burger-s-govyadinoy-barbekyu-43103.html"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Experimental: read the QR code of a Russian fiscal receipt (ФНС) to get a list of purchased items, then offer them as 'recent purchases' for quick logging and matching to foods. No calorie app found does this. It needs network and a ФНС receipt API, so it is a low priority.",
+    "evidence": "The official 'Проверка чеков ФНС России' app and Чекгуру turn a receipt QR into an item list automatically. A search found no calorie tracker that imports items from a receipt.",
+    "sources": [
+     "https://apps.apple.com/ru/app/%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B0-%D1%87%D0%B5%D0%BA%D0%BE%D0%B2-%D1%84%D0%BD%D1%81-%D1%80%D0%BE%D1%81%D1%81%D0%B8%D0%B8/id1169353005",
+     "https://apps.apple.com/ru/app/%D1%87%D0%B5%D0%BA-%D0%B3%D1%83%D1%80%D1%83-qr-%D1%81%D0%BA%D0%B0%D0%BD%D0%B5%D1%80-%D1%87%D0%B5%D0%BA%D0%BE%D0%B2-%D1%83%D1%87%D1%91%D1%82/id1471108984?mt=8"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Recalculate the kcal and macro goal automatically, or offer to, when a new weight is logged. Show the change on screen ('норма: 1850 → 1810 ккал').",
+    "evidence": "'Худеем вместе' carries the review tag 'Норма калорий не пересчитывается при смене веса' as a recurring complaint.",
+    "sources": [
+     "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Sync with Apple Health: write weight and dietary energy and macros, and read steps and active energy. TrollStore allows adding the HealthKit entitlement via ldid, so the unsigned build can still use it.",
+    "evidence": "Nearly every RU competitor lists Apple Health sync: FatSecret syncs weight and burned calories, 'Худеем вместе' and 'Таблица калорийности' list Apple Health and Garmin. Hi-Tech Mail names 'no integration with other apps' as the main minus of 'Мой здоровый рацион'. TASAGER users complain that weight is not imported via Health Connect.",
+    "sources": [
+     "https://apps.apple.com/us/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D1%85%D1%83%D0%B4%D0%B5%D0%B5%D0%BC-%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%B5/id889574511?l=ru",
+     "https://apps.apple.com/ru/app/%D1%82%D0%B0%D0%B1%D0%BB%D0%B8%D1%86%D0%B0-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9%D0%BD%D0%BE%D1%81%D1%82%D0%B8-%D0%B8-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B8/id477039928",
+     "https://hi-tech.mail.ru/compilations/126261-luchshie-prilozheniya-dlya-pokhudeniya/",
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Let users configure meals: rename them, add 'перекус' or 'второй завтрак' / 'полдник', up to 6-9 slots. Many Russians eat 5 times a day (завтрак, второй завтрак, обед, полдник, ужин).",
+    "evidence": "'Мой здоровый рацион' (health-diet.ru) advertises up to 9 meals a day. 'Худеем вместе' users repeatedly ask for a snack meal; the developer points to a meal-times setting.",
+    "sources": [
+     "https://lifehacker.ru/14-prilozhenij-dlya-poxudeniya/amp/",
+     "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews",
+     "https://apps.apple.com/us/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D1%85%D1%83%D0%B4%D0%B5%D0%B5%D0%BC-%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%B5/id889574511?l=ru"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Add a home-screen widget (kcal left today plus a macro ring) and a lock-screen widget.",
+    "evidence": "TASAGER users explicitly ask for home-screen widgets.",
+    "sources": [
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Add CSV/XLSX export of the diary and measurements alongside the existing PDF and JSON, so data opens in Excel or Google Sheets or can go to a nutritionist.",
+    "evidence": "TASAGER users ask to export measurements and meals to CSV or XLSX.",
+    "sources": [
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Show fiber (клетчатка) next to Б/Ж/У in the day summary and the meal rows, not only on the nutrients screen.",
+    "evidence": "TASAGER users ask to show fiber next to БЖУ. FatSecret and 'Мой здоровый рацион' advertise fiber, sugar and sodium tracking as a selling point in RU reviews.",
+    "sources": [
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+     "https://lifehacker.ru/14-prilozhenij-dlya-poxudeniya/amp/"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Improve own dishes: search, sort (A-Z, recent) and filter saved recipes. Allow editing a saved recipe in place, with diary history kept. Allow sharing a dish as a file or text with KBJU.",
+    "evidence": "A FatSecret RU review asks to edit saved recipes in the cookbook. TASAGER users ask for search, filters and alphabetical sorting of recipes. 'Худеем вместе' users ask to share a finished dish.",
+    "sources": [
+     "https://apps.apple.com/ru/app/%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D0%BB%D0%BE%D1%80%D0%B8%D0%B9-%D0%BE%D1%82-fatsecret/id347184248",
+     "https://www.rustore.ru/catalog/app/com.tasager.health/reviews",
+     "https://www.rustore.ru/catalog/app/ru.hudeem.adg/reviews"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Add an optional 'хлебные единицы' (ХЕ, 1 ХЕ ≈ 10-12 g carbs) display per meal and day for diabetics. It is a Russian-specific unit used by endocrinologists.",
+    "evidence": "Russian smart kitchen scales advertise showing bread units (ХЕ) next to KBJU. Diabetes-management services are on the Russian internet whitelist, which signals a sizable user group.",
+    "sources": [
+     "https://ichip.ru/sovety/ekspluataciya/kak-schitat-kalorii-933902",
+     "https://rozetked.me/articles/43447-belye-spiski-chto-eto-i-kakie-resursy-dostupny"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Add a gentle 'awareness mode' option that hides exact numbers or the over-limit red, softens the wording, and focuses on a protein portion plus a weekly trend. It is aimed at users who fear obsessive counting.",
+    "evidence": "Т—Ж readers report regaining weight after stopping and disordered eating triggered by strict counting. Some suggest using counting for awareness rather than strict limits. Doctors quoted by DP.ru warn about over-focusing on numbers and the yo-yo effect.",
+    "sources": [
+     "https://t-j.ru/schitayu-kalorii/",
+     "https://www.dp.ru/a/2024/02/18/dietolog-v-karmane-schjotchiki"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Market context for the presentation: the RU field is the big foreign apps (YAZIO with over 50M audience, FatSecret, Lifesum, MyFitnessPal), free local apps ('Худеем вместе' 4.9, Wayout 'Счетчик калорий' 4.9, TASAGER, 'Мой здоровый рацион') and now a free state-backed AI app from Sber and Минздрав, 'Худеем на здоровье' (Oct 2026). Differentiate on privacy (local-only, no account), offline reliability and Russian-food accuracy, not on AI.",
+    "evidence": "DP.ru cites YAZIO's audience of over 50M and Arise with over 6M users. RuStore lists the local apps with 4.9 ratings and 90-100K+ downloads. BFM reports that Sber and the Ministry of Health presented the free AI weight-loss assistant 'Худеем на здоровье' on 20 Oct 2026. Review roundups (Hi-Tech Mail, Lifehacker, Skillbox, RuStore) consistently list FatSecret, YAZIO, Lifesum and 'Мой здоровый рацион'.",
+    "sources": [
+     "https://www.dp.ru/a/2024/02/18/dietolog-v-karmane-schjotchiki",
+     "https://www.bfm.ru/news/621480",
+     "https://www.rustore.ru/prostore/prilozheniia-dlia-podscheta-kalorii-i-pokhudeniia",
+     "https://hi-tech.mail.ru/compilations/126261-luchshie-prilozheniya-dlya-pokhudeniya/",
+     "https://www.rustore.ru/catalog/app/com.wayout.wayout_food"
+    ],
+    "frequency": "common"
+   }
+  ],
+  "complaints": [
+   "Barcode scanner misses Russian products or returns the wrong item ('не распознал ни один штрих-код', YAZIO 'находит другое или ничего')",
+   "Wrong or inconsistent KBJU from user-created entries (cooked buckwheat ranges from 80 to 362 kcal/100 g on health-diet.ru), and no way to edit a product card",
+   "Foreign subscriptions cannot be paid from Russia: Russian cards are declined, so users need intermediaries with fees of about 450-550 RUB and face App Store region errors; local apps' payments via Tinkoff or SBP also fail",
+   "Expensive subscriptions for basic features: FatSecret 645-925 RUB per month, YAZIO PRO up to 4,990 RUB per year, MyFitnessPal barcode scanner paywalled; intrusive ads in free versions (EatFit, EasyFit)",
+   "App unusable without internet during regional mobile internet shutdowns ('нет интернета' error blocks entry)",
+   "Each update adds more taps to log food; the scanner is moved deeper; confirm buttons do not respond",
+   "Forced gamification: congratulations after every logged item that cannot be turned off",
+   "Scanned items default to 100 g instead of a package or portion, which forces weighing",
+   "Calorie norm not recalculated when weight changes",
+   "No integration with Apple Health or other apps (main minus of 'Мой здоровый рацион'); weight not imported",
+   "Hard to log café and restaurant meals: users search for similar dishes and guess, which causes anxiety",
+   "Lag, freezes, crashes, and over-frequent app updates (TASAGER)",
+   "Recipes mostly in English (YAZIO); saved recipes cannot be edited or searched",
+   "Photo recognition sold as premium but unreliable (recognises only main ingredients)"
+  ]
+ },
+ {
+  "angle": "science",
+  "findings": [
+   {
+    "idea": "Weight trend line by exponential smoothing (EWMA), drawn over the raw weigh-ins on the Progress chart. Formula: T_t = T_(t-1) + a*(W_t - T_(t-1)) with a = 0.1 per day (Hackers Diet smoothing constant 0.9). For gaps of d days use a_eff = 1 - 0.9^d, so irregular or weekly weigh-ins still work. Seed T_0 with the first weigh-in. Show a 'trend' number and a 'kg/week' slope (trend now minus trend 7 or 28 days ago), and run all logic on the trend, not on raw scale weight.",
+    "evidence": "Hackers Diet: each older day's weight is weighted by successive powers of 0.9. This lags about like a 20-day simple moving average and removes the need to pick a fixed window. Deficit = trend slope (lb/week) * 3500 / 7; worked example 1.7 lb/week ~ 850 kcal/day. Fit a straight line to the trend only when the trend is roughly straight. MacroFactor also bases its key calculations on trend weight, not scale weight, and mostly ignores short spikes. A deviation that lasts 4-5 days triggers an adjustment.",
+    "sources": [
+     "https://www.fourmilab.ch/hackdiet/e4/signalnoise.html",
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Adaptive TDEE ('real expenditure'), back-calculated from logged intake and trend change, fully offline. Over a rolling 21-28 day window: TDEE = mean_daily_intake - (Trend_end - Trend_start)[kg] * rho / days. Default rho = 7700 kcal/kg. Better: a composition-weighted rho = 9440*f_fat + 1816*(1 - f_fat) kcal/kg, using fat 39.5 MJ/kg and lean 7.6 MJ/kg; f_fat ~0.75-0.8 gives ~7500-7900. Use the SAME rho for gain and loss, as MacroFactor V3 does. Blend with the existing Mifflin-St Jeor estimate as a prior: TDEE = w*adaptive + (1-w)*Mifflin. Set w = 0 for the first ~7 days and ramp it to 1 by day 21-30. Clamp week-to-week moves, for example to +/-100-150 kcal (a design choice for stability).",
+    "evidence": "MacroFactor infers expenditure from intake plus change in trend weight, using fat 39.5 MJ/kg (~4282 kcal/lb) and lean 7.6 MJ/kg (~824 kcal/lb). The 3500 kcal/lb rule implicitly assumes ~78% fat / 22% lean tissue. V3 made the implied surplus for gain equal the implied deficit for loss, which lowered typical TDEE by 0-130 kcal. The formula start estimate holds a few days, moves after ~1 week and stabilizes in 14-30 days. Sanghvi 2015 validated a weight-change-based intake method against doubly labeled water: group mean within 40 kcal/d, individual RMSE 215 kcal/d, most within 132 kcal/d.",
+    "sources": [
+     "https://macrofactor.com/expenditure-v3/",
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Sanghvi%20validation%20inexpensive%20accurate%20mathematical%20method%20long-term%20changes%20free-living%20energy%20intake&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Data-quality rules for the TDEE estimate. Pause the update when more than 3 of the last 7 days are unlogged. Exclude 'empty' days, or impute them from the person's average, rather than counting them as 0 kcal. Add a 'day fully logged' toggle. Show the estimate with a confidence band, roughly +/-200 kcal at first, narrowing as data accumulates, and the text 'estimate stabilizes after 2-4 weeks'.",
+    "evidence": "MacroFactor V3 pauses only when more than 3 days in 7 are missing (V2 paused at 2 or more). It estimates unlogged days within ~15-20% (mean error ~13%) and stays close to the full-data result with half the intake data removed. The individual error of weight-based intake methods is ~215 kcal/d RMSE (Sanghvi 2015), so a band is honest.",
+    "sources": [
+     "https://macrofactor.com/expenditure-v3/",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Sanghvi%20validation%20inexpensive%20accurate%20mathematical%20method%20long-term%20changes%20free-living%20energy%20intake&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Weekly adherence-neutral check-in. Once a week, set new kcal target = adaptive TDEE - deficit, where deficit = goal_rate_kg_per_week * rho / 7. Never 'pay back' past over-eating. If the person ate above target but still hit the rate, raise the target. Do not show red or warning colors for going over the target.",
+    "evidence": "MacroFactor treats each week as its own unit and does not make up for past over- or under-eating. It solves expenditure from weight and intake, not from hitting targets. It avoids red numbers on over-target days to encourage complete logging, which improves the algorithm's input.",
+    "sources": [
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Safe-rate guardrails in onboarding and the goal screen. Offer a weekly loss rate of 0.5-1.0% of body weight (default ~0.5-0.7%). Cap the deficit at 500-1000 kcal/day; the Russian guideline default is 500-700. Never suggest a target below 1200 kcal for women or 1500 kcal for men. Show a strong warning below 1200 kcal and a 'medical supervision only' note below 800 kcal. Default goal: lose 5-10% in 3-6 months, then hold the result for 1 year.",
+    "evidence": "Helms 2014: 0.5-1% bodyweight/week maximizes muscle retention. Russian MoH clinical guideline 'Ozhirenie' (2020): deficit 500-700 kcal/day; a 500-1000 kcal cut gives 0.5-1.0 kg/week for 3-6 months; goal 5-10% in 3-6 months, maintained for a year. US practice summary: usual deficit 500 kcal/day, minimum intake women 1200-1500 and men 1500-1800, avoid VLCD without observation. ISSN 2026: VLED (<800) and LED (800-1200) give more short-term loss but no long-term advantage and may increase lean mass loss.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:24864135%20AND%20SRC:MED&resultType=core&format=json",
+     "https://legalacts.ru/doc/klinicheskie-rekomendatsii-ozhirenie-utv-minzdravom-rossii/",
+     "https://fpnotebook.com/Endo/Obesity/ObstyMngmnt.htm",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22International%20Society%20of%20Sports%20Nutrition%20position%20stand%3A%20diets%20for%20body%20weight%20reduction%22&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Protein goal in g/kg as a third macro mode, next to % and grams, with presets. General/weight loss: 1.2-1.6 g/kg. With resistance training: 1.6-2.2 g/kg. Lean trained person in a deficit: 1.9-3.2 g/kg, or 2.3-3.1 g/kg of lean body mass. Age 65+: 1.0-1.2 g/kg (at least 1.2 if active, 1.2-1.5 if ill). Show a warning to consult a doctor for chronic kidney disease (eGFR <30). For BMI >= 30, compute per kg of lean mass or of a reference weight, not total weight. This is a design inference; the ISSN 2026 abstract uses body weight.",
+    "evidence": "ISSN 2026 position stand on weight-reduction diets: 1.2-1.6 g/kg general population, 1.6-2.2 g/kg with resistance training, 1.9-3.2 g/kg for lean trained people in a deficit. Total daily protein is of primary importance. ISSN 2017: 1.4-2.0 g/kg for exercisers, 2.3-3.1 g/kg may be needed in hypocaloric periods. Helms 2014: 2.3-3.1 g/kg LBM. PROT-AGE: older adults 1.0-1.2 g/kg, active at least 1.2, ill 1.2-1.5; severe CKD may need to limit protein. Russian norms MR 2.3.1.0253-21: 12-14% of energy; 75-114 g men, 60-90 g women.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22International%20Society%20of%20Sports%20Nutrition%20position%20stand%3A%20diets%20for%20body%20weight%20reduction%22&resultType=core&format=json&pageSize=2",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:28642676%20AND%20SRC:MED&resultType=core&format=json",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:24864135%20AND%20SRC:MED&resultType=core&format=json",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:23867520%20AND%20SRC:MED&resultType=core&format=json",
+     "https://legalacts.ru/doc/mr-2310253-21-231-gigiena-gigiena-pitanija-ratsionalnoe-pitanie-normy/"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Per-meal protein distribution hint, using the app's existing 4 meals. Per-meal target = 0.25 g/kg, or 20-40 g. Show a small marker on meals below ~20 g. Show a day-level hint when fewer than 3 meals reach the threshold.",
+    "evidence": "ISSN 2017: ~0.25 g/kg or an absolute 20-40 g per serving, with 700-3000 mg leucine, spread every 3-4 h. ISSN 2026: at least three protein-rich eating occasions per day may help retain lean mass.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:28642676%20AND%20SRC:MED&resultType=core&format=json",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22International%20Society%20of%20Sports%20Nutrition%20position%20stand%3A%20diets%20for%20body%20weight%20reduction%22&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Fat floor and macro priority at low kcal. Keep fat at 15-30% of kcal and never below the floor. The Russian norm caps fat at 30% of energy. When the kcal target is very low, protect fat first, then protein, then let carbs absorb the cut.",
+    "evidence": "Helms 2014: 15-30% of calories from fat during contest prep. MR 2.3.1.0253-21: fat no more than 30% of energy. MacroFactor coached plans protect fat first, then protein, then carbs at very low targets.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:24864135%20AND%20SRC:MED&resultType=core&format=json",
+     "https://legalacts.ru/doc/mr-2310253-21-231-gigiena-gigiena-pitanija-ratsionalnoe-pitanie-normy/",
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Plateau detector with an explanation screen. Flag a plateau when the 14-21 day trend slope is under ~0.1% BW/week (a design threshold), mean logged intake is at or below target, and logging is complete (not more than 3 unlogged days in 7). First check confounders: recent diet break, carb or fiber jump, creatine start. Then offer three options: (a) re-run the TDEE estimate and lower intake by 100-200 kcal, (b) take a maintenance/diet break, (c) treat the plateau as maintenance practice. Explain that appetite rises ~100 kcal/day per kg lost, more than 3x the metabolic adaptation, so the usual cause is intake creep, not 'broken metabolism'.",
+    "evidence": "Polidori 2016: intake rose ~100 kcal/day per kg of lost weight, more than threefold the expenditure adaptation. ISSN 2026: adaptive thermogenesis is not inevitable and may attenuate once weight is stable; plateaus are opportunities to practice maintenance. MacroFactor: creatine or large carb/fiber shifts cause 1-2 weeks of misguided adjustments; skip check-ins until the estimate stabilizes.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Polidori%20%22How%20strongly%20does%20appetite%20counter%20weight%20loss%22&resultType=core&format=json&pageSize=2",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22International%20Society%20of%20Sports%20Nutrition%20position%20stand%3A%20diets%20for%20body%20weight%20reduction%22&resultType=core&format=json&pageSize=2",
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "'Diet break' mode. For 1-2 weeks the target = estimated TDEE, with the extra kcal mainly as carbs. Suggested schedule: 2 weeks deficit / 2 weeks maintenance (MATADOR), or a 1-week break after ~6-12 weeks. Tag those days so the TDEE algorithm and plateau detector know about them. Warn in advance that scale weight may rise ~0.5-1 kg from glycogen and water, and that this is not fat.",
+    "evidence": "MATADOR (Byrne 2018): 2-week blocks at 67% of maintenance alternated with 2-week maintenance blocks. Result: more fat loss (12.3 vs 8.0 kg), more weight loss (14.1 vs 9.1 kg) and a smaller drop in adjusted REE (-360 vs -749 kJ/d) than continuous restriction. Peos 2021 (ICECAP): a 1-week carb-to-maintenance break lowered hunger, raised fullness and satisfaction, and raised RMR 7000 to 7200 kJ/d. Body weight rose 0.6 kg and FFM 0.7 kg, with no fat change.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=MATADOR%20intermittent%20energy%20restriction%20Byrne%202018&resultType=core&format=json&pageSize=2",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Peos%20ICECAP%20intermittent%20diet%20breaks%20resistance-trained&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Body-fat % from the existing circumference measurements (US Navy formula, cm, log10). Men: BF = 495 / (1.0324 - 0.19077*log10(waist - neck) + 0.15456*log10(height)) - 450. Women: BF = 495 / (1.29579 - 0.35004*log10(waist + hip - neck) + 0.22100*log10(height)) - 450. Use the 'glutes' measurement as hip and the height from onboarding. Derive fat mass = W*BF and lean mass = W*(1 - BF). Chart BF over time. Show ACE categories: essential fat women 10-13 / men 2-5; athletes 14-20 / 6-13; fitness 21-24 / 14-17; average 25-31 / 18-24; obese 32+ / 25+.",
+    "evidence": "Formulas and ACE categories as published by calculator.net, which notes the estimates are approximate. Accuracy vs DXA in a US Marine Corps survey (n=609) of a circumference method: mean bias about -2.5% in men and +1.3 to +2.3% in women, spread about 4%. Higher-fat people were underestimated. So display it as 'about X% (+/-4%)' and stress the trend over the absolute value.",
+    "sources": [
+     "https://www.calculator.net/body-fat-calculator.html",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Hodgdon%20Beckett%20prediction%20of%20percent%20body%20fat%20circumference%20Navy&resultType=core&format=json&pageSize=3"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Waist-to-height ratio card plus abdominal-obesity flag. WHtR = waist/height. Bands: 0.40-0.49 healthy; 0.50-0.59 increased risk; 0.60 or more high risk. Message: keep waist under half your height. Apply only for BMI < 35, where it also works for muscular people. Add the Russian MoH threshold: waist > 94 cm (men) / > 80 cm (women) = abdominal obesity. Show WHtR next to BMI on the measurements screen and in the PDF export.",
+    "evidence": "NICE NG246 (Jan 2025), via GPnotebook: bands 0.4-0.49 / 0.5-0.59 / 0.6+. Measure WHtR with BMI for adults with BMI < 35, including people with high muscle mass. Linked to T2D, hypertension and CVD risk. Russian clinical guideline 'Ozhirenie': waist > 94 cm men and > 80 cm non-pregnant women.",
+    "sources": [
+     "https://gpnotebook.com/pages/obesity/waist-to-height-ratio-whr",
+     "https://legalacts.ru/doc/klinicheskie-rekomendatsii-ozhirenie-utv-minzdravom-rossii/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Upper bound on the deficit from fat stores (Alpert limit), as an advanced warning for lean users. Max deficit ~ 69 kcal per kg of fat mass per day (290 kJ/kg/d, ~31 kcal/lb). Fat mass comes from the Navy BF estimate. Example: 12 kg fat gives a cap of ~830 kcal/day. If the requested deficit exceeds the cap, warn about likely extra lean-mass loss. Label it as a theoretical model.",
+    "evidence": "Alpert 2005: maximum energy transfer rate from the fat store in hypophagia is (290 +/- 25) kJ/kg/d. The abstract does not state the reference mass, but the limit is commonly read as per kg of fat. Helms 2014 and ISSN 2026 also tie aggressive deficits to lean-mass loss.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Alpert%20%22limit%20on%20the%20energy%20transfer%20rate%20from%20the%20human%20fat%20store%22&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Realistic goal-date forecast instead of the linear 7700 kcal/kg rule. Simulate day by day: W_(t+1) = W_t + (I - TDEE(W_t)) / rho. Let TDEE fall as weight falls: TDEE(W) = TDEE_now + k*(W - W_now), with k ~ 10 kcal/kg * activity factor, taken from the Mifflin weight coefficient (a design inference). Optionally add the appetite feedback. Show the forecast as a curve that flattens over time, and give a date range rather than a single date.",
+    "evidence": "Thomas 2013: the 3500-kcal rule 'grossly overestimates' actual weight loss across seven confinement studies; dynamic models do better. Hall 2011 (Lancet): weight responds to an intake change with half-times of ~1 year, and fatter people lose more for the same change. Hall 2008: 3500 kcal/lb (~7700 kcal/kg) fits only people with >30 kg body fat and overestimates the requirement for leaner people. Larger losses have lower energy density because more of the loss is lean tissue. The NIH Body Weight Planner simulates weight and body fat over time and flags intakes below 1000 kcal.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Thomas%20%22Can%20a%20weight%20loss%20of%20one%20pound%20a%20week%20be%20achieved%20with%20a%203500-kcal%20deficit%22&resultType=core&format=json&pageSize=2",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:21872751%20AND%20SRC:MED&resultType=core&format=json",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Hall%20%22What%20is%20the%20required%20energy%20deficit%20per%20unit%20weight%20loss%22&resultType=core&format=json&pageSize=2",
+     "https://www.niddk.nih.gov/bwp"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Daily quick weight entry, separate from the weekly 7-measurement session. One tap on the diary screen enters today's weight. Recommend weighing daily or at least 3x/week during weight loss, at the same time of day, because the EWMA trend and adaptive TDEE need dense data. In a maintenance phase, prompt at least a weekly weigh-in.",
+    "evidence": "MacroFactor: gaps are tolerated, but daily or at least 3x/week weigh-ins give better results. Russian MoH guideline: during weight maintenance, weigh at least once a week, with monthly specialist consultation. Hackers Diet: smoothing is needed because daily scale noise is large.",
+    "sources": [
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+     "https://legalacts.ru/doc/klinicheskie-rekomendatsii-ozhirenie-utv-minzdravom-rossii/",
+     "https://www.fourmilab.ch/hackdiet/e4/signalnoise.html"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Maintenance phase after reaching the goal or 5/10% milestones. Celebrate the 5% and 10% loss milestones. Then switch the target to adaptive TDEE (deficit 0) with a +/-1-2 kg tolerance band around the trend. Keep TDEE updates running, and add a 'regain alert' when the trend leaves the band.",
+    "evidence": "Russian MoH guideline: goal 5-10% in 3-6 months with the result held for 1 year; weekly weighing in maintenance. ISSN 2026: maintenance is the ultimate goal, and adaptive thermogenesis may attenuate once weight is stable. Polidori: appetite pressure persists after loss, ~100 kcal/day per kg lost.",
+    "sources": [
+     "https://legalacts.ru/doc/klinicheskie-rekomendatsii-ozhirenie-utv-minzdravom-rossii/",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22International%20Society%20of%20Sports%20Nutrition%20position%20stand%3A%20diets%20for%20body%20weight%20reduction%22&resultType=core&format=json&pageSize=2",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Polidori%20%22How%20strongly%20does%20appetite%20counter%20weight%20loss%22&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Fiber goal and tracking. Estimate fiber the same way as the other nutrients (category averages), and store fiber for the ~200 built-in foods. Default goal 25 g/day, which is the top of the Russian norm of 20-25 g. Offer 25 g (women) / 35 g (men) as the 'Nordic' option. Show a 7-day average and hints such as 'add vegetables, legumes, whole grains' when the average is below 20 g.",
+    "evidence": "MR 2.3.1.0253-21 (Rospotrebnadzor 2021): dietary fiber 20-25 g/day for adults. Nordic Nutrition Recommendations scoping review 2023: 25 g/day women / 35 g/day men. Actual intakes are lower (16-26 g), and newer evidence supports at least 25 g/day. Fiber is linked to lower obesity, T2D, CVD and colorectal cancer.",
+    "sources": [
+     "https://legalacts.ru/doc/mr-2310253-21-231-gigiena-gigiena-pitanija-ratsionalnoe-pitanie-normy/",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Reynolds%20carbohydrate%20quality%20human%20health%20systematic%20reviews%20meta-analyses%20Lancet%20fibre&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Added-sugar goal derived from the kcal target: limit_g = 0.10 * kcal / 4. Tighten to 0.05 * kcal / 4 when BMI >= 25 or WHtR >= 0.5. The app already estimates added sugar, so this only needs a goal line and a weekly-average indicator.",
+    "evidence": "MR 2.3.1.0253-21: added sugars under 10% of energy; up to 5% recommended with overweight and obesity.",
+    "sources": [
+     "https://legalacts.ru/doc/mr-2310253-21-231-gigiena-gigiena-pitanija-ratsionalnoe-pitanie-normy/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Use Russian official micronutrient targets, by sex and age, for the nutrient screens. Values: vitamin D 15 ug (20 ug at 65+); iron 10 mg men / 18 mg women; calcium 1000 mg (1200 mg at 65+); B12 3 ug; folate 400 ug; magnesium 420 mg; iodine 150 ug; potassium 3500 mg; sodium need 1300 mg with a cap of 2 g/day. Show 'possible shortfall' hints only on a 7-14 day average below ~70% of the norm (a design threshold, chosen because the estimates are coarse), with food suggestions.",
+    "evidence": "MR 2.3.1.0253-21 (approved 22 July 2021, replaced MR 2.3.1.2432-08) gives these adult values. Some table values were taken from the text sections because the page's tables were truncated.",
+    "sources": [
+     "https://legalacts.ru/doc/mr-2310253-21-231-gigiena-gigiena-pitanija-ratsionalnoe-pitanie-normy/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Low-calorie micronutrient warning. When the kcal target is below ~1500 or protein-heavy restrictive patterns dominate, show standing hints. Vitamin D, vitamin E, iodine and biotin tend to stay low even in planned diets, so suggest iodized salt, oily fish or vitamin D discussion with a doctor, and nuts or seeds for vitamin E. Keep the wording advisory ('possible', 'discuss with a doctor'), because the app's values are estimated from category averages.",
+    "evidence": "Calton 2010: across four popular diet plans, meeting 100% of all 27 micronutrient RDIs from food required ~27,575 kcal on average. Vitamins B7, D and E, chromium, iodine and molybdenum were consistently low or absent in all plans.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Calton%20%22prevalence%20of%20micronutrient%20deficiency%20in%20popular%20diet%20plans%22&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "'Water event' tags that exclude days from TDEE and plateau logic. Tags: diet-break or refeed, creatine start, big carb or salt change, illness, menstruation (optional). For ~7-14 days after a tag, freeze the TDEE update or down-weight those days, and show 'the scale jump is likely water'.",
+    "evidence": "MacroFactor lists non-energy weight changes (creatine, large shifts in carb or fiber) and large temporary activity spikes as causing 1-2 weeks of misguided adjustments. It suggests skipping check-ins until stable. Peos 2021: a carb-to-maintenance week raised body weight 0.6 kg with no change in fat mass.",
+    "sources": [
+     "https://macrofactor.com/macrofactors-algorithms-and-core-philosophy/",
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Peos%20ICECAP%20intermittent%20diet%20breaks%20resistance-trained&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Diet-style safety notes in the macro presets. If the person picks a very-low-carb or ketogenic split, note that it works for weight loss but tends to cost more lean mass, so the protein goal and resistance training matter more. Do not promote fasting schedules: they show no advantage over continuous restriction, which fits the deliberate removal of fasting from the app.",
+    "evidence": "ISSN 2026: ketogenic diets are effective for weight and fat loss but reduce fat-free mass more than higher-carbohydrate diets, especially in shorter trials. ADF, TRE and 5:2 show no differential effects vs continuous energy restriction on anthropometric outcomes.",
+    "sources": [
+     "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22International%20Society%20of%20Sports%20Nutrition%20position%20stand%3A%20diets%20for%20body%20weight%20reduction%22&resultType=core&format=json&pageSize=2"
+    ],
+    "frequency": "occasional"
+   }
+  ],
+  "complaints": [
+   "Static TDEE from a formula (like Mifflin times an activity factor) is never corrected by real data, so targets drift wrong as weight changes. Adaptive apps correct it in 2-4 weeks.",
+   "Linear 3500 kcal/lb (7700 kcal/kg) goal-date forecasts grossly overestimate weight loss. Leaner users and long diets are hit hardest, which produces false 'plateau' frustration.",
+   "Raw daily scale weight shown without a trend line causes panic over water swings. Base decisions on a smoothed trend.",
+   "Red numbers, warnings and 'make up for it' logic after over-eating discourage honest logging. Adherence-neutral design gets better data.",
+   "Aggressive deficits, or very low kcal targets offered without guardrails, increase lean-mass loss and give no long-term advantage. Users need floors (1200 kcal women / 1500 kcal men) and rate limits (0.5-1% BW/week).",
+   "Circumference body-fat % shown with false precision. The US Navy-type methods are about +/-4% off DXA and underestimate high body fat, so show a range and the trend.",
+   "Weight jumps after a diet break or refeed are misread as fat gain. The app should pre-warn and tag these days.",
+   "Adaptive algorithms get confused by unlogged or partially logged days and by water events. Without pause rules or a 'day complete' flag, the estimates swing.",
+   "Micronutrient 'deficiency' alerts based on rough estimates can scare users. Show only persistent multi-day shortfalls, worded as possibilities.",
+   "Research note for the orchestrator: the session hit its usage limit mid-research. Two claims were not verified from read sources and should not be cited without a re-check: Hall's per-kg rule of thumb and a fiber target of 14 g/1000 kcal. NICE's own page returned 403, so the WHtR bands come via GPnotebook's summary of NICE NG246."
+  ]
+ },
+ {
+  "angle": "ios-platform",
+  "findings": [
+   {
+    "idea": "GATING CONSTRAINT: check iOS version first. Expo SDK 58 needs iOS 16.4+ and TrollStore supports only 14.0-16.6.1, 16.7 RC and 17.0. So the phone must run 16.4-16.6.1 or 17.0. Each feature below depends on this: interactive widgets need 17.0 exactly. iOS 18-only features are unreachable: Control Center controls, App Intents schemas, Spotlight IndexedEntity. Add a settings screen that shows the iOS version and hides unavailable features.",
+    "evidence": "The TrollStore README lists supported versions and says 16.7.x and 17.0.1+ will never be supported. The Expo version table lists SDK 58 at iOS 16.4+ and Xcode 26.4+.",
+    "sources": [
+     "https://github.com/opa334/TrollStore",
+     "https://docs.expo.dev/versions/v58.0.0"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Home screen widget 'Калории сегодня': a ring with kcal eaten/left plus a P/F/C bar. Build it with expo-widgets, the official Expo package, stable since SDK 56. Push the day's totals from JS with updateSnapshot() after every diary change. Use updateTimeline() to reset the widget at midnight. Effort is low to medium: the widget is a 'widget'-directive component using @expo/ui SwiftUI primitives.",
+    "evidence": "The config plugin generates the Widget Extension target and the App Group. groupIdentifier defaults to group.<bundleId>. Widget code runs in an isolated JS runtime: no hooks, state, async or imports, only @expo/ui components fed through props. Timelines are scheduled in advance, so widgets are not real-time. Images go in the shared widgetsDirectory because widgets cannot read the app sandbox.",
+    "sources": [
+     "https://docs.expo.dev/versions/v58.0.0/sdk/widgets.md",
+     "https://expo.dev/blog/home-screen-widgets-and-live-activities-in-expo"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Lock Screen widgets: a circular kcal-left gauge and a rectangular 'Б/Ж/У' line. StandBy on iOS 17 comes free. Use the same expo-widgets entry with extra supportedFamilies (accessoryCircular / accessoryRectangular / accessoryInline). Use AccessoryWidgetBackground. Lock Screen widgets work on iOS 16, so this is the best widget form if the phone is on 16.x. Effort is low once the home widget exists.",
+    "evidence": "The widgets config takes an iOS supportedFamilies list for each widget. @expo/ui lists AccessoryWidgetBackground as an adaptive background for the widget environment. Gauge and ProgressView components exist.",
+    "sources": [
+     "https://docs.expo.dev/versions/v58.0.0/sdk/widgets.md",
+     "https://docs.expo.dev/versions/v58.0.0/sdk/ui/swift-ui/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "TrollStore widget signing recipe for the GitHub Actions pipeline. Sign the .appex binary in PlugIns/ separately with its own entitlements plist (ldid -S widget.plist) BEFORE the main app. Both plists get the same com.apple.security.application-groups value. The widget plist also needs com.apple.private.security.container-required set to the widget's bundle id. Do NOT put container-required on the main app. Without it, TrollStore 2.x gives the widget a wrong sandbox path under GTA Tracker's identity, and the widget cannot read its data.",
+    "evidence": "TrollStore issue #873 (2025, TrollStore 2.1, iOS 14.3-17.0): the widget sandbox path pointed to com.icraze.gtatracker. The reporter fixed it with container-required set to the widget bundle id on the widget only; on the main app it removes unsandboxed status. opa334 explained the CoreTrust bypass uses the GTA Tracker certificate. The README says TrollStore keeps entitlements fakesigned with ldid. Issue #76 says widgets work for some apps; the failing case there was a bad IPA. App Groups sharing under TrollStore is not confirmed by any source I read, so test it on the device first.",
+    "sources": [
+     "https://github.com/opa334/TrollStore/issues/873",
+     "https://github.com/opa334/TrollStore/issues/76",
+     "https://github.com/opa334/TrollStore"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Interactive widget, iOS 17.0 only. Add '+' buttons in the widget: 'Быстро +100 ккал' and 'Повторить вчерашний завтрак'. They run without opening the app. With expo-widgets, Button onPress returns new props that the system persists. Writing to SQLite needs a real App Intent in Swift that writes to the App Group. Alternative: queue the taps in the shared store and reconcile them at app launch. Effort is medium to high.",
+    "evidence": "The docs say interactive widgets need iOS 17+. Button onPress returns new props that persist without the app running. addUserInteractionListener mirrors taps into the app only while its process is alive. So a durable write needs a native App Intent or a pending queue that the app reads on start.",
+    "sources": [
+     "https://docs.expo.dev/versions/v58.0.0/sdk/widgets.md",
+     "https://expo.dev/blog/home-screen-widgets-and-live-activities-in-expo"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Swift-native widget alternative: @bacons/apple-targets. Use it for full SwiftUI control, for example Swift Charts for a weekly kcal sparkline, which @expo/ui widgets cannot draw. Share data with ExtensionStorage('group.x').set(key, json) plus ExtensionStorage.reloadWidget(). The Swift side reads UserDefaults(suiteName:). Pitfall: the target deploymentTarget defaults to 18.0. Set it to 16.4 or 17.0, or the widget will not load under TrollStore-capable iOS.",
+    "evidence": "The README lists target types widget, watch, app-intent, spotlight, share and more. The entitlements object writes generated.entitlements, and App Groups mirror app.json. ExtensionStorage wraps WidgetCenter reloads. Requirements: Xcode 16 / macOS 15 and SDK 53+. Edits outside /targets are lost on prebuild --clean. The author has tested end-to-end codesigning only for EAS.",
+    "sources": [
+     "https://github.com/EvanBacon/expo-apple-targets"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Live Activity / Dynamic Island 'Приём пищи' or 'Осталось на сегодня'. Start it locally from the app with LiveActivity.start(props) and update it with update(). Do NOT enable push (enablePushNotifications=false). APNs cannot work without a real Apple team. Possible uses: a timer while eating out, or a running kcal-left counter for the evening. Effort is medium. Needs iOS 16.1+; Dynamic Island needs iPhone 14 Pro+, older phones show the Lock Screen banner only. A nice-to-have, lower priority than widgets.",
+    "evidence": "expo-widgets createLiveActivity defines banner, compact, minimal and expanded regions. start/update/end take a staleDate, and getInstances() recovers activities after relaunch. SDK 58 added staleDate and stable ActivityKit ids. Vendor docs describe the NSSupportsLiveActivities Info.plist key and in-app Activity.request without push-to-start. Push-to-start needs iOS 17.2+, above the TrollStore ceiling.",
+    "sources": [
+     "https://docs.expo.dev/versions/v58.0.0/sdk/widgets.md",
+     "https://expo.dev/changelog/sdk-58",
+     "https://ably.com/docs/push/live-activities"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "App icon quick actions (long-press the icon): 'Сканировать штрихкод', 'Добавить в текущий приём', 'Быстрые ккал', 'Вес'. Use expo-quick-actions with static iosActions in app.json and SF Symbol icons. Route through useQuickActionCallback or useQuickActionRouting. Needs no entitlements, so it is safe under TrollStore. Effort is very low (hours).",
+    "evidence": "The Expo blog says iOS allows at most 4 actions. Static actions appear before first launch, and dynamic setItems actions are appended after static ones. Use SF Symbols with the 'symbol:' prefix. The callback hook must sit in an always-mounted component, and the href must match a real route. The package version is tied to the Expo SDK version, so pick the release that matches SDK 58.",
+    "sources": [
+     "https://expo.dev/blog/expo-quick-actions",
+     "https://www.npmjs.com/package/expo-quick-actions"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Siri / Shortcuts with expo-app-intents: 'Привет Siri, добавь в Калории 300 ккал' and 'сколько осталось калорий'. Also log weight from Shortcuts automations, for example every morning. Declare the AppIntent types in Swift inside the app target, no extension needed. The JS useAppIntents handler writes to SQLite. Phrases must include the app name and need Russian localization. Effort is medium. App Intents need no special entitlement, so they should work under TrollStore, but test on the device.",
+    "evidence": "The package is alpha with frequent breaking changes. Native runtime needs iOS 16.4+. Phrases are declared in AppShortcutsProvider, are static, and change only with a new native build. Max 10 shortcuts, and each phrase must contain \\(.applicationName). Dispatch is at-least-once with a queue of up to 100: deduplicate by id, then call removePendingInvocationAsync. Schema intents need iOS 18+, out of reach on TrollStore.",
+    "sources": [
+     "https://docs.expo.dev/versions/v58.0.0/sdk/app-intents.md",
+     "https://expo.dev/changelog/sdk-58"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Apple Health export with @kingstinct/react-native-healthkit (Nitro-based, includes an Expo config plugin). Write dietary energy, protein, fat, carbs, sugar and the computed vitamins and minerals per meal. Write body mass and waist circumference from the measurements. Read weight back from smart scales. Under TrollStore, add com.apple.developer.healthkit, plus healthkit.access if needed, to the ldid entitlements plist. Effort is medium. This is the most 'like a company app' integration.",
+    "evidence": "The README: install it with react-native-nitro-modules and add the plugin to app.json, where it writes HealthKit entitlements and usage strings, background on by default. Pitfall: reading a type you are not authorized for can crash, especially when auth and data hooks share one component. Types were renamed in 9.0. A TrollStore app, HealthLens, ships with com.apple.developer.healthkit injected via pseudo-signing for iOS 16+. That is evidence the entitlement can be injected, but no source confirms read/write works, so test on the device. HealthKit denials stick and the app cannot re-prompt.",
+    "sources": [
+     "https://cdn.jsdelivr.net/npm/@kingstinct/react-native-healthkit@14.0.1/README.md",
+     "https://github.com/1024y/HealthLens-Releases/releases/tag/v1.0.0",
+     "https://developer.apple.com/forums/thread/787407"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Avoid react-native-health (agencyenterprise) for new work. Prefer @kingstinct/react-native-healthkit.",
+    "evidence": "The repo says feature work has been paused since Aug 2023, with 121 open issues and 36 PRs. It has saveFood but energy-consumed is read-only, and new architecture support is not mentioned. That is risky on RN 0.88 with the new architecture.",
+    "sources": [
+     "https://github.com/agencyenterprise/react-native-health"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Backup to iCloud Drive WITHOUT iCloud entitlements: save the JSON backup and PDF through the system document picker or share sheet (forExporting). The user picks iCloud Drive in Files. Restore works with the picker forOpeningContentTypes. Add UIFileSharingEnabled plus LSSupportsOpeningDocumentsInPlace so the app's Documents folder shows in Files under 'На iPhone'. Then add an automatic weekly backup file there. Effort is low.",
+    "evidence": "The document picker is a system UI and needs no iCloud entitlement; only direct ubiquity-container access does. Files returned from it need startAccessingSecurityScopedResource. expo-document-picker ties iCloud entitlements (usesIcloudStorage, container ids, kvstore) only to 'iCloud storage features'. Those entitlements are normally bound to an Apple Team ID, which a fakesigned app lacks.",
+    "sources": [
+     "https://developer.apple.com/documentation/uikit/uidocumentpickerviewcontroller",
+     "https://docs.expo.dev/versions/v58.0.0/sdk/document-picker/"
+    ],
+    "frequency": "common"
+   },
+   {
+    "idea": "Do NOT plan true iCloud container sync (CloudKit / ubiquity container / NSUbiquitousKeyValueStore) or remote push under TrollStore. These need Apple-issued team-bound entitlements (aps-environment, icloud-container-identifiers) validated by Apple servers. Keep local notifications, which already exist, and file-based iCloud Drive backups.",
+    "evidence": "aps-environment selects the APNs environment, and without it the app gets no valid device token. CloudKit also needs aps-connection-initiate from the provisioning profile. opa334 mentioned an early 'icloud issue fixed in 1.0.1', and none of the sources I read confirm CloudKit works for fakesigned apps. expo-document-picker's kvStoreIdentifier defaults to Team ID plus bundle id.",
+    "sources": [
+     "https://developer.apple.com/tutorials/data/documentation/bundleresources/entitlements/aps-environment.md",
+     "https://developer.apple.com/forums/thread/722566",
+     "https://lr.in.psf.lt/r/jailbreak/comments/x44cpj/free_release_trollstore_jailed_permasigned_app/imu6ses/?context=3",
+     "https://docs.expo.dev/versions/v58.0.0/sdk/document-picker/"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Spotlight: index own foods, dishes and favourites with CoreSpotlight CSSearchableItem. Typing 'гречка' in iOS search then opens the add-food screen through a deep link. Use expo-core-spotlight or react-native-spotlight-search (config plugin), not expo-app-intents IndexedEntity, which is iOS 18-oriented. Needs no entitlement. Effort is low to medium.",
+    "evidence": "react-native-spotlight-search 2.2.0 adds, updates and deletes items, has a tap callback and images, and ships an Expo config plugin, but it is looking for maintainers. expo-core-spotlight wraps Core Spotlight, and taps open the app via deeplink. Run prebuild after adding either.",
+    "sources": [
+     "https://unpkg.com/react-native-spotlight-search@2.2.0/README.md",
+     "https://awesome.ecosyste.ms/projects/github.com%2Fhuextrat%2Fexpo-core-spotlight",
+     "https://docs.expo.dev/versions/v58.0.0/sdk/app-intents.md"
+    ],
+    "frequency": "occasional"
+   },
+   {
+    "idea": "Haptics polish with expo-haptics: selectionAsync on the meal and date pickers. impactAsync Light when adding food. notificationAsync Success on a scanner barcode hit and Warning on an over-goal day. It works with no entitlements, so it works under TrollStore. Effort is trivial.",
+    "evidence": "API: impactAsync (Light/Medium/Heavy/Rigid/Soft), notificationAsync (Success/Warning/Error), selectionAsync. On iOS no feedback plays when Low Power Mode is on, the Taptic Engine is disabled, or dictation is active. Feedback is also silent while the camera is active, which matters for the barcode scanner screen: fire the haptic after closing the camera, or accept silence.",
+    "sources": [
+     "https://docs.expo.dev/versions/v58.0.0/sdk/haptics/"
+    ],
+    "frequency": "very common"
+   },
+   {
+    "idea": "Apple Watch app: skip it, or at most a later 'watch-widget' experiment. TrollStore cannot install onto watchOS. A companion watch app delivered through the iPhone Watch app needs proper Apple signing. @bacons/apple-targets can generate watch and watch-widget targets, but installing them on a TrollStore setup is unsupported. Only an unverified third-party tool (Zomigle) claims watchOS workarounds. A cheaper substitute: write kcal to HealthKit, and the watch shows it in the Health/Fitness ecosystem.",
+    "evidence": "The TrollStore README covers only iOS installs and says apps can be removed only from TrollStore. Apple forums show watch-app installs are fragile even with valid signing. Zomigle is the only TrollStore-related watchOS tool found, and its repo has no description.",
+    "sources": [
+     "https://github.com/opa334/TrollStore",
+     "https://github.com/EvanBacon/expo-apple-targets",
+     "https://github.com/bartasx/Zomigle",
+     "https://developer.apple.com/forums/thread/748454"
+    ],
+    "frequency": "single"
+   },
+   {
+    "idea": "Entitlement hygiene for the ldid step. Keep a separate entitlements plist per binary (app, widget appex, any intents appex) in the repo. Never add the banned entitlements com.apple.private.cs.debugger, dynamic-codesigning or com.apple.private.skip-library-validation. On iOS 15+ A12+ devices they crash the app at launch. Hermes is fine because it does not need JIT.",
+    "evidence": "The README lists these three entitlements as impossible without a PPL bypass: apps signed with them crash on launch. Arbitrary other entitlements are preserved when the IPA is fakesigned with ldid.",
+    "sources": [
+     "https://github.com/opa334/TrollStore"
+    ],
+    "frequency": "common"
+   }
+  ],
+  "complaints": [
+   "Widgets built with expo-widgets are not real-time. They show scheduled timeline entries, and updates made while the app was closed are not read back yet, so a stale kcal count is the main UX risk. Push updateSnapshot after every diary write and reset at midnight with updateTimeline.",
+   "Under TrollStore 2.x, widget extensions can get the wrong sandbox container (GTA Tracker identity) and fail to read their data. Without the per-widget container-required entitlement the widget shows empty or placeholder data.",
+   "@bacons/apple-targets defaults the target deploymentTarget to 18.0. If left unchanged, the widget will not appear on iOS 16.4-17.0, the only versions TrollStore plus SDK 58 can run.",
+   "HealthKit libraries crash when reading a type that was never authorized. A denied permission cannot be re-requested from the app, so the user must fix it in the Health app.",
+   "react-native-health has been largely unmaintained since 2023 (feature freeze, 121 open issues). It is risky on RN 0.88 with the new architecture.",
+   "expo-app-intents is alpha with frequent breaking changes. Siri phrases are static and need a native rebuild to change, with a limit of 10 shortcuts.",
+   "iCloud container sync and remote push (including Live Activity push updates) need Apple Team-bound entitlements that a fakesigned app lacks. Do not promise 'iCloud sync' to the user; use file-based backups through Files / iCloud Drive.",
+   "Interactive widgets, iOS 18 Control Center controls, App Intents schemas and push-to-start Live Activities sit at or above the TrollStore iOS ceiling (17.0). Feature-gate them by iOS version.",
+   "Haptics are silent while the camera is active, so haptic feedback on the barcode scanner screen will not fire until the camera is closed."
+  ]
+ }
+]
