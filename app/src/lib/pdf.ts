@@ -211,7 +211,7 @@ export async function buildPdf(db: SQLiteDatabase, profile: Profile, o: PdfOptio
   const name = `${title.replace(/\s+/g, '_')}_${o.from}_${o.to}.pdf`;
   const target = new File(Paths.cache, name);
   if (target.exists) target.delete();
-  new File(res.uri).move(target);
+  await new File(res.uri).move(target);
   return { uri: target.uri, pages: res.numberOfPages };
 }
 

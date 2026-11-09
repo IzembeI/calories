@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -18,18 +18,19 @@ export default function FoodDetail() {
   const [unit, setUnit] = useState<Serving | null>(null);
   const [amount, setAmount] = useState('100');
   const [saving, setSaving] = useState(false);
+  const initialised = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
       getFood(db, params.id).then((f) => {
         setFood(f);
         const s = f ? servingsOf(f)[0] : undefined;
-        if (s && food === undefined) {
+        if (s && !initialised.current) {
           setUnit(s);
           setAmount('1');
         }
+        initialised.current = true;
       });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [db, params.id]),
   );
 

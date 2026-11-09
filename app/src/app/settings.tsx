@@ -52,6 +52,10 @@ export default function Settings() {
             const n = await importBackup(db);
             if (n == null) return;
             await reloadProfile();
+            const saved = await getSetting<Reminder[]>(db, 'reminders', DEFAULT_REMINDERS);
+            const merged = DEFAULT_REMINDERS.map((d) => ({ ...d, ...saved.find((s) => s.id === d.id) }));
+            setRem(merged);
+            await applyReminders(merged);
             Alert.alert('Готово', `Восстановлено записей: ${n}`);
           } catch (e) {
             Alert.alert('Не удалось восстановить', String(e instanceof Error ? e.message : e));

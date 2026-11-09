@@ -54,13 +54,13 @@ export default function Scanner() {
       }
       Alert.alert('Продукт не найден', `Штрихкода ${code} нет в базе. Создать продукт вручную?`, [
         { text: 'Сканировать ещё', style: 'cancel', onPress: unlock },
-        { text: 'Создать', onPress: () => router.replace({ pathname: '/food-edit', params: { barcode: code } }) },
+        { text: 'Создать', onPress: () => router.replace({ pathname: '/food-edit', params: { barcode: code, meal } }) },
       ]);
     } catch (e) {
       const msg = e instanceof OffError ? e.message : 'Не удалось проверить штрихкод';
       Alert.alert('Ошибка', `${msg}. Можно создать продукт вручную.`, [
         { text: 'Ещё раз', style: 'cancel', onPress: unlock },
-        { text: 'Создать', onPress: () => router.replace({ pathname: '/food-edit', params: { barcode: code } }) },
+        { text: 'Создать', onPress: () => router.replace({ pathname: '/food-edit', params: { barcode: code, meal } }) },
       ]);
     }
   };
@@ -81,7 +81,7 @@ export default function Scanner() {
         {busy ? <ActivityIndicator color="#fff" /> : <T color="#fff" center>Наведите камеру на штрихкод</T>}
         <Row>
           <Button title={torch ? 'Фонарик выкл.' : 'Фонарик'} kind="secondary" onPress={() => setTorch((v) => !v)} style={{ flex: 1 }} />
-          <Button title="Ввести вручную" kind="secondary" onPress={() => router.replace({ pathname: '/food-edit', params: {} })} style={{ flex: 1 }} />
+          <Button title="Ввести вручную" kind="secondary" onPress={() => router.replace({ pathname: '/food-edit', params: { meal } })} style={{ flex: 1 }} />
         </Row>
       </View>
     </View>

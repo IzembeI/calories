@@ -185,7 +185,13 @@ export async function getFoodByBarcode(db: SQLiteDatabase, code: string): Promis
 
 export async function saveFood(db: SQLiteDatabase, f: FoodInput, id?: string): Promise<string> {
   const now = nowIso();
-  const existingByBarcode = !id && f.barcode ? await getFoodByBarcode(db, f.barcode) : null;
+  const existingByBarcode =
+    !id && f.barcode ? await db.getFirstAsync<FoodRow & { deleted: number }>('select * from foods where barcode = ?', f.barcode) : null;
+  if (existingByBarcode && existingByBarcode.source === 'custom' && f.source === 'off') {
+    // the user's own product wins over Open Food Facts data
+    if (existingByBarcode.deleted) await db.runAsync('update foods set deleted = 0 where id = ?', existingByBarcode.id);
+    return existingByBarcode.id;
+  }
   const theId = id ?? existingByBarcode?.id ?? uuid();
   await db.runAsync(
     `insert into foods (id, source, barcode, name, brand, kcal, protein, fat, carbs, sugar, fiber, salt, servings, created_at, updated_at)

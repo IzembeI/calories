@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ActionSheetIOS, Alert, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -41,8 +41,10 @@ export default function Diary() {
   const { date, setDate } = useApp();
   const [data, setData] = useState<DayData | null>(null);
   const [calendar, setCalendar] = useState(false);
+  const req = useRef(0);
 
   const load = useCallback(async () => {
+    const my = ++req.current;
     const [entries, water, activities, measurements, weight] = await Promise.all([
       entriesForDate(db, date),
       waterForDate(db, date),
@@ -50,7 +52,7 @@ export default function Diary() {
       measurementsForDate(db, date),
       currentWeight(db, profile, date),
     ]);
-    setData({ entries, water, activities, measurements, weight });
+    if (my === req.current) setData({ entries, water, activities, measurements, weight });
   }, [db, date, profile]);
 
   useFocusEffect(

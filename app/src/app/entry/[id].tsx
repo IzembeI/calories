@@ -45,7 +45,7 @@ export default function EditEntry() {
       if (m && s) {
         setUnit(s);
         setAmount(m[1]);
-      } else setAmount(String(Math.round(entry.grams)));
+      } else setAmount(String(entry.grams).replace('.', ','));
     })();
   }, [db, id]);
 

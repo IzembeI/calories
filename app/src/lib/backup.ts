@@ -20,7 +20,7 @@ export async function exportBackup(db: SQLiteDatabase): Promise<void> {
   const file = new File(Paths.cache, `kalorii-backup-${todayKey()}.json`);
   if (file.exists) file.delete();
   file.create();
-  file.write(json);
+  await file.write(json);
   await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json', dialogTitle: 'Сохранить резервную копию' });
 }
 

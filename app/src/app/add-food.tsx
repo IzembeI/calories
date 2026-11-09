@@ -89,8 +89,11 @@ export default function AddFood() {
   const openFood = (id: string) => router.push({ pathname: '/food/[id]', params: { id, meal } });
 
   const openOff = async (f: FoodInput) => {
-    const id = await saveFood(db, f);
-    openFood(id);
+    try {
+      openFood(await saveFood(db, f));
+    } catch (e) {
+      Alert.alert('Не удалось открыть продукт', String(e instanceof Error ? e.message : e));
+    }
   };
 
   const quickAdd = async (f: FoodRow) => {
@@ -191,7 +194,7 @@ export default function AddFood() {
               )}
               <Row style={{ justifyContent: 'space-between', marginTop: space.m }}>
                 <T weight="700">Мои продукты</T>
-                <IconButton label="+ Продукт" onPress={() => router.push('/food-edit')} />
+                <IconButton label="+ Продукт" onPress={() => router.push({ pathname: '/food-edit', params: { meal } })} />
               </Row>
             </View>
           ) : undefined
@@ -245,7 +248,7 @@ export default function AddFood() {
               <Button
                 title="Создать продукт"
                 kind="ghost"
-                onPress={() => router.push({ pathname: '/food-edit', params: { name: q.trim() } })}
+                onPress={() => router.push({ pathname: '/food-edit', params: { name: q.trim(), meal } })}
                 style={{ flex: 1 }}
               />
             </Row>

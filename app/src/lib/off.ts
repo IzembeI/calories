@@ -59,8 +59,9 @@ export function mapProduct(p: any): FoodInput | null {
   const servings: Serving[] = [];
   const sq = num(p.serving_quantity);
   if (sq && sq > 0 && sq < 2000) servings.push({ name: p.serving_size ? `порция (${text(p.serving_size)})` : 'порция', grams: sq });
-  const pack = /^(\d+(?:[.,]\d+)?)\s*(г|g|мл|ml)\b/i.exec(text(p.quantity));
-  const packGrams = pack ? num(pack[1]) : null;
+  // "500 г", "100 гр", "250 мл", "1 л", "0,9 кг" → grams (ml treated as grams)
+  const pack = /^(\d+(?:[.,]\d+)?)\s*(кг|kg|гр|г|g|мл|ml|л|l)(?![A-Za-zА-Яа-яЁё])/i.exec(text(p.quantity));
+  const packGrams = pack ? (num(pack[1]) ?? 0) * (/^(кг|kg|л|l)$/i.test(pack[2]) ? 1000 : 1) : null;
   if (packGrams && packGrams > 0 && packGrams < 5000 && packGrams !== sq) servings.push({ name: `упаковка (${text(p.quantity)})`, grams: packGrams });
   return {
     source: 'off',
