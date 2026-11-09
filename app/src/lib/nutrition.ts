@@ -66,6 +66,16 @@ export function macroGrams(kcal: number, proteinPct: number, fatPct: number, car
   };
 }
 
+/** Daily macro targets in grams: fixed grams if the user set them, else from the percentages. */
+export function macroTargets(p: {
+  kcal_goal: number; protein_pct: number; fat_pct: number; carbs_pct: number;
+  protein_g?: number | null; fat_g?: number | null; carbs_g?: number | null;
+}) {
+  if (p.protein_g != null && p.fat_g != null && p.carbs_g != null)
+    return { protein: Math.round(p.protein_g), fat: Math.round(p.fat_g), carbs: Math.round(p.carbs_g) };
+  return macroGrams(p.kcal_goal, p.protein_pct, p.fat_pct, p.carbs_pct);
+}
+
 export function bmi(weightKg: number, heightCm: number): number {
   const m = heightCm / 100;
   return weightKg / (m * m);

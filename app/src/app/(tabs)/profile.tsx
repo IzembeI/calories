@@ -5,7 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { currentWeight } from '@/db/repo';
 import { useProfile } from '@/lib/app-state';
 import { ageFrom, todayKey } from '@/lib/dates';
-import { ACTIVITY_LEVELS, GOALS, bmi, fmt, macroGrams } from '@/lib/nutrition';
+import { ACTIVITY_LEVELS, GOALS, bmi, fmt, macroTargets } from '@/lib/nutrition';
 import { Card, Divider, ListItem, Row, Screen, T } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -19,7 +19,7 @@ export default function ProfileTab() {
       currentWeight(db, p, todayKey()).then(setW);
     }, [db, p]),
   );
-  const m = macroGrams(p.kcal_goal, p.protein_pct, p.fat_pct, p.carbs_pct);
+  const m = macroTargets(p);
   const go = (path: '/goals' | '/export' | '/settings' | '/my-foods' | '/measurements') => () => router.push(path);
   const chevron = <T dim>›</T>;
 

@@ -7,7 +7,7 @@ import { clearMeal, copyMeal, entriesForDate, type Entry } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { WEEKDAYS_SHORT, addDays, fromKey, relativeDayTitle, todayKey, weekStart } from '@/lib/dates';
 import { dayMicros, microsScore, type Micros } from '@/lib/micros';
-import { MEALS, fmt, macroGrams, type MealType } from '@/lib/nutrition';
+import { MEALS, fmt, macroTargets, type MealType } from '@/lib/nutrition';
 import { CalendarModal } from '@/ui/calendar';
 import { Bar, Card, Divider, IconButton, ListItem, Plus, Ring, Row, Screen, T } from '@/ui/components';
 import { radius, space, useTheme } from '@/ui/theme';
@@ -39,7 +39,7 @@ export default function Diary() {
   const eaten = sum(entries, 'kcal');
   const goal = profile.kcal_goal;
   const left = goal - eaten;
-  const macros = macroGrams(goal, profile.protein_pct, profile.fat_pct, profile.carbs_pct);
+  const macros = macroTargets(profile);
   const score = microsScore(micros);
 
   const mealMenu = (meal: MealType, title: string) => {

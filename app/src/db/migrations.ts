@@ -126,6 +126,12 @@ const MIGRATIONS: string[] = [
   update measurements set type = 'thigh' where type = 'thigh_r';
   update or ignore measurements set type = 'thigh' where type = 'thigh_l';
   `,
+  // 3: optional fixed macro goals in grams (null = use percentages)
+  `
+  alter table profile add column protein_g real;
+  alter table profile add column fat_g real;
+  alter table profile add column carbs_g real;
+  `,
 ];
 
 export async function migrate(db: SQLiteDatabase): Promise<void> {

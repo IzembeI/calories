@@ -12,7 +12,7 @@ import {
 } from '@/db/repo';
 import { daysBetween, diffDays, formatDay, formatShort, todayKey } from './dates';
 import { MEASUREMENTS } from './measurements';
-import { MEALS, fmt, macroGrams } from './nutrition';
+import { MEALS, fmt, macroTargets } from './nutrition';
 import { NUTRIENTS, microsByDay, pctDV, type Micros, type NutrientKey } from './micros';
 
 export interface PdfOptions {
@@ -101,7 +101,7 @@ async function diaryHtml(db: SQLiteDatabase, p: Profile, o: PdfOptions): Promise
 
   const days = daysBetween(o.from, o.to);
   const logged = days.filter((d) => byDay.has(d));
-  const goalM = macroGrams(p.kcal_goal, p.protein_pct, p.fat_pct, p.carbs_pct);
+  const goalM = macroTargets(p);
   const totals = logged.map((d) => ({ date: d, ...sumOf(byDay.get(d)!) }));
   const avg = (k: 'kcal' | 'protein' | 'fat' | 'carbs') => (totals.length ? totals.reduce((a, t) => a + t[k], 0) / totals.length : 0);
   const onTarget = totals.filter((t) => Math.abs(t.kcal - p.kcal_goal) <= p.kcal_goal * 0.1).length;

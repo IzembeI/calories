@@ -6,7 +6,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { currentWeight, saveProfile, type Profile } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { fromKey, toKey, todayKey } from '@/lib/dates';
-import { ACTIVITY_LEVELS, GOALS, dailyKcalGoal, fmt, macroGrams, parseNum, type ActivityLevel, type Goal, type Sex } from '@/lib/nutrition';
+import { ACTIVITY_LEVELS, GOALS, dailyKcalGoal, fmt, macroGrams, macroTargets, parseNum, type ActivityLevel, type Goal, type Sex } from '@/lib/nutrition';
 import { Button, Card, Choice, Divider, NumField, Row, Screen, Segmented, T } from '@/ui/components';
 import { space, useTheme } from '@/ui/theme';
 
@@ -27,6 +27,11 @@ export default function Goals() {
   const [pp, setPp] = useState(String(p.protein_pct));
   const [fp, setFp] = useState(String(p.fat_pct));
   const [cp, setCp] = useState(String(p.carbs_pct));
+  const [mode, setMode] = useState<'pct' | 'g'>(p.protein_g != null ? 'g' : 'pct');
+  const start = macroTargets(p);
+  const [pg, setPg] = useState(String(start.protein));
+  const [fg, setFg] = useState(String(start.fat));
+  const [cg, setCg] = useState(String(start.carbs));
   const [weight, setWeight] = useState(p.start_weight_kg);
 
   useEffect(() => {
@@ -38,7 +43,10 @@ export default function Goals() {
   const kcalGoal = auto ? autoKcal : parseNum(kcal) ?? p.kcal_goal;
   const pctSum = (parseNum(pp) ?? 0) + (parseNum(fp) ?? 0) + (parseNum(cp) ?? 0);
   const m = macroGrams(kcalGoal, parseNum(pp) ?? 0, parseNum(fp) ?? 0, parseNum(cp) ?? 0);
-  const valid = pctSum === 100 && kcalGoal >= 800 && kcalGoal <= 6000 && h >= 100 && h <= 250;
+  const gP = parseNum(pg), gF = parseNum(fg), gC = parseNum(cg);
+  const gramsKcal = (gP ?? 0) * 4 + (gF ?? 0) * 9 + (gC ?? 0) * 4;
+  const macrosOk = mode === 'pct' ? pctSum === 100 : gP != null && gF != null && gC != null && gP >= 0 && gF >= 0 && gC >= 0;
+  const valid = macrosOk && kcalGoal >= 800 && kcalGoal <= 6000 && h >= 100 && h <= 250;
 
   const save = async () => {
     if (!valid) return;
@@ -56,6 +64,9 @@ export default function Goals() {
       protein_pct: parseNum(pp) ?? 25,
       fat_pct: parseNum(fp) ?? 30,
       carbs_pct: parseNum(cp) ?? 45,
+      protein_g: mode === 'g' ? gP : null,
+      fat_g: mode === 'g' ? gF : null,
+      carbs_g: mode === 'g' ? gC : null,
     };
     await saveProfile(db, next);
     await reloadProfile();
@@ -106,14 +117,57 @@ export default function Goals() {
       </Card>
 
       <T weight="700" style={{ marginTop: space.s }}>
-        Распределение БЖУ, %
+        Белки, жиры, углеводы
       </T>
-      <Row>
-        <NumField style={{ flex: 1 }} label={`Белки · ${m.protein} г`} suffix="%" value={pp} onChangeText={setPp} />
-        <NumField style={{ flex: 1 }} label={`Жиры · ${m.fat} г`} suffix="%" value={fp} onChangeText={setFp} />
-        <NumField style={{ flex: 1 }} label={`Углев. · ${m.carbs} г`} suffix="%" value={cp} onChangeText={setCp} />
-      </Row>
-      {pctSum !== 100 ? <T color={t.danger} size={13}>Сумма должна быть 100%, сейчас {fmt(pctSum)}%</T> : null}
+      <Segmented
+        options={[
+          { value: 'pct', title: 'В процентах' },
+          { value: 'g', title: 'В граммах' },
+        ]}
+        value={mode}
+        onChange={(v) => {
+          if (v === 'g') {
+            setPg(String(m.protein));
+            setFg(String(m.fat));
+            setCg(String(m.carbs));
+          }
+          setMode(v);
+        }}
+      />
+      {mode === 'pct' ? (
+        <>
+          <Row>
+            <NumField style={{ flex: 1 }} label={`Белки · ${m.protein} г`} suffix="%" value={pp} onChangeText={setPp} />
+            <NumField style={{ flex: 1 }} label={`Жиры · ${m.fat} г`} suffix="%" value={fp} onChangeText={setFp} />
+            <NumField style={{ flex: 1 }} label={`Углев. · ${m.carbs} г`} suffix="%" value={cp} onChangeText={setCp} />
+          </Row>
+          {pctSum !== 100 ? <T color={t.danger} size={13}>Сумма должна быть 100%, сейчас {fmt(pctSum)}%</T> : null}
+        </>
+      ) : (
+        <>
+          <Row>
+            <NumField style={{ flex: 1 }} label="Белки" suffix="г" value={pg} onChangeText={setPg} keyboardType="number-pad" />
+            <NumField style={{ flex: 1 }} label="Жиры" suffix="г" value={fg} onChangeText={setFg} keyboardType="number-pad" />
+            <NumField style={{ flex: 1 }} label="Углеводы" suffix="г" value={cg} onChangeText={setCg} keyboardType="number-pad" />
+          </Row>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <T dim size={13} style={{ flex: 1 }}>
+              По БЖУ выходит {fmt(gramsKcal)} ккал{Math.abs(gramsKcal - kcalGoal) > 50 ? `, норма ${fmt(kcalGoal)}` : ''}
+            </T>
+            {Math.abs(gramsKcal - kcalGoal) > 50 ? (
+              <Button
+                small
+                kind="secondary"
+                title="Сделать нормой"
+                onPress={() => {
+                  setAuto(false);
+                  setKcal(String(Math.round(gramsKcal)));
+                }}
+              />
+            ) : null}
+          </Row>
+        </>
+      )}
 
       <Button title={`Сохранить · ${fmt(kcalGoal)} ккал`} onPress={save} disabled={!valid} />
     </Screen>

@@ -6,7 +6,7 @@ import { dailyTotals, latestMeasurements, measuredTypes, series, type DayTotals,
 import { useProfile } from '@/lib/app-state';
 import { addDays, daysBetween, formatShort, todayKey } from '@/lib/dates';
 import { MEASUREMENTS } from '@/lib/measurements';
-import { fmt, macroGrams } from '@/lib/nutrition';
+import { fmt, macroTargets } from '@/lib/nutrition';
 import { BarChart, LineChart } from '@/ui/charts';
 import { Bar, Card, Divider, IconButton, ListItem, Row, Screen, Segmented, T } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -49,7 +49,7 @@ export default function Progress() {
 
   const n = totals.length;
   const avg = (k: 'kcal' | 'protein' | 'fat' | 'carbs') => (n ? totals.reduce((a, x) => a + x[k], 0) / n : 0);
-  const goals = macroGrams(profile.kcal_goal, profile.protein_pct, profile.fat_pct, profile.carbs_pct);
+  const goals = macroTargets(profile);
   const bars = daysBetween(from, to).map((d) => ({ date: d, value: totals.find((x) => x.date === d)?.kcal ?? 0 }));
   const curW = latest.weight?.value ?? profile.start_weight_kg;
   const toGo = curW - profile.target_weight_kg;

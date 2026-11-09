@@ -3,14 +3,14 @@
     "name": "Kalorii",
     "slug": "kalorii",
     "scheme": "kalorii",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.kalorii.personal",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "CFBundleDisplayName": "Калории",
         "CFBundleDevelopmentRegion": "ru",

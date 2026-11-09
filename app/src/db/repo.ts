@@ -26,6 +26,10 @@ export interface Profile {
   carbs_pct: number;
   water_goal_ml: number;
   glass_ml: number;
+  /** fixed goals in grams; when all three are set they win over the percentages */
+  protein_g?: number | null;
+  fat_g?: number | null;
+  carbs_g?: number | null;
 }
 
 export interface FoodRow {
@@ -97,15 +101,15 @@ export async function saveProfile(db: SQLiteDatabase, p: Profile): Promise<void>
   const now = nowIso();
   await db.runAsync(
     `insert into profile (id, sex, birth_date, height_cm, start_weight_kg, target_weight_kg, activity_level, goal,
-       pace_kg_week, kcal_goal, kcal_auto, protein_pct, fat_pct, carbs_pct, water_goal_ml, glass_ml, created_at, updated_at)
-     values (1, $sex, $birth, $h, $sw, $tw, $al, $goal, $pace, $kcal, $auto, $p, $f, $c, $water, $glass, $now, $now)
+       pace_kg_week, kcal_goal, kcal_auto, protein_pct, fat_pct, carbs_pct, water_goal_ml, glass_ml, protein_g, fat_g, carbs_g, created_at, updated_at)
+     values (1, $sex, $birth, $h, $sw, $tw, $al, $goal, $pace, $kcal, $auto, $p, $f, $c, $water, $glass, $pg, $fg, $cg, $now, $now)
      on conflict(id) do update set sex=$sex, birth_date=$birth, height_cm=$h, start_weight_kg=$sw, target_weight_kg=$tw,
        activity_level=$al, goal=$goal, pace_kg_week=$pace, kcal_goal=$kcal, kcal_auto=$auto, protein_pct=$p, fat_pct=$f,
-       carbs_pct=$c, water_goal_ml=$water, glass_ml=$glass, updated_at=$now`,
+       carbs_pct=$c, water_goal_ml=$water, glass_ml=$glass, protein_g=$pg, fat_g=$fg, carbs_g=$cg, updated_at=$now`,
     {
       $sex: p.sex, $birth: p.birth_date, $h: p.height_cm, $sw: p.start_weight_kg, $tw: p.target_weight_kg,
       $al: p.activity_level, $goal: p.goal, $pace: p.pace_kg_week, $kcal: p.kcal_goal, $auto: p.kcal_auto,
-      $p: p.protein_pct, $f: p.fat_pct, $c: p.carbs_pct, $water: p.water_goal_ml, $glass: p.glass_ml, $now: now,
+      $p: p.protein_pct, $f: p.fat_pct, $c: p.carbs_pct, $water: p.water_goal_ml, $glass: p.glass_ml, $pg: p.protein_g ?? null, $fg: p.fat_g ?? null, $cg: p.carbs_g ?? null, $now: now,
     },
   );
 }
