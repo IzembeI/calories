@@ -30,3 +30,6 @@
 - Пакет replica-skill: recon → architect → design → build → test → diff → entrepreneur (артефакты в `replica/`).
 - Ревью: `caveman:cavecrew-reviewer`, `superpowers:requesting-code-review`; iOS-ревью: `mobile-app-design:ios-review`; RN: `react-native-best-practices`; Expo: плагин `expo`.
 - На длинных задачах проверять лимит и останавливаться около 90%, если владелец не сказал иначе.
+
+## Плагины на новом аккаунте или компьютере
+`bash tools/setup-claude-plugins.sh` — ставит все плагины проекта разом.
