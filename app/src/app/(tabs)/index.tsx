@@ -113,13 +113,13 @@ export default function Diary() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: t.bg }}>
       <Row style={{ justifyContent: 'space-between', paddingHorizontal: space.l, paddingTop: space.s }}>
-        <IconButton label="‹" onPress={() => setDate(addDays(date, -1))} />
+        <IconButton label="‹" a11y="Предыдущий день" onPress={() => setDate(addDays(date, -1))} />
         <Pressable onPress={() => setCalendar(true)} hitSlop={10}>
           <T size={20} weight="700">
             {relativeDayTitle(date)} ▾
           </T>
         </Pressable>
-        <IconButton label="›" onPress={() => setDate(addDays(date, 1))} />
+        <IconButton label="›" a11y="Следующий день" onPress={() => setDate(addDays(date, 1))} />
       </Row>
       <View style={{ flexDirection: 'row', paddingHorizontal: space.l, paddingTop: space.s, gap: 4 }}>
         {week.map((d, i) => {
@@ -173,7 +173,7 @@ export default function Diary() {
                   </T>
                 </Pressable>
                 <IconButton label="⋯" onPress={() => mealMenu(m.type, m.title)} color={t.textDim} />
-                <Plus onPress={() => router.push({ pathname: '/add-food', params: { meal: m.type } })} />
+                <Plus a11y={`Добавить в ${m.title.toLowerCase()}`} onPress={() => router.push({ pathname: '/add-food', params: { meal: m.type } })} />
               </Row>
               {items.length > 0 && <Divider />}
               {items.map((e) => (
@@ -232,7 +232,7 @@ export default function Diary() {
                 {burned ? `${fmt(burned)} ккал` : 'Нет записей'}
               </T>
             </View>
-            <Plus onPress={() => router.push('/activity')} />
+            <Plus a11y="Добавить активность" onPress={() => router.push('/activity')} />
           </Row>
           {(data?.activities ?? []).map((a) => (
             <ListItem

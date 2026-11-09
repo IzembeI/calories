@@ -22,6 +22,7 @@ export function Screen({ children, padded = true, style }: { children: React.Rea
       style={{ flex: 1, backgroundColor: t.bg }}
       contentContainerStyle={[padded && { padding: space.l, paddingBottom: 48 }, { gap: space.m }, style]}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
       contentInsetAdjustmentBehavior="automatic"
     >
       {children}
@@ -64,6 +65,7 @@ export function T({
   return (
     <Text
       numberOfLines={numberOfLines}
+      maxFontSizeMultiplier={size >= 20 ? 1.3 : undefined}
       style={[{ color: color ?? (dim ? t.textDim : t.text), fontSize: size, fontWeight: weight }, center && { textAlign: 'center' }, style]}
     >
       {children}
@@ -282,6 +284,8 @@ export function Stepper({ onMinus, onPlus, children }: { onMinus: () => void; on
     <Pressable
       onPress={fn}
       hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={label === '+' ? 'Увеличить' : 'Уменьшить'}
       style={({ pressed }) => ({ width: 38, height: 38, borderRadius: 19, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}
     >
       <Text style={{ color: t.accent, fontSize: 22, fontWeight: '600', marginTop: -2 }}>{label}</Text>
@@ -306,21 +310,40 @@ export function Empty({ text }: { text: string }) {
   );
 }
 
-export function IconButton({ label, onPress, color }: { label: string; onPress: () => void; color?: string }) {
+const GLYPH_LABELS: Record<string, string> = {
+  '‹': 'Назад',
+  '›': 'Вперёд',
+  '⋯': 'Действия',
+  '✎': 'Изменить',
+  '✕': 'Удалить',
+  '↗': 'История и график',
+  '★': 'Убрать из избранного',
+  '☆': 'Добавить в избранное',
+};
+
+export function IconButton({ label, onPress, color, a11y }: { label: string; onPress: () => void; color?: string; a11y?: string }) {
   const t = useTheme();
   return (
-    <Pressable onPress={onPress} hitSlop={10} style={({ pressed }) => ({ paddingHorizontal: 6, opacity: pressed ? 0.5 : 1 })}>
+    <Pressable
+      onPress={onPress}
+      hitSlop={10}
+      accessibilityRole="button"
+      accessibilityLabel={a11y ?? GLYPH_LABELS[label] ?? label}
+      style={({ pressed }) => ({ paddingHorizontal: 6, minHeight: 44, justifyContent: 'center', opacity: pressed ? 0.5 : 1 })}
+    >
       <Text style={{ color: color ?? t.accent, fontSize: 17, fontWeight: '600' }}>{label}</Text>
     </Pressable>
   );
 }
 
-export function Plus({ onPress }: { onPress: () => void }) {
+export function Plus({ onPress, a11y = 'Добавить' }: { onPress: () => void; a11y?: string }) {
   const t = useTheme();
   return (
     <Pressable
       onPress={onPress}
       hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
       style={({ pressed }) => ({ width: 34, height: 34, borderRadius: 17, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}
     >
       <Text style={{ color: t.onAccent, fontSize: 22, fontWeight: '600', marginTop: -2 }}>+</Text>

@@ -123,7 +123,7 @@ export default function AddFood() {
       title={f.name}
       subtitle={[f.brand, `${fmt(f.kcal)} ккал / 100 г`, f.source === 'custom' ? 'мой' : null].filter(Boolean).join(' · ')}
       onPress={() => openFood(f.id)}
-      right={<Plus onPress={() => quickAdd(f)} />}
+      right={<Plus a11y={`Быстро добавить ${f.name}`} onPress={() => quickAdd(f)} />}
     />
   );
 
@@ -166,6 +166,7 @@ export default function AddFood() {
         data={rows}
         keyExtractor={(f) => f.id}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         contentContainerStyle={{ paddingHorizontal: space.l, paddingBottom: 60 }}
         ItemSeparatorComponent={Divider}
         renderItem={({ item }) => foodRow(item)}

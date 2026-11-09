@@ -1,11 +1,12 @@
 import { Suspense } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import { migrate } from '@/db/migrations';
 import { AppStateProvider, useApp } from '@/lib/app-state';
+import { IconButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
 Notifications.setNotificationHandler({
@@ -32,7 +33,10 @@ function Nav() {
   if (!loaded) return <Loading />;
   const hasProfile = !!profile;
 
-  const modal = { presentation: 'modal' as const };
+  const modal = {
+    presentation: 'modal' as const,
+    headerLeft: () => <IconButton label="Отмена" onPress={() => router.back()} />,
+  };
   return (
     <>
       <StatusBar style="auto" />

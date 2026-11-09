@@ -3,18 +3,20 @@
     "name": "Kalorii",
     "slug": "kalorii",
     "scheme": "kalorii",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.kalorii.personal",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "CFBundleDisplayName": "Калории",
         "CFBundleDevelopmentRegion": "ru",
-        "CFBundleLocalizations": ["ru"],
+        "CFBundleLocalizations": [
+          "ru"
+        ],
         "NSCameraUsageDescription": "Камера нужна, чтобы сканировать штрихкоды продуктов.",
         "ITSAppUsesNonExemptEncryption": false
       }
