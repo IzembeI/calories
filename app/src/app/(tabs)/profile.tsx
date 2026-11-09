@@ -44,7 +44,7 @@ export default function ProfileTab() {
         </T>
       </Card>
       <Card>
-        <ListItem title="Цели и данные" subtitle="Норма калорий, БЖУ, вода, вес" onPress={go('/goals')} right={chevron} />
+        <ListItem title="Цели и данные" subtitle="Норма калорий, БЖУ, вес" onPress={go('/goals')} right={chevron} />
         <Divider />
         <ListItem title="Замеры тела" subtitle="Вес и объёмы за выбранный день" onPress={go('/measurements')} right={chevron} />
         <Divider />

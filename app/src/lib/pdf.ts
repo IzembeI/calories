@@ -4,10 +4,8 @@ import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import {
-  activitiesBetween,
   entriesBetween,
   measurementsBetween,
-  waterBetween,
   type Entry,
   type MeasurementRow,
   type Profile,
@@ -15,6 +13,7 @@ import {
 import { daysBetween, diffDays, formatDay, formatShort, todayKey } from './dates';
 import { MEASUREMENTS } from './measurements';
 import { MEALS, fmt, macroGrams } from './nutrition';
+import { NUTRIENTS, microsByDay, pctDV, type Micros, type NutrientKey } from './micros';
 
 export interface PdfOptions {
   from: string;
@@ -96,23 +95,16 @@ const sumOf = (rows: Entry[]) =>
   rows.reduce((a, r) => ({ kcal: a.kcal + r.kcal, protein: a.protein + r.protein, fat: a.fat + r.fat, carbs: a.carbs + r.carbs }), { kcal: 0, protein: 0, fat: 0, carbs: 0 });
 
 async function diaryHtml(db: SQLiteDatabase, p: Profile, o: PdfOptions): Promise<string> {
-  const [entries, water, acts] = await Promise.all([
-    entriesBetween(db, o.from, o.to),
-    waterBetween(db, o.from, o.to),
-    activitiesBetween(db, o.from, o.to),
-  ]);
+  const [entries, microsBy] = await Promise.all([entriesBetween(db, o.from, o.to), microsByDay(db, o.from, o.to)]);
   const byDay = new Map<string, Entry[]>();
   for (const e of entries) byDay.set(e.date, [...(byDay.get(e.date) ?? []), e]);
-  const waterBy = new Map(water.map((w) => [w.date, w.ml]));
-  const burnedBy = new Map<string, number>();
-  for (const a of acts) burnedBy.set(a.date, (burnedBy.get(a.date) ?? 0) + a.kcal);
 
   const days = daysBetween(o.from, o.to);
   const logged = days.filter((d) => byDay.has(d));
   const goalM = macroGrams(p.kcal_goal, p.protein_pct, p.fat_pct, p.carbs_pct);
   const totals = logged.map((d) => ({ date: d, ...sumOf(byDay.get(d)!) }));
   const avg = (k: 'kcal' | 'protein' | 'fat' | 'carbs') => (totals.length ? totals.reduce((a, t) => a + t[k], 0) / totals.length : 0);
-  const onTarget = totals.filter((t) => Math.abs(t.kcal - (p.kcal_goal + (burnedBy.get(t.date) ?? 0))) <= p.kcal_goal * 0.1).length;
+  const onTarget = totals.filter((t) => Math.abs(t.kcal - p.kcal_goal) <= p.kcal_goal * 0.1).length;
 
   let html = `<h2>Дневник питания</h2>
   <div class="cards">
@@ -124,16 +116,30 @@ async function diaryHtml(db: SQLiteDatabase, p: Profile, o: PdfOptions): Promise
 
   if (o.charts && totals.length >= 2) html += `<h3>Калории по дням</h3>${barSvg(days.map((d) => ({ date: d, value: totals.find((t) => t.date === d)?.kcal ?? 0 })), p.kcal_goal)}`;
 
-  html += `<h3>Итоги по дням</h3><table><tr><th class="l">Дата</th><th>Ккал</th><th>Норма</th><th>Белки</th><th>Жиры</th><th>Углев.</th><th>Сожжено</th><th>Вода, л</th></tr>`;
+  html += `<h3>Итоги по дням</h3><table><tr><th class="l">Дата</th><th>Ккал</th><th>Норма</th><th>Белки</th><th>Жиры</th><th>Углев.</th><th>Доб. сахар</th></tr>`;
   for (const t of totals) {
-    const goal = p.kcal_goal + (burnedBy.get(t.date) ?? 0);
+    const goal = p.kcal_goal;
     const cls = t.kcal > goal * 1.1 ? 'over' : '';
-    html += `<tr><td>${formatShort(t.date)}</td><td class="${cls}">${n0(t.kcal)}</td><td>${n0(goal)}</td><td>${n0(t.protein)}</td><td>${n0(t.fat)}</td><td>${n0(t.carbs)}</td><td>${burnedBy.get(t.date) ? n0(burnedBy.get(t.date)!) : ''}</td><td>${waterBy.get(t.date) ? fmt(waterBy.get(t.date)! / 1000, 2) : ''}</td></tr>`;
+    html += `<tr><td>${formatShort(t.date)}</td><td class="${cls}">${n0(t.kcal)}</td><td>${n0(goal)}</td><td>${n0(t.protein)}</td><td>${n0(t.fat)}</td><td>${n0(t.carbs)}</td><td>${n0(microsBy.get(t.date)?.added_sugar ?? 0)} г</td></tr>`;
   }
   if (totals.length > 1)
-    html += `<tr class="total"><td>Среднее</td><td>${n0(avg('kcal'))}</td><td>${n0(p.kcal_goal)}</td><td>${n0(avg('protein'))}</td><td>${n0(avg('fat'))}</td><td>${n0(avg('carbs'))}</td><td></td><td></td></tr>`;
+    html += `<tr class="total"><td>Среднее</td><td>${n0(avg('kcal'))}</td><td>${n0(p.kcal_goal)}</td><td>${n0(avg('protein'))}</td><td>${n0(avg('fat'))}</td><td>${n0(avg('carbs'))}</td><td></td></tr>`;
   html += `</table>`;
   if (!totals.length) html += `<p class="muted">За выбранный период записей нет.</p>`;
+
+  if (totals.length) {
+    // Average per logged day, as % of the daily value. Estimates from product type unless the label had data.
+    const avgMicros: Micros = {};
+    for (const m of microsBy.values()) for (const [k, v] of Object.entries(m)) avgMicros[k as NutrientKey] = (avgMicros[k as NutrientKey] ?? 0) + (v ?? 0) / totals.length;
+    html += `<h3>Витамины и минералы — в среднем за день (≈ оценка)</h3><table><tr><th class="l">Нутриент</th><th>В среднем</th><th>Норма</th><th>% нормы</th></tr>`;
+    for (const d of NUTRIENTS) {
+      const v = avgMicros[d.key] ?? 0;
+      const pct = pctDV(d, v);
+      const bad = d.limit ? pct > 100 : pct < 50;
+      html += `<tr><td>${d.title}${d.limit ? ' <span class="muted small">(не больше)</span>' : ''}</td><td>${fmt(v, v < 10 ? 1 : 0)} ${d.unit}</td><td>${fmt(d.dv)} ${d.unit}</td><td class="${bad ? 'over' : 'good'}">${n0(pct)}%</td></tr>`;
+    }
+    html += `</table>`;
+  }
 
   if (o.diaryDetailed && logged.length) {
     html += `<h3 class="pb">Подробно</h3>`;

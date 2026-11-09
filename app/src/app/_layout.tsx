@@ -63,7 +63,7 @@ function Nav() {
         <Stack.Screen name="quick-add" options={{ title: 'Быстрое добавление', ...modal }} />
         <Stack.Screen name="entry/[id]" options={{ title: 'Запись' }} />
         <Stack.Screen name="measurements" options={{ title: 'Замеры' }} />
-        <Stack.Screen name="activity" options={{ title: 'Активность', ...modal }} />
+        <Stack.Screen name="nutrients" options={{ title: 'Витамины и минералы' }} />
         <Stack.Screen name="series/[type]" options={{ title: 'История' }} />
         <Stack.Screen name="export" options={{ title: 'Экспорт в PDF' }} />
         <Stack.Screen name="goals" options={{ title: 'Цели и данные' }} />

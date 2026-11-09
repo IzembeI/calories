@@ -44,9 +44,16 @@ export interface FoodRow {
   servings: string;
   favourite: number;
   last_used_at: string | null;
+  category: string | null;
+  /** JSON Micros per 100 g from the product label (Open Food Facts); missing keys are estimated */
+  micros: string | null;
 }
 
-export type FoodInput = Omit<FoodRow, 'id' | 'favourite' | 'last_used_at' | 'servings'> & { servings: Serving[] };
+export type FoodInput = Omit<FoodRow, 'id' | 'favourite' | 'last_used_at' | 'servings' | 'category' | 'micros'> & {
+  servings: Serving[];
+  category?: string | null;
+  micros?: string | null;
+};
 
 export interface Entry {
   id: string;
@@ -62,8 +69,6 @@ export interface Entry {
   carbs: number;
 }
 
-export interface WaterRow { id: string; date: string; ml: number }
-export interface ActivityRow { id: string; date: string; name: string; minutes: number; kcal: number }
 export interface MeasurementRow { id: string; date: string; type: MeasurementType; value: number }
 export interface MealRow { id: string; name: string; items: number; kcal: number }
 export interface MealItemRow { id: string; meal_id: string; food_id: string; grams: number; name: string; kcal: number; protein: number | null; fat: number | null; carbs: number | null }
@@ -194,14 +199,14 @@ export async function saveFood(db: SQLiteDatabase, f: FoodInput, id?: string): P
   }
   const theId = id ?? existingByBarcode?.id ?? uuid();
   await db.runAsync(
-    `insert into foods (id, source, barcode, name, brand, kcal, protein, fat, carbs, sugar, fiber, salt, servings, created_at, updated_at)
-     values ($id, $source, $barcode, $name, $brand, $kcal, $p, $f, $c, $sugar, $fiber, $salt, $servings, $now, $now)
+    `insert into foods (id, source, barcode, name, brand, kcal, protein, fat, carbs, sugar, fiber, salt, servings, category, micros, created_at, updated_at)
+     values ($id, $source, $barcode, $name, $brand, $kcal, $p, $f, $c, $sugar, $fiber, $salt, $servings, $cat, $micros, $now, $now)
      on conflict(id) do update set source=$source, barcode=$barcode, name=$name, brand=$brand, kcal=$kcal, protein=$p, fat=$f,
-       carbs=$c, sugar=$sugar, fiber=$fiber, salt=$salt, servings=$servings, deleted=0, updated_at=$now`,
+       carbs=$c, sugar=$sugar, fiber=$fiber, salt=$salt, servings=$servings, category=$cat, micros=$micros, deleted=0, updated_at=$now`,
     {
       $id: theId, $source: f.source, $barcode: f.barcode || null, $name: f.name, $brand: f.brand || null,
       $kcal: f.kcal, $p: f.protein, $f: f.fat, $c: f.carbs, $sugar: f.sugar, $fiber: f.fiber, $salt: f.salt,
-      $servings: JSON.stringify(f.servings), $now: now,
+      $servings: JSON.stringify(f.servings), $cat: f.category ?? null, $micros: f.micros ?? null, $now: now,
     },
   );
   return theId;
@@ -369,51 +374,6 @@ export async function logMeal(db: SQLiteDatabase, mealId: string, date: string, 
     const food = await getFood(db, it.food_id);
     if (food) await addFoodEntry(db, date, mealType, food, it.grams * factor, null);
   }
-}
-
-// ---------- water & activity ----------
-
-export async function waterForDate(db: SQLiteDatabase, date: string): Promise<number> {
-  const r = await db.getFirstAsync<{ ml: number | null }>('select sum(ml) as ml from water_entries where date = ?', date);
-  return r?.ml ?? 0;
-}
-
-export async function addWater(db: SQLiteDatabase, date: string, ml: number) {
-  await db.runAsync('insert into water_entries (id, date, ml, created_at) values (?, ?, ?, ?)', uuid(), date, ml, nowIso());
-}
-
-export async function removeLastWater(db: SQLiteDatabase, date: string) {
-  await db.runAsync(
-    'delete from water_entries where id = (select id from water_entries where date = ? order by created_at desc limit 1)',
-    date,
-  );
-}
-
-export async function waterBetween(db: SQLiteDatabase, from: string, to: string) {
-  return db.getAllAsync<{ date: string; ml: number }>(
-    'select date, sum(ml) as ml from water_entries where date between ? and ? group by date order by date',
-    from,
-    to,
-  );
-}
-
-export async function activitiesForDate(db: SQLiteDatabase, date: string): Promise<ActivityRow[]> {
-  return db.getAllAsync<ActivityRow>('select * from activity_entries where date = ? order by created_at', date);
-}
-
-export async function activitiesBetween(db: SQLiteDatabase, from: string, to: string): Promise<ActivityRow[]> {
-  return db.getAllAsync<ActivityRow>('select * from activity_entries where date between ? and ? order by date, created_at', from, to);
-}
-
-export async function addActivity(db: SQLiteDatabase, date: string, name: string, minutes: number, kcal: number) {
-  await db.runAsync(
-    'insert into activity_entries (id, date, name, minutes, kcal, created_at) values (?, ?, ?, ?, ?, ?)',
-    uuid(), date, name, minutes, kcal, nowIso(),
-  );
-}
-
-export async function deleteActivity(db: SQLiteDatabase, id: string) {
-  await db.runAsync('delete from activity_entries where id = ?', id);
 }
 
 // ---------- measurements ----------

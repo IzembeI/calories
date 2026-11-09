@@ -111,6 +111,7 @@ export default function Progress() {
         <MacroRow label="Белки" value={avg('protein')} goal={goals.protein} color={t.protein} />
         <MacroRow label="Жиры" value={avg('fat')} goal={goals.fat} color={t.fat} />
         <MacroRow label="Углеводы" value={avg('carbs')} goal={goals.carbs} color={t.carbs} />
+        <IconButton label="Витамины и минералы за период ›" onPress={() => router.push({ pathname: '/nutrients', params: { from, to } })} />
       </Card>
 
       <Card>

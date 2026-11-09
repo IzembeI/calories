@@ -7,6 +7,7 @@ import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
 import { parseNum, type MealType } from '@/lib/nutrition';
 import { Button, Empty, IconButton, Row, Screen, T, Title } from '@/ui/components';
+import { MicrosCard } from '@/ui/micros-card';
 import { MealPicker, NutrientCard, PortionPicker } from '@/ui/portion';
 
 export default function FoodDetail() {
@@ -80,6 +81,7 @@ export default function FoodDetail() {
 
       <PortionPicker servings={servingsOf(food)} unit={unit} onUnit={setUnit} amount={amount} onAmount={setAmount} />
       <NutrientCard title={`В порции (${Math.round(grams)} г)`} {...n} />
+      <MicrosCard food={food} grams={grams} />
       <NutrientCard
         title="На 100 г"
         kcal={food.kcal}

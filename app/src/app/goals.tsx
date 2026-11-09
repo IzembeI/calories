@@ -27,8 +27,6 @@ export default function Goals() {
   const [pp, setPp] = useState(String(p.protein_pct));
   const [fp, setFp] = useState(String(p.fat_pct));
   const [cp, setCp] = useState(String(p.carbs_pct));
-  const [water, setWater] = useState(String(p.water_goal_ml));
-  const [glass, setGlass] = useState(String(p.glass_ml));
   const [weight, setWeight] = useState(p.start_weight_kg);
 
   useEffect(() => {
@@ -58,8 +56,6 @@ export default function Goals() {
       protein_pct: parseNum(pp) ?? 25,
       fat_pct: parseNum(fp) ?? 30,
       carbs_pct: parseNum(cp) ?? 45,
-      water_goal_ml: Math.round(parseNum(water) ?? 2000),
-      glass_ml: Math.max(50, Math.round(parseNum(glass) ?? 250)),
     };
     await saveProfile(db, next);
     await reloadProfile();
@@ -118,14 +114,6 @@ export default function Goals() {
         <NumField style={{ flex: 1 }} label={`Углев. · ${m.carbs} г`} suffix="%" value={cp} onChangeText={setCp} />
       </Row>
       {pctSum !== 100 ? <T color={t.danger} size={13}>Сумма должна быть 100%, сейчас {fmt(pctSum)}%</T> : null}
-
-      <T weight="700" style={{ marginTop: space.s }}>
-        Вода
-      </T>
-      <Row>
-        <NumField style={{ flex: 1 }} label="Цель в день" suffix="мл" value={water} onChangeText={setWater} />
-        <NumField style={{ flex: 1 }} label="Стакан" suffix="мл" value={glass} onChangeText={setGlass} />
-      </Row>
 
       <Button title={`Сохранить · ${fmt(kcalGoal)} ккал`} onPress={save} disabled={!valid} />
     </Screen>

@@ -15,7 +15,6 @@ export const DEFAULT_REMINDERS: Reminder[] = [
   { id: 'breakfast', title: 'Завтрак', body: 'Не забудьте записать завтрак', enabled: false, hour: 9, minute: 0 },
   { id: 'lunch', title: 'Обед', body: 'Запишите, что было на обед', enabled: false, hour: 13, minute: 30 },
   { id: 'dinner', title: 'Ужин', body: 'Запишите ужин', enabled: false, hour: 19, minute: 30 },
-  { id: 'water', title: 'Вода', body: 'Пора выпить стакан воды', enabled: false, hour: 16, minute: 0 },
   { id: 'measure', title: 'Замеры', body: 'Время еженедельных замеров: вес и объёмы', enabled: false, hour: 8, minute: 0, weekday: 2 },
 ];
 

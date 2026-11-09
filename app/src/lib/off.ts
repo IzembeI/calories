@@ -1,6 +1,7 @@
 // Open Food Facts public API (read-only). Limits: ~15 product reads/min, ~10 searches/min per IP,
 // so search only on explicit submit, never as-you-type.
 import type { FoodInput, Serving } from '@/db/repo';
+import { guessCategory } from './micros';
 
 const UA = 'Kalorii/1.0 (personal iOS app)';
 const FIELDS = 'code,product_name,product_name_ru,generic_name_ru,brands,nutriments,serving_size,serving_quantity,quantity';
@@ -63,7 +64,22 @@ export function mapProduct(p: any): FoodInput | null {
   const pack = /^(\d+(?:[.,]\d+)?)\s*(кг|kg|гр|г|g|мл|ml|л|l)(?![A-Za-zА-Яа-яЁё])/i.exec(text(p.quantity));
   const packGrams = pack ? (num(pack[1]) ?? 0) * (/^(кг|kg|л|l)$/i.test(pack[2]) ? 1000 : 1) : null;
   if (packGrams && packGrams > 0 && packGrams < 5000 && packGrams !== sq) servings.push({ name: `упаковка (${text(p.quantity)})`, grams: packGrams });
+  const g = (key: string, factor: number) => {
+    const v = num(n[`${key}_100g`]);
+    return v == null ? undefined : v * factor;
+  };
+  const label: Record<string, number | undefined> = {
+    vit_a: g('vitamin-a', 1e6), vit_c: g('vitamin-c', 1e3), vit_d: g('vitamin-d', 1e6), vit_e: g('vitamin-e', 1e3),
+    vit_k: g('vitamin-k', 1e6), b1: g('vitamin-b1', 1e3), b2: g('vitamin-b2', 1e3), b3: g('vitamin-pp', 1e3),
+    b6: g('vitamin-b6', 1e3), b9: g('folates', 1e6) ?? g('vitamin-b9', 1e6), b12: g('vitamin-b12', 1e6),
+    ca: g('calcium', 1e3), fe: g('iron', 1e3), mg: g('magnesium', 1e3), p: g('phosphorus', 1e3), k: g('potassium', 1e3),
+    zn: g('zinc', 1e3), se: g('selenium', 1e6), na: g('sodium', 1e3), chol: g('cholesterol', 1e3),
+    added_sugar: g('added-sugars', 1), sat_fat: g('saturated-fat', 1),
+  };
+  const real = Object.fromEntries(Object.entries(label).filter(([, v]) => v != null));
   return {
+    category: guessCategory(name),
+    micros: Object.keys(real).length ? JSON.stringify(real) : null,
     source: 'off',
     barcode: text(p.code) || null,
     name,

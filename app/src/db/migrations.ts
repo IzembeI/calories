@@ -117,6 +117,15 @@ const MIGRATIONS: string[] = [
     value text not null
   );
   `,
+  // 2: food category + real micronutrients from labels; one biceps/thigh instead of left/right
+  `
+  alter table foods add column category text;
+  alter table foods add column micros text;
+  update measurements set type = 'biceps' where type = 'biceps_r';
+  update or ignore measurements set type = 'biceps' where type = 'biceps_l';
+  update measurements set type = 'thigh' where type = 'thigh_r';
+  update or ignore measurements set type = 'thigh' where type = 'thigh_l';
+  `,
 ];
 
 export async function migrate(db: SQLiteDatabase): Promise<void> {

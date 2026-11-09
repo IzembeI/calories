@@ -1,6 +1,6 @@
 {
   "name": "kalorii",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "expo-router/entry",
   "dependencies": {
     "@react-native-community/datetimepicker": "9.2.1",

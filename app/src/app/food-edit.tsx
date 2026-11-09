@@ -3,6 +3,7 @@ import { Alert, Pressable, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { deleteFood, getFood, saveFood, servingsOf, type Serving } from '@/db/repo';
+import { CATEGORIES, categoryTitle, guessCategory } from '@/lib/micros';
 import { fmt, parseNum, type MealType } from '@/lib/nutrition';
 import { Button, Card, Field, IconButton, NumField, Row, Screen, T } from '@/ui/components';
 import { space, useTheme } from '@/ui/theme';
@@ -22,6 +23,8 @@ export default function FoodEdit() {
   const [fiber, setFiber] = useState('');
   const [salt, setSalt] = useState('');
   const [servings, setServings] = useState<Serving[]>([]);
+  const [category, setCategory] = useState<string | null>(null);
+  const [pickCat, setPickCat] = useState(false);
   const [sName, setSName] = useState('');
   const [sGrams, setSGrams] = useState('');
 
@@ -42,6 +45,7 @@ export default function FoodEdit() {
       setFiber(s(food.fiber));
       setSalt(s(food.salt));
       setServings(servingsOf(food));
+      setCategory(food.category);
     });
   }, [db, params.id, params.copyFrom]);
 
@@ -70,6 +74,7 @@ export default function FoodEdit() {
           fiber: parseNum(fiber),
           salt: parseNum(salt),
           servings,
+          category,
         },
         params.id,
       );
@@ -120,11 +125,42 @@ export default function FoodEdit() {
           По БЖУ выходит около {fmt(computed)} ккал — проверьте значения.
         </T>
       ) : null}
-      <Row>
-        <NumField style={{ flex: 1 }} label="Сахара" suffix="г" value={sugar} onChangeText={setSugar} />
-        <NumField style={{ flex: 1 }} label="Клетчатка" suffix="г" value={fiber} onChangeText={setFiber} />
-        <NumField style={{ flex: 1 }} label="Соль" suffix="г" value={salt} onChangeText={setSalt} />
-      </Row>
+      <Card>
+        <Pressable onPress={() => setPickCat((v) => !v)} accessibilityRole="button" accessibilityLabel="Тип продукта">
+          <Row style={{ justifyContent: 'space-between' }}>
+            <View style={{ flex: 1 }}>
+              <T>Тип продукта</T>
+              <T dim size={12}>
+                По нему примерно считаются витамины, минералы и сахар
+              </T>
+            </View>
+            <T color={t.accent} weight="600">
+              {categoryTitle(category ?? guessCategory(name))} ▾
+            </T>
+          </Row>
+        </Pressable>
+        {pickCat && (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {CATEGORIES.map((c) => {
+              const active = (category ?? guessCategory(name)) === c.key;
+              return (
+                <Pressable
+                  key={c.key}
+                  onPress={() => {
+                    setCategory(c.key);
+                    setPickCat(false);
+                  }}
+                  style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 12, backgroundColor: active ? t.accent : t.input }}
+                >
+                  <T size={13} color={active ? t.onAccent : t.text}>
+                    {c.title}
+                  </T>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </Card>
 
       <Card>
         <T weight="700">Порции</T>

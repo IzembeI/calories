@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { router } from 'expo-router';
+import { Pressable, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSQLiteContext } from 'expo-sqlite';
 import { latestMeasurements, measurementsForDate, setMeasurement, type MeasurementRow } from '@/db/repo';
-import { useApp } from '@/lib/app-state';
-import { addDays, formatDay, formatShort } from '@/lib/dates';
+import { addDays, formatDay, formatShort, fromKey, toKey, todayKey } from '@/lib/dates';
 import { MEASUREMENTS } from '@/lib/measurements';
 import { fmt, parseNum } from '@/lib/nutrition';
 import { Button, Card, Divider, IconButton, NumField, Row, Screen, T } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
+/** Body measurements are weekly, so they have their own date (default: today), not the diary's day. */
 export default function Measurements() {
   const db = useSQLiteContext();
   const t = useTheme();
-  const { date } = useApp();
+  const params = useLocalSearchParams<{ date?: string }>();
+  const [date, setDate] = useState(params.date ?? todayKey());
+  const [picking, setPicking] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [initial, setInitial] = useState<Record<string, string>>({});
   const [prev, setPrev] = useState<Record<string, MeasurementRow>>({});
@@ -21,13 +24,11 @@ export default function Measurements() {
 
   useEffect(() => {
     (async () => {
-      const today = await measurementsForDate(db, date);
-      const v = Object.fromEntries(today.map((m) => [m.type, String(m.value).replace('.', ',')]));
+      const day = await measurementsForDate(db, date);
+      const v = Object.fromEntries(day.map((m) => [m.type, String(m.value).replace('.', ',')]));
       setValues(v);
       setInitial(v);
-      // previous values (before this day) as hints
-      const before = await latestMeasurements(db, addDays(date, -1));
-      setPrev(before);
+      setPrev(await latestMeasurements(db, addDays(date, -1)));
     })();
   }, [db, date]);
 
@@ -43,8 +44,21 @@ export default function Measurements() {
 
   return (
     <Screen>
-      <T dim>
-        {formatDay(date, true)}. Мерьте раз в неделю, в один и тот же день и в одинаковых условиях — например, утром до еды.
+      <Card>
+        <Pressable onPress={() => setPicking((v) => !v)} accessibilityRole="button" accessibilityLabel="Изменить дату замеров">
+          <Row style={{ justifyContent: 'space-between' }}>
+            <T dim>Дата замеров</T>
+            <T weight="600" color={t.accent}>
+              {formatDay(date, true)}
+            </T>
+          </Row>
+        </Pressable>
+        {picking && (
+          <DateTimePicker value={fromKey(date)} mode="date" display="inline" locale="ru-RU" maximumDate={new Date()} onChange={(_, d) => d && setDate(toKey(d))} />
+        )}
+      </Card>
+      <T dim size={13}>
+        Достаточно раз в неделю — в один день, утром, до еды.
       </T>
       <Card>
         {MEASUREMENTS.map((m, i) => {
@@ -77,7 +91,7 @@ export default function Measurements() {
                   suffix={m.unit}
                   onChangeText={(v) => setValues({ ...values, [m.type]: v })}
                 />
-                <IconButton label="↗" onPress={() => router.push({ pathname: '/series/[type]', params: { type: m.type } })} />
+                <IconButton label="↗" a11y={`История: ${m.title}`} onPress={() => router.push({ pathname: '/series/[type]', params: { type: m.type } })} />
               </Row>
             </View>
           );
