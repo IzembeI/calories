@@ -1,0 +1,42 @@
+  AAA   16.27:1  text                     on bg                   
+  AAA   17.80:1  text                     on surface              
+  AAA   15.70:1  text                     on input                
+  AA     5.46:1  text-muted               on bg                   
+  AA     5.97:1  text-muted               on surface              
+  AA     5.27:1  text-muted               on input                
+  AA     5.76:1  on-accent                on accent               
+  AA     5.76:1  accent                   on surface              
+  AA     5.08:1  accent                   on accent-soft          
+  AA     5.26:1  accent                   on bg                   
+  AA     5.36:1  danger                   on surface              
+  AA     5.36:1  on-accent                on danger               
+  AAA    4.71:1  protein                  on surface              large
+  AA     4.09:1  fat                      on surface              large
+  AAA    5.33:1  carbs                    on surface              large
+  PASS   5.76:1  accent                   on surface              ui
+  PASS   4.01:1  water                    on surface              ui
+  PASS   4.09:1  fat                      on surface              ui
+  PASS   3.76:1  warn                     on surface              ui
+
+  19 pairs, 0 failing AA
+  AAA   16.99:1  text                     on bg                   
+  AAA   15.20:1  text                     on surface              
+  AAA   13.33:1  text                     on input                
+  AAA    7.17:1  text-muted               on bg                   
+  AA     6.42:1  text-muted               on surface              
+  AA     5.63:1  text-muted               on input                
+  AAA    7.50:1  on-accent                on accent               
+  AAA    7.39:1  accent                   on surface              
+  AA     5.39:1  accent                   on accent-soft          
+  AAA    8.26:1  accent                   on bg                   
+  AA     5.59:1  danger                   on surface              
+  AA     5.67:1  on-accent                on danger               
+  AAA    6.05:1  protein                  on surface              large
+  AAA    9.37:1  fat                      on surface              large
+  AAA    6.11:1  carbs                    on surface              large
+  PASS   7.39:1  accent                   on surface              ui
+  PASS   7.84:1  water                    on surface              ui
+  PASS   9.37:1  fat                      on surface              ui
+  PASS   8.89:1  warn                     on surface              ui
+
+  19 pairs, 0 failing AA

@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Kalorii",
+    "slug": "kalorii",
+    "scheme": "kalorii",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.kalorii.personal",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleDisplayName": "Калории",
+        "CFBundleDevelopmentRegion": "ru",
+        "CFBundleLocalizations": ["ru"],
+        "NSCameraUsageDescription": "Камера нужна, чтобы сканировать штрихкоды продуктов.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.kalorii.personal"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-sharing",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Камера нужна, чтобы сканировать штрихкоды продуктов.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-notifications"
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+feature,area,priority,original,clone,notes
+Onboarding: goal + body data -> daily kcal plan (Mifflin-St Jeor),onboarding,must,yes,no,
+Diary per day with week strip and date picker,diary,must,yes,no,
+Calorie ring: eaten / left / burned,diary,must,yes,no,
+Macro bars protein fat carbs vs goal,diary,must,yes,no,
+Four meals: breakfast lunch dinner snack,diary,must,yes,no,
+Search foods (built-in + my foods + Open Food Facts),food,must,yes,no,OFF instead of YAZIO DB
+Built-in basic foods list in Russian,food,must,no,no,new: covers generic foods OFF lacks
+Barcode scanner via camera,food,must,yes,no,
+Food detail: amount + serving + nutrients,food,must,yes,no,
+Recent foods,food,must,yes,no,
+Create custom food,food,must,yes,no,
+Edit / delete diary entries,diary,must,yes,no,
+Water tracker with daily goal,water,must,yes,no,
+Log weight,measurements,must,yes,no,
+Log body measurements: neck chest biceps waist belly hips thigh calf forearm body fat,measurements,must,yes,no,extended list per user
+Weight chart over time,progress,must,yes,no,
+Chart for each measurement,progress,must,partial,no,
+Edit goals and macro split,profile,must,yes,no,
+PDF export of food diary for a period,export,must,no,no,new: user request
+PDF export of measurements history for a period,export,must,no,no,new: user request
+Share PDF via iOS share sheet,export,must,no,no,new
+Russian UI,general,must,yes,no,
+Favourites,food,should,yes,no,
+Custom meals (combination of foods),food,should,yes,no,
+Quick add kcal,food,should,yes,no,
+Copy meal / day to another date,diary,should,yes,no,
+Activity log with burned kcal,activity,should,yes,no,
+Kcal vs goal bar chart week / month,progress,should,yes,no,
+Nutrient averages for a period,progress,should,yes,no,
+Barcode miss -> create food prefilled,food,should,yes,no,
+Offline: everything except OFF works without internet,general,should,yes,no,
+Backup / restore to JSON file,settings,should,no,no,new: device-only data needs a backup
+Meal reminders,settings,should,yes,no,local notifications
+Dark mode,general,should,yes,no,
+Include charts in the PDF,export,could,no,no,
+Water reminders,water,could,yes,no,
+Progress photos,measurements,could,yes,no,
+Apple Health: write weight / read steps,integrations,could,yes,no,later
+Home screen widget,general,could,yes,no,later
+Food quality rating (Nutri-Score from OFF),food,could,yes,no,
+Intermittent fasting timer and plans,fasting,skip,yes,skip,removed at user request
+YAZIO recipe catalogue,recipes,skip,yes,skip,owned content
+YAZIO food database,food,skip,yes,skip,owned data; replaced by Open Food Facts
+PRO subscription and paywall,monetization,skip,yes,skip,personal app
+Ads,monetization,skip,yes,skip,
+Rewards: chests and diamonds,gamification,skip,yes,skip,
+AI photo food recognition,food,skip,yes,skip,needs paid vision API
+Fitbit / Garmin sync,integrations,skip,yes,skip,partner integrations
+Account and cloud sync,general,skip,yes,skip,user chose device-only storage
+Apple Watch app,platform,skip,yes,skip,later if wanted

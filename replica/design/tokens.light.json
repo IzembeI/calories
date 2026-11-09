@@ -1,0 +1,105 @@
+{
+  "_about": "Kalorii light theme. Mirrors app/src/ui/theme.ts. Roles stay, values may change in /replica-brand.",
+  "color": {
+    "bg": "#F4F5F2",
+    "surface": "#FFFFFF",
+    "border": "#E3E5E1",
+    "input": "#F0F1EE",
+    "text": "#16181A",
+    "text-muted": "#5F646A",
+    "accent": "#1B744B",
+    "accent-soft": "#E6F4EC",
+    "on-accent": "#FFFFFF",
+    "danger": "#C2392D",
+    "warn": "#B87512",
+    "protein": "#3F6FD6",
+    "fat": "#B06F12",
+    "carbs": "#8A4CC7",
+    "water": "#2687B8"
+  },
+  "pairs": [
+    [
+      "text",
+      "bg"
+    ],
+    [
+      "text",
+      "surface"
+    ],
+    [
+      "text",
+      "input"
+    ],
+    [
+      "text-muted",
+      "bg"
+    ],
+    [
+      "text-muted",
+      "surface"
+    ],
+    [
+      "text-muted",
+      "input"
+    ],
+    [
+      "on-accent",
+      "accent"
+    ],
+    [
+      "accent",
+      "surface"
+    ],
+    [
+      "accent",
+      "accent-soft"
+    ],
+    [
+      "accent",
+      "bg"
+    ],
+    [
+      "danger",
+      "surface"
+    ],
+    [
+      "on-accent",
+      "danger"
+    ],
+    [
+      "protein",
+      "surface",
+      "large"
+    ],
+    [
+      "fat",
+      "surface",
+      "large"
+    ],
+    [
+      "carbs",
+      "surface",
+      "large"
+    ],
+    [
+      "accent",
+      "surface",
+      "ui"
+    ],
+    [
+      "water",
+      "surface",
+      "ui"
+    ],
+    [
+      "fat",
+      "surface",
+      "ui"
+    ],
+    [
+      "warn",
+      "surface",
+      "ui"
+    ]
+  ]
+}

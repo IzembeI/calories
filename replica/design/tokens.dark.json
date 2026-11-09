@@ -1,0 +1,105 @@
+{
+  "_about": "Kalorii dark theme. Mirrors app/src/ui/theme.ts.",
+  "color": {
+    "bg": "#0F1112",
+    "surface": "#1A1D1F",
+    "border": "#2A2E31",
+    "input": "#24282B",
+    "text": "#F1F3F2",
+    "text-muted": "#9AA0A6",
+    "accent": "#45C08A",
+    "accent-soft": "#1E3A2D",
+    "on-accent": "#0B1F15",
+    "danger": "#F06A5D",
+    "warn": "#F0B04A",
+    "protein": "#7099F0",
+    "fat": "#F0B755",
+    "carbs": "#B587E6",
+    "water": "#5BBBE8"
+  },
+  "pairs": [
+    [
+      "text",
+      "bg"
+    ],
+    [
+      "text",
+      "surface"
+    ],
+    [
+      "text",
+      "input"
+    ],
+    [
+      "text-muted",
+      "bg"
+    ],
+    [
+      "text-muted",
+      "surface"
+    ],
+    [
+      "text-muted",
+      "input"
+    ],
+    [
+      "on-accent",
+      "accent"
+    ],
+    [
+      "accent",
+      "surface"
+    ],
+    [
+      "accent",
+      "accent-soft"
+    ],
+    [
+      "accent",
+      "bg"
+    ],
+    [
+      "danger",
+      "surface"
+    ],
+    [
+      "on-accent",
+      "danger"
+    ],
+    [
+      "protein",
+      "surface",
+      "large"
+    ],
+    [
+      "fat",
+      "surface",
+      "large"
+    ],
+    [
+      "carbs",
+      "surface",
+      "large"
+    ],
+    [
+      "accent",
+      "surface",
+      "ui"
+    ],
+    [
+      "water",
+      "surface",
+      "ui"
+    ],
+    [
+      "fat",
+      "surface",
+      "ui"
+    ],
+    [
+      "warn",
+      "surface",
+      "ui"
+    ]
+  ]
+}
