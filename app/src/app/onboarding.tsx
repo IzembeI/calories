@@ -13,15 +13,16 @@ import {
   dailyKcalGoal,
   fmt,
   macroGrams,
+  paceAsPctBW,
   parseNum,
   type ActivityLevel,
+  type BodyInput,
   type Goal,
   type Sex,
 } from '@/lib/nutrition';
 import { Bar, Button, Card, Choice, NumField, Row, Screen, Segmented, T, Title } from '@/ui/components';
+import { GoalExplainCard, PACES } from '@/ui/goal-explain';
 import { space, useTheme } from '@/ui/theme';
-
-const PACES = [0.25, 0.5, 0.75, 1];
 
 export default function Onboarding() {
   const db = useSQLiteContext();
@@ -29,6 +30,8 @@ export default function Onboarding() {
   const { reloadProfile } = useApp();
   const [step, setStep] = useState(0);
   const [goal, setGoal] = useState<Goal>('lose');
+  /** «Просто считать калории»: maintain, no target weight and pace questions */
+  const [simple, setSimple] = useState(false);
   const [sex, setSex] = useState<Sex>('male');
   const [birth, setBirth] = useState('1995-01-01');
   const [height, setHeight] = useState('');
@@ -45,10 +48,11 @@ export default function Onboarding() {
   const steps = goal === 'maintain' ? ['goal', 'body', 'weight', 'activity', 'result'] : ['goal', 'body', 'weight', 'activity', 'pace', 'result'];
   const current = steps[step];
 
-  const kcal = useMemo(() => {
-    if (!h || !w) return 0;
-    return dailyKcalGoal({ sex, birth_date: birth, height_cm: h, weight_kg: w, activity_level: activity, goal, pace_kg_week: pace });
-  }, [h, w, sex, birth, activity, goal, pace]);
+  const body = useMemo<BodyInput | null>(
+    () => (h && w ? { sex, birth_date: birth, height_cm: h, weight_kg: w, activity_level: activity, goal, pace_kg_week: goal === 'maintain' ? 0 : pace } : null),
+    [h, w, sex, birth, activity, goal, pace],
+  );
+  const kcal = body ? dailyKcalGoal(body) : 0;
 
   const canNext = () => {
     if (current === 'body') return !!h && h >= 100 && h <= 250;
@@ -86,6 +90,7 @@ export default function Onboarding() {
       pace_kg_week: goal === 'maintain' ? 0 : pace,
       kcal_goal: kcal,
       kcal_auto: 1,
+      kcal_mode: 'formula',
       protein_pct: 25,
       fat_pct: 30,
       carbs_pct: 45,
@@ -108,8 +113,25 @@ export default function Onboarding() {
         {current === 'goal' && (
           <>
             <Title>Какая у вас цель?</Title>
+            <Choice
+              title="Просто считать калории"
+              hint="Без цели по весу — норма на поддержание"
+              selected={simple}
+              onPress={() => {
+                setSimple(true);
+                setGoal('maintain');
+              }}
+            />
             {GOALS.map((g) => (
-              <Choice key={g.value} title={g.title} selected={goal === g.value} onPress={() => setGoal(g.value)} />
+              <Choice
+                key={g.value}
+                title={g.title}
+                selected={!simple && goal === g.value}
+                onPress={() => {
+                  setSimple(false);
+                  setGoal(g.value);
+                }}
+              />
             ))}
           </>
         )}
@@ -117,7 +139,11 @@ export default function Onboarding() {
         {current === 'body' && (
           <>
             <Title>О вас</Title>
-            <T dim>Нужно для расчёта нормы калорий.</T>
+            <T dim>
+              {simple
+                ? 'Цель по весу не нужна, но пол, возраст, рост и вес нужны: без них не посчитать, сколько калорий вы тратите за день.'
+                : 'Нужно для расчёта нормы калорий.'}
+            </T>
             <Segmented
               options={[
                 { value: 'male', title: 'Мужчина' },
@@ -174,7 +200,7 @@ export default function Onboarding() {
               <Choice
                 key={p}
                 title={`${fmt(p, 2)} кг в неделю`}
-                hint={p <= 0.25 ? 'Мягко' : p <= 0.5 ? 'Рекомендуется' : p <= 0.75 ? 'Быстро' : 'Очень быстро'}
+                hint={`${p <= 0.25 ? 'Мягко' : p <= 0.5 ? 'Рекомендуется' : p <= 0.75 ? 'Быстро' : 'Очень быстро'}${w ? ` · ${fmt(paceAsPctBW(p, w), 1)}% веса в неделю` : ''}`}
                 selected={pace === p}
                 onPress={() => setPace(p)}
               />
@@ -201,8 +227,9 @@ export default function Onboarding() {
                 <Macro label="Углеводы" grams={macros.carbs} color={t.carbs} />
               </Row>
             </Card>
+            {body ? <GoalExplainCard body={body} /> : null}
             <T dim size={13}>
-              Расчёт по формуле Миффлина — Сан Жеора. Норму и распределение БЖУ можно изменить в профиле.
+              Норму и распределение БЖУ можно изменить в профиле.
             </T>
           </>
         )}

@@ -1,11 +1,12 @@
-import { Suspense } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { Suspense, useEffect } from 'react';
+import { ActivityIndicator, AppState, View } from 'react-native';
 import { router, Stack } from 'expo-router';
-import { SQLiteProvider } from 'expo-sqlite';
+import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import { migrate } from '@/db/migrations';
 import { AppStateProvider, useApp } from '@/lib/app-state';
+import { autoBackup } from '@/lib/backup';
 import { IconButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -27,9 +28,22 @@ function Loading() {
   );
 }
 
+/** Weekly copy into Documents/Backups: on launch and whenever the app comes back to the foreground. */
+function useAutoBackup(enabled: boolean) {
+  const db = useSQLiteContext();
+  useEffect(() => {
+    if (!enabled) return;
+    const run = () => autoBackup(db).catch(() => {}); // a failed copy must never break the app; it retries next time
+    run();
+    const sub = AppState.addEventListener('change', (s) => s === 'active' && run());
+    return () => sub.remove();
+  }, [db, enabled]);
+}
+
 function Nav() {
   const t = useTheme();
   const { profile, loaded } = useApp();
+  useAutoBackup(loaded && !!profile);
   if (!loaded) return <Loading />;
   const hasProfile = !!profile;
 
@@ -65,7 +79,7 @@ function Nav() {
         <Stack.Screen name="measurements" options={{ title: 'Замеры' }} />
         <Stack.Screen name="nutrients" options={{ title: 'Витамины и минералы' }} />
         <Stack.Screen name="series/[type]" options={{ title: 'История' }} />
-        <Stack.Screen name="export" options={{ title: 'Экспорт в PDF' }} />
+        <Stack.Screen name="export" options={{ title: 'Экспорт' }} />
         <Stack.Screen name="goals" options={{ title: 'Цели и данные' }} />
         <Stack.Screen name="settings" options={{ title: 'Настройки' }} />
         <Stack.Screen name="my-foods" options={{ title: 'Мои продукты и блюда' }} />

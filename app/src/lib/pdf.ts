@@ -4,7 +4,9 @@ import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import {
+  currentWeight,
   entriesBetween,
+  getSetting,
   measurementsBetween,
   type Entry,
   type MeasurementRow,
@@ -12,8 +14,9 @@ import {
 } from '@/db/repo';
 import { daysBetween, diffDays, formatDay, formatShort, todayKey } from './dates';
 import { MEASUREMENTS } from './measurements';
+import { BODYFAT_METHOD_KEY, NAVY_ERROR_PCT, WHTR_LABEL, compositionSeries, whtr, whtrApplies, whtrZone } from './body';
 import { MEALS, fmt, macroTargets } from './nutrition';
-import { NUTRIENTS, microsByDay, pctDV, type Micros, type NutrientKey } from './micros';
+import { NUTRIENTS, dvFor, microsByDay, pctDV, type Micros, type NutrientKey } from './micros';
 
 export interface PdfOptions {
   from: string;
@@ -95,13 +98,13 @@ const sumOf = (rows: Entry[]) =>
   rows.reduce((a, r) => ({ kcal: a.kcal + r.kcal, protein: a.protein + r.protein, fat: a.fat + r.fat, carbs: a.carbs + r.carbs }), { kcal: 0, protein: 0, fat: 0, carbs: 0 });
 
 async function diaryHtml(db: SQLiteDatabase, p: Profile, o: PdfOptions): Promise<string> {
-  const [entries, microsBy] = await Promise.all([entriesBetween(db, o.from, o.to), microsByDay(db, o.from, o.to)]);
+  const [entries, microsBy, weight] = await Promise.all([entriesBetween(db, o.from, o.to), microsByDay(db, o.from, o.to), currentWeight(db, p, o.to)]);
   const byDay = new Map<string, Entry[]>();
   for (const e of entries) byDay.set(e.date, [...(byDay.get(e.date) ?? []), e]);
 
   const days = daysBetween(o.from, o.to);
   const logged = days.filter((d) => byDay.has(d));
-  const goalM = macroTargets(p);
+  const goalM = macroTargets(p, weight);
   const totals = logged.map((d) => ({ date: d, ...sumOf(byDay.get(d)!) }));
   const avg = (k: 'kcal' | 'protein' | 'fat' | 'carbs') => (totals.length ? totals.reduce((a, t) => a + t[k], 0) / totals.length : 0);
   const onTarget = totals.filter((t) => Math.abs(t.kcal - p.kcal_goal) <= p.kcal_goal * 0.1).length;
@@ -134,9 +137,11 @@ async function diaryHtml(db: SQLiteDatabase, p: Profile, o: PdfOptions): Promise
     html += `<h3>Витамины и минералы — в среднем за день (≈ оценка)</h3><table><tr><th class="l">Нутриент</th><th>В среднем</th><th>Норма</th><th>% нормы</th></tr>`;
     for (const d of NUTRIENTS) {
       const v = avgMicros[d.key] ?? 0;
-      const pct = pctDV(d, v);
+      const normP = { ...p, weight_kg: weight };
+      const dv = dvFor(d, normP);
+      const pct = pctDV(d, v, normP);
       const bad = d.limit ? pct > 100 : pct < 50;
-      html += `<tr><td>${d.title}${d.limit ? ' <span class="muted small">(не больше)</span>' : ''}</td><td>${fmt(v, v < 10 ? 1 : 0)} ${d.unit}</td><td>${fmt(d.dv)} ${d.unit}</td><td class="${bad ? 'over' : 'good'}">${n0(pct)}%</td></tr>`;
+      html += `<tr><td>${d.title}${d.limit ? ' <span class="muted small">(не больше)</span>' : ''}</td><td>${fmt(v, v < 10 ? 1 : 0)} ${d.unit}</td><td>${fmt(dv, dv < 10 ? 1 : 0)} ${d.unit}</td><td class="${bad ? 'over' : 'good'}">${n0(pct)}%</td></tr>`;
     }
     html += `</table>`;
   }
@@ -175,6 +180,23 @@ async function measurementsHtml(db: SQLiteDatabase, p: Profile, o: PdfOptions): 
     const a = s[0], b = s[s.length - 1];
     const d = b.value - a.value;
     html += `<tr><td>${m.title}, ${m.unit}</td><td>${n1(a.value)}<br><span class="muted small">${formatShort(a.date)}</span></td><td>${n1(b.value)}<br><span class="muted small">${formatShort(b.date)}</span></td><td class="${d < 0 ? 'good' : d > 0 ? 'over' : ''}">${d > 0 ? '+' : ''}${n1(d)}</td><td>${s.length}</td></tr>`;
+  }
+  // Derived rows: Navy body-fat estimate (only once the user confirmed the measuring method) and waist-to-height.
+  const derivedRow = (title: string, s: { date: string; value: number }[], digits: number, note = '') => {
+    const a = s[0], b = s[s.length - 1];
+    const d = b.value - a.value;
+    const f = (v: number) => fmt(v, digits);
+    return `<tr><td>${title}</td><td>${f(a.value)}<br><span class="muted small">${formatShort(a.date)}</span></td><td>${f(b.value)}${note}<br><span class="muted small">${formatShort(b.date)}</span></td><td class="${d < 0 ? 'good' : d > 0 ? 'over' : ''}">${d > 0 ? '+' : ''}${f(d)}</td><td>${s.length}</td></tr>`;
+  };
+  if (await getSetting(db, BODYFAT_METHOD_KEY, false)) {
+    const bf = compositionSeries(rows, p.sex, p.height_cm).map((c) => ({ date: c.date, value: c.bf }));
+    if (bf.length) html += derivedRow(`Жир (оценка ±${NAVY_ERROR_PCT}%), %`, bf, 1);
+  }
+  const lastWeight = byType.get('weight')?.at(-1)?.value ?? null;
+  const waists = byType.get('waist') ?? [];
+  if (waists.length && whtrApplies(lastWeight, p.height_cm)) {
+    const r = waists.map((w) => ({ date: w.date, value: whtr(w.value, p.height_cm) ?? 0 })).filter((x) => x.value > 0);
+    if (r.length) html += derivedRow('Талия/рост', r, 2, ` <span class="muted small">${WHTR_LABEL[whtrZone(r[r.length - 1].value)]}</span>`);
   }
   html += `</table>`;
 

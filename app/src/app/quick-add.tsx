@@ -1,16 +1,17 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { addQuickEntry } from '@/db/repo';
+import { addQuickEntry, deleteEntry } from '@/db/repo';
 import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
-import { parseNum, type MealType } from '@/lib/nutrition';
+import { fmt, parseNum, type MealType } from '@/lib/nutrition';
 import { Button, Field, NumField, Row, Screen, T } from '@/ui/components';
 import { MealPicker } from '@/ui/portion';
 
 export default function QuickAdd() {
   const db = useSQLiteContext();
-  const { date } = useApp();
+  const { date, showToast } = useApp();
   const params = useLocalSearchParams<{ meal?: MealType }>();
   const [meal, setMeal] = useState<MealType>(params.meal ?? 'snack');
   const [name, setName] = useState('');
@@ -18,17 +19,26 @@ export default function QuickAdd() {
   const [p, setP] = useState('');
   const [f, setF] = useState('');
   const [c, setC] = useState('');
+  const [saving, setSaving] = useState(false);
   const k = parseNum(kcal);
 
   const save = async () => {
-    if (k == null || k <= 0) return;
-    await addQuickEntry(db, date, meal, name.trim() || 'Быстрое добавление', {
-      kcal: k,
-      protein: parseNum(p) ?? 0,
-      fat: parseNum(f) ?? 0,
-      carbs: parseNum(c) ?? 0,
-    });
-    router.dismissTo('/');
+    if (k == null || k <= 0 || saving) return;
+    setSaving(true);
+    const title = name.trim() || 'Быстрое добавление';
+    try {
+      const id = await addQuickEntry(db, date, meal, title, {
+        kcal: k,
+        protein: parseNum(p) ?? 0,
+        fat: parseNum(f) ?? 0,
+        carbs: parseNum(c) ?? 0,
+      });
+      router.dismissTo('/');
+      showToast({ text: `Добавлено: ${title} · ${fmt(k)} ккал`, action: { label: 'Отменить', onPress: () => deleteEntry(db, id) } });
+    } catch (e) {
+      setSaving(false);
+      Alert.alert('Не удалось добавить', String(e instanceof Error ? e.message : e));
+    }
   };
 
   return (
@@ -42,7 +52,7 @@ export default function QuickAdd() {
         <NumField style={{ flex: 1 }} label="Углеводы" suffix="г" value={c} onChangeText={setC} />
       </Row>
       <MealPicker value={meal} onChange={setMeal} />
-      <Button title="Добавить" onPress={save} disabled={k == null || k <= 0} />
+      <Button title="Добавить" onPress={save} disabled={k == null || k <= 0} loading={saving} />
     </Screen>
   );
 }

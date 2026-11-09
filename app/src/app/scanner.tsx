@@ -4,6 +4,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getFoodByBarcode, saveFood } from '@/db/repo';
+import { normalizeScan } from '@/lib/gs1';
 import { OffError, offByBarcode } from '@/lib/off';
 import type { MealType } from '@/lib/nutrition';
 import { Button, Row, Screen, T } from '@/ui/components';
@@ -32,7 +33,7 @@ export default function Scanner() {
     );
   }
 
-  const handle = async (code: string) => {
+  const handle = async (type: string, data: string) => {
     if (locked.current) return;
     locked.current = true;
     setBusy(true);
@@ -40,6 +41,13 @@ export default function Scanner() {
       locked.current = false;
       setBusy(false);
     };
+    const code = normalizeScan(type, data);
+    if (!code) {
+      Alert.alert('Это не код товара', 'В этом коде нет штрихкода продукта. Наведите камеру на штрихкод или код «Честный ЗНАК».', [
+        { text: 'OK', onPress: unlock },
+      ]);
+      return;
+    }
     try {
       const local = await getFoodByBarcode(db, code);
       if (local) {
@@ -71,14 +79,14 @@ export default function Scanner() {
         style={{ flex: 1 }}
         facing="back"
         enableTorch={torch}
-        barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128'] }}
-        onBarcodeScanned={(r) => handle(r.data)}
+        barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'datamatrix'] }}
+        onBarcodeScanned={(r) => handle(r.type, r.data)}
       />
       <View style={{ position: 'absolute', left: 0, right: 0, top: '35%', alignItems: 'center' }}>
         <View style={{ width: '75%', height: 140, borderWidth: 3, borderColor: '#fff', borderRadius: 16, opacity: 0.8 }} />
       </View>
       <View style={{ position: 'absolute', bottom: 40, left: space.l, right: space.l, gap: space.m }}>
-        {busy ? <ActivityIndicator color="#fff" /> : <T color="#fff" center>Наведите камеру на штрихкод</T>}
+        {busy ? <ActivityIndicator color="#fff" /> : <T color="#fff" center>Наведите камеру на штрихкод или код «Честный ЗНАК»</T>}
         <Row>
           <Button title={torch ? 'Фонарик выкл.' : 'Фонарик'} kind="secondary" onPress={() => setTorch((v) => !v)} style={{ flex: 1 }} />
           <Button title="Ввести вручную" kind="secondary" onPress={() => router.replace({ pathname: '/food-edit', params: { meal } })} style={{ flex: 1 }} />

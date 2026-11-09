@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { deleteEntry, getEntry, getFood, servingsOf, updateEntryGrams, updateQuickEntry, type Entry, type Serving } from '@/db/repo';
+import { deleteEntry, getEntry, getFood, restoreEntry, servingsOf, updateEntryGrams, updateQuickEntry, type Entry, type Serving } from '@/db/repo';
+import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
-import { parseNum, type MealType } from '@/lib/nutrition';
+import { fmt, parseNum, type MealType } from '@/lib/nutrition';
 import { Button, Empty, Field, NumField, Row, Screen, T, Title } from '@/ui/components';
 import { MealPicker, NutrientCard, PortionPicker } from '@/ui/portion';
 
 export default function EditEntry() {
   const db = useSQLiteContext();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { showToast } = useApp();
+  const [saving, setSaving] = useState(false);
   const [e, setE] = useState<Entry | null | undefined>(undefined);
   const [servings, setServings] = useState<Serving[]>([]);
   const [unit, setUnit] = useState<Serving | null>(null);
@@ -52,29 +55,37 @@ export default function EditEntry() {
   if (e === undefined) return null;
   if (e === null) return <Empty text="Запись не найдена" />;
 
+  /** Runs a save/delete once: the button shows a spinner meanwhile and an error ends in an Alert, never silence. */
+  const guard = async (run: () => Promise<void>) => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await run();
+    } catch (err) {
+      setSaving(false);
+      Alert.alert('Не удалось сохранить', String(err instanceof Error ? err.message : err));
+    }
+  };
+
+  // No confirmation: the toast offers «Отменить», which puts the same row back (same id and order).
   const remove = () =>
-    Alert.alert('Удалить запись?', e.name, [
-      { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Удалить',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteEntry(db, e.id);
-          router.back();
-        },
-      },
-    ]);
+    guard(async () => {
+      await deleteEntry(db, e.id);
+      router.back();
+      showToast({ text: `Удалено: ${e.name} · ${fmt(e.kcal)} ккал`, action: { label: 'Отменить', onPress: () => restoreEntry(db, e) } });
+    });
 
   if (e.grams == null) {
-    const save = async () => {
-      await updateQuickEntry(db, e.id, meal, name.trim() || 'Быстрое добавление', {
-        kcal: parseNum(kcal) ?? 0,
-        protein: parseNum(p) ?? 0,
-        fat: parseNum(f) ?? 0,
-        carbs: parseNum(c) ?? 0,
+    const save = () =>
+      guard(async () => {
+        await updateQuickEntry(db, e.id, meal, name.trim() || 'Быстрое добавление', {
+          kcal: parseNum(kcal) ?? 0,
+          protein: parseNum(p) ?? 0,
+          fat: parseNum(f) ?? 0,
+          carbs: parseNum(c) ?? 0,
+        });
+        router.back();
       });
-      router.back();
-    };
     return (
       <Screen>
         <T dim>{formatDay(e.date)}</T>
@@ -86,8 +97,8 @@ export default function EditEntry() {
           <NumField style={{ flex: 1 }} label="Углеводы" suffix="г" value={c} onChangeText={setC} />
         </Row>
         <MealPicker value={meal} onChange={setMeal} />
-        <Button title="Сохранить" onPress={save} />
-        <Button title="Удалить" kind="ghost" onPress={remove} />
+        <Button title="Сохранить" onPress={save} loading={saving} />
+        <Button title="Удалить" kind="ghost" onPress={remove} disabled={saving} />
       </Screen>
     );
   }
@@ -95,11 +106,12 @@ export default function EditEntry() {
   const qty = parseNum(amount) ?? 0;
   const grams = unit ? qty * unit.grams : qty;
   const k = e.grams ? grams / e.grams : 1;
-  const save = async () => {
-    if (grams <= 0) return;
-    await updateEntryGrams(db, e, grams, unit ? `${amount} ${unit.name}` : null, meal);
-    router.back();
-  };
+  const save = () =>
+    grams > 0 &&
+    guard(async () => {
+      await updateEntryGrams(db, e, grams, unit ? `${amount} ${unit.name}` : null, meal);
+      router.back();
+    });
 
   return (
     <Screen>
@@ -108,8 +120,8 @@ export default function EditEntry() {
       <PortionPicker servings={servings} unit={unit} onUnit={setUnit} amount={amount} onAmount={setAmount} />
       <NutrientCard title={`${Math.round(grams)} г`} kcal={e.kcal * k} protein={e.protein * k} fat={e.fat * k} carbs={e.carbs * k} />
       <MealPicker value={meal} onChange={setMeal} />
-      <Button title="Сохранить" onPress={save} disabled={grams <= 0} />
-      <Button title="Удалить" kind="ghost" onPress={remove} />
+      <Button title="Сохранить" onPress={save} disabled={grams <= 0} loading={saving} />
+      <Button title="Удалить" kind="ghost" onPress={remove} disabled={saving} />
     </Screen>
   );
 }

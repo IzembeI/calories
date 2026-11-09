@@ -4,9 +4,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getSetting, setSetting } from '@/db/repo';
 import { useApp } from '@/lib/app-state';
-import { exportBackup, importBackup } from '@/lib/backup';
+import { autoBackup, exportBackup, importBackup } from '@/lib/backup';
 import { DEFAULT_REMINDERS, applyReminders, ensurePermission, type Reminder } from '@/lib/reminders';
-import { Button, Card, Divider, Row, Screen, T } from '@/ui/components';
+import { type WeighHint } from '@/lib/trend';
+import { Button, Card, Divider, Row, Screen, Segmented, T } from '@/ui/components';
 import { space, useTheme } from '@/ui/theme';
 
 const WEEKDAYS = ['', 'вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
@@ -16,11 +17,19 @@ export default function Settings() {
   const t = useTheme();
   const { reloadProfile } = useApp();
   const [rem, setRem] = useState<Reminder[]>(DEFAULT_REMINDERS);
+  const [weighHint, setWeighHint] = useState<WeighHint>('daily');
+  const [proteinHint, setProteinHint] = useState(true);
+  const [autoOn, setAutoOn] = useState(true);
+  const [lastAuto, setLastAuto] = useState<string | null>(null);
 
   useEffect(() => {
     getSetting<Reminder[]>(db, 'reminders', DEFAULT_REMINDERS).then((saved) =>
       setRem(DEFAULT_REMINDERS.map((d) => ({ ...d, ...saved.find((s) => s.id === d.id) }))),
     );
+    getSetting<WeighHint>(db, 'weigh_hint', 'daily').then((h) => setWeighHint(h === 'weekly' ? 'weekly' : 'daily'));
+    getSetting<boolean>(db, 'protein_hint', true).then((v) => setProteinHint(v !== false));
+    getSetting<boolean>(db, 'auto_backup', true).then((v) => setAutoOn(v !== false));
+    getSetting<string | null>(db, 'last_auto_backup', null).then(setLastAuto);
   }, [db]);
 
   const update = async (next: Reminder[]) => {
@@ -98,6 +107,48 @@ export default function Settings() {
       </Card>
 
       <T weight="700" style={{ marginTop: space.s }}>
+        Взвешивания
+      </T>
+      <Card>
+        <Segmented
+          options={[
+            { value: 'daily', title: 'Каждый день' },
+            { value: 'weekly', title: 'Раз в неделю' },
+          ]}
+          value={weighHint}
+          onChange={(v) => {
+            setWeighHint(v);
+            setSetting(db, 'weigh_hint', v);
+          }}
+        />
+        <T dim size={12}>
+          Подсказка на вкладке «Прогресс». Темп веса считается по тренду, если за 2 недели есть 4 взвешивания.
+        </T>
+      </Card>
+
+      <T weight="700" style={{ marginTop: space.s }}>
+        Дневник
+      </T>
+      <Card>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <T>Белок в приёмах пищи</T>
+            <T dim size={12}>
+              Серая пометка, если в завтраке, обеде или ужине меньше 20 г белка. Перекусы не отмечаются.
+            </T>
+          </View>
+          <Switch
+            value={proteinHint}
+            onValueChange={(v) => {
+              setProteinHint(v);
+              setSetting(db, 'protein_hint', v);
+            }}
+            trackColor={{ true: t.accent }}
+          />
+        </Row>
+      </Card>
+
+      <T weight="700" style={{ marginTop: space.s }}>
         Резервная копия
       </T>
       <Card>
@@ -105,6 +156,30 @@ export default function Settings() {
           Данные хранятся только на телефоне. Если удалить приложение, они пропадут — сохраняйте копию в «Файлы» или
           отправляйте себе в мессенджер.
         </T>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <T>Автокопия раз в неделю</T>
+            <T dim size={12}>
+              {lastAuto ? `Последняя: ${lastAuto.slice(8, 10)}.${lastAuto.slice(5, 7)}, ` : ''}папка «Файлы → На iPhone → Калории».
+              Эти копии внутри приложения и удаляются вместе с ним — переносите их в iCloud Drive.
+            </T>
+          </View>
+          <Switch
+            value={autoOn}
+            onValueChange={async (v) => {
+              setAutoOn(v);
+              await setSetting(db, 'auto_backup', v);
+              if (!v) return;
+              try {
+                await autoBackup(db);
+                setLastAuto(await getSetting<string | null>(db, 'last_auto_backup', null));
+              } catch (e) {
+                Alert.alert('Не удалось сохранить автокопию', String(e instanceof Error ? e.message : e));
+              }
+            }}
+            trackColor={{ true: t.accent }}
+          />
+        </Row>
         <Button title="Сохранить копию (JSON)" kind="secondary" onPress={backup} />
         <Button title="Восстановить из файла" kind="ghost" onPress={restore} />
       </Card>

@@ -1,7 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { AppState as RNAppState } from 'react-native';
+import { Alert, AppState as RNAppState } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getProfile, type Profile } from '@/db/repo';
+import { ToastHost, type ToastMsg } from '@/ui/components';
 import { todayKey } from './dates';
 
 interface AppState {
@@ -11,6 +12,10 @@ interface AppState {
   /** Selected diary day, shared by the diary and the screens it opens. */
   date: string;
   setDate: (d: string) => void;
+  /** Bottom toast for ~4 s; `action` (e.g. «Отменить») runs once, then the diary reloads. */
+  showToast: (m: ToastMsg) => void;
+  /** Bumped when data changed outside the focused screen (an undo); the diary reloads on it. */
+  diaryVersion: number;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -20,6 +25,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [date, setDate] = useState(todayKey());
+  const [toast, setToast] = useState<(ToastMsg & { key: number }) | null>(null);
+  const [diaryVersion, setDiaryVersion] = useState(0);
+  const toastKey = useRef(0);
+
+  const showToast = useCallback((m: ToastMsg) => setToast({ ...m, key: ++toastKey.current }), []);
+  const hideToast = useCallback(() => setToast(null), []);
+  const runToastAction = useCallback(async (run: () => Promise<unknown> | void) => {
+    setToast(null);
+    try {
+      await run();
+    } catch (e) {
+      Alert.alert('Не получилось отменить', String(e instanceof Error ? e.message : e));
+    } finally {
+      setDiaryVersion((v) => v + 1);
+    }
+  }, []);
 
   const reloadProfile = useCallback(async () => {
     setProfile(await getProfile(db));
@@ -45,7 +66,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return () => sub.remove();
   }, []);
 
-  return <Ctx.Provider value={{ profile, loaded, reloadProfile, date, setDate }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ profile, loaded, reloadProfile, date, setDate, showToast, diaryVersion }}>
+      {children}
+      <ToastHost msg={toast} onHide={hideToast} onAction={runToastAction} />
+    </Ctx.Provider>
+  );
 }
 
 export function useApp(): AppState {

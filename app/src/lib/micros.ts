@@ -1,8 +1,11 @@
 // Approximate vitamins, minerals and sugars for any food from its name and KBJU.
-// Reference values: USDA FoodData Central (see src/data/micro-ref.ts), daily values: adult norms
-// close to Russian МР 2.3.1.0253-21. Everything here is an estimate unless the product had real data.
+// Reference values: USDA FoodData Central (see src/data/micro-ref.ts), daily values: МР 2.3.1.0253-21
+// by sex and age (see src/data/norms.ts, dvFor). Everything here is an estimate unless the product had real data.
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { MICRO_REF, type CategoryKey } from '@/data/micro-ref';
+import { ADDED_SUGAR_SHARE, ADDED_SUGAR_SHARE_OVERWEIGHT, NORMS, SAT_FAT_SHARE, type Norm, type SexNorm } from '@/data/norms';
+import { ageFrom } from './dates';
+import { bmi, type Sex } from './nutrition';
 
 export type NutrientKey =
   | 'vit_a' | 'vit_c' | 'vit_d' | 'vit_e' | 'vit_k' | 'b1' | 'b2' | 'b3' | 'b6' | 'b9' | 'b12'
@@ -202,12 +205,67 @@ export async function dayMicros(db: SQLiteDatabase, date: string): Promise<Micro
   return (await microsByDay(db, date, date)).get(date) ?? {};
 }
 
-export function pctDV(def: NutrientDef, value: number | undefined): number {
-  return def.dv > 0 ? ((value ?? 0) / def.dv) * 100 : 0;
+/**
+ * True when the day's fiber total comes only from real values (label or product fiber field).
+ * Quick-add entries and foods without a fiber value make it an estimate.
+ */
+export async function dayFiberExact(db: SQLiteDatabase, date: string): Promise<boolean> {
+  const rows = await db.getAllAsync<{ grams: number | null; fiber: number | null; micros: string | null; has_food: number }>(
+    `select e.grams, f.fiber, f.micros, f.id is not null as has_food
+     from diary_entries e left join foods f on f.id = e.food_id
+     where e.date = ?`,
+    date,
+  );
+  if (!rows.length) return false;
+  return rows.every((r) => {
+    if (!r.has_food || r.grams == null) return false;
+    if (r.fiber != null) return true;
+    try {
+      return r.micros != null && (JSON.parse(r.micros) as Micros).fiber != null;
+    } catch {
+      return false;
+    }
+  });
+}
+
+/** What the personal norms depend on. `weight_kg` is the current (trend) weight; start weight is used without it. */
+export interface NormProfile {
+  sex: Sex;
+  birth_date: string;
+  kcal_goal: number;
+  height_cm: number;
+  start_weight_kg: number;
+  weight_kg?: number;
+}
+
+function pickNorm(n: Norm, sex: Sex, age: number): number {
+  const v: SexNorm = typeof n === 'object' && !Array.isArray(n) ? n[sex] : n;
+  if (typeof v === 'number') return v;
+  let out = v[0][1];
+  for (const [from, value] of v) if (age >= from) out = value;
+  return out;
+}
+
+/** Daily value for this person: МР 2.3.1.0253-21 by sex and age, sugar and saturated fat from the kcal goal. */
+export function dvFor(def: NutrientDef, p?: NormProfile | null): number {
+  if (!p) return def.dv;
+  if (def.key === 'added_sugar') {
+    const w = p.weight_kg ?? p.start_weight_kg;
+    const share = p.height_cm > 0 && bmi(w, p.height_cm) >= 25 ? ADDED_SUGAR_SHARE_OVERWEIGHT : ADDED_SUGAR_SHARE;
+    return (share * p.kcal_goal) / 4;
+  }
+  if (def.key === 'sat_fat') return (SAT_FAT_SHARE * p.kcal_goal) / 9;
+  const n = NORMS[def.key];
+  return n == null ? def.dv : pickNorm(n, p.sex, ageFrom(p.birth_date));
+}
+
+export function pctDV(def: NutrientDef, value: number | undefined, p?: NormProfile | null): number {
+  const dv = dvFor(def, p);
+  return dv > 0 ? ((value ?? 0) / dv) * 100 : 0;
 }
 
 /** How many vitamins and minerals reach ~80% of the daily value. */
-export function microsScore(m: Micros): { ok: number; total: number } {
+export function microsScore(m: Micros, p?: NormProfile | null): { ok: number; total: number } {
   const defs = NUTRIENTS.filter((d) => d.group !== 'other' && !d.limit);
-  return { ok: defs.filter((d) => pctDV(d, m[d.key]) >= 80).length, total: defs.length };
+  return { ok: defs.filter((d) => pctDV(d, m[d.key], p) >= 80).length, total: defs.length };
 }

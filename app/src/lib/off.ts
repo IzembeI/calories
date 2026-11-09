@@ -101,16 +101,39 @@ export async function offByBarcode(code: string): Promise<FoodInput | null> {
   return mapProduct({ code, ...data.product });
 }
 
+const SEARCH_FIELDS = `${FIELDS},countries_tags`;
+const MIN_RU_HITS = 5;
+
+const sal = async (q: string): Promise<any[]> => {
+  const d = await getJson(
+    `https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&langs=ru,en&page_size=25&fields=${SEARCH_FIELDS}`,
+  );
+  return Array.isArray(d?.hits) ? d.hits : [];
+};
+
+const CYR = /[а-яё]/i;
+/** 0 = Russian name, then products tagged as sold in Russia (or GS1 Russia 460–469 barcode). Lower is better. */
+const ruRank = (p: any): number => {
+  const cyr = CYR.test(text(p?.product_name_ru)) || CYR.test(text(p?.product_name));
+  const tags: unknown = p?.countries_tags;
+  const ru = (Array.isArray(tags) && tags.includes('en:russia')) || /^46\d/.test(text(p?.code));
+  return (cyr ? 0 : 2) + (ru ? 0 : 1);
+};
+
 export async function offSearch(q: string): Promise<FoodInput[]> {
   const query = q.trim();
   if (!query) return [];
   let products: any[] = [];
   try {
-    // Search-a-licious (new full-text search)
-    const d = await getJson(
-      `https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&langs=ru,en&page_size=25&fields=${FIELDS}`,
-    );
-    products = Array.isArray(d?.hits) ? d.hits : [];
+    // Search-a-licious (new full-text search). Products sold in Russia first
+    // (countries_tags filter checked against search.openfoodfacts.org), then the unfiltered search
+    // only when that gives too few hits.
+    const safe = query.replace(/["':()\\]/g, ' ').trim();
+    if (safe) products = await sal(`${safe} countries_tags:"en:russia"`).catch((e) => {
+      if (e instanceof OffError && e.kind === 'network') throw e;
+      return [];
+    });
+    if (products.length < MIN_RU_HITS) products = [...products, ...(await sal(query))];
   } catch (e) {
     if (e instanceof OffError && e.kind === 'network') throw e;
   }
@@ -122,14 +145,15 @@ export async function offSearch(q: string): Promise<FoodInput[]> {
     products = Array.isArray(d?.products) ? d.products : [];
   }
   const seen = new Set<string>();
-  const out: FoodInput[] = [];
+  const out: { f: FoodInput; rank: number; i: number }[] = [];
   for (const p of products) {
     const f = mapProduct(p);
     if (!f) continue;
     const key = f.barcode ?? `${f.name}|${f.brand}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push(f);
+    out.push({ f, rank: ruRank(p), i: out.length });
   }
-  return out;
+  // Client-side rule is the main one: Cyrillic names first, then Russian products; keep API order inside.
+  return out.sort((a, b) => a.rank - b.rank || a.i - b.i).map((x) => x.f);
 }

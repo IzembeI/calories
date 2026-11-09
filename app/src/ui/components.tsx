@@ -1,6 +1,8 @@
 import React from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   StyleProp,
@@ -13,6 +15,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from './theme';
 
 export function Screen({ children, padded = true, style }: { children: React.ReactNode; padded?: boolean; style?: StyleProp<ViewStyle> }) {
@@ -242,10 +245,10 @@ export function Divider() {
 export function Bar({ value, max, color, height = 6 }: { value: number; max: number; color: string; height?: number }) {
   const t = useTheme();
   const pct = max > 0 ? Math.min(value / max, 1) : 0;
-  const over = max > 0 && value > max * 1.02;
+  // Over the goal the bar just stays full in its own colour: no red, the text says «сверх нормы».
   return (
     <View style={{ height, backgroundColor: t.input, borderRadius: height, overflow: 'hidden' }}>
-      <View style={{ width: `${pct * 100}%`, height, backgroundColor: over ? t.danger : color, borderRadius: height }} />
+      <View style={{ width: `${pct * 100}%`, height, backgroundColor: color, borderRadius: height }} />
     </View>
   );
 }
@@ -255,7 +258,6 @@ export function Ring({ value, max, size = 150, stroke = 12, children }: { value:
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = max > 0 ? Math.min(value / max, 1) : 0;
-  const over = max > 0 && value > max;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
@@ -264,7 +266,7 @@ export function Ring({ value, max, size = 150, stroke = 12, children }: { value:
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={over ? t.danger : t.accent}
+          stroke={t.accent}
           strokeWidth={stroke}
           fill="none"
           strokeDasharray={`${c} ${c}`}
@@ -348,5 +350,84 @@ export function Plus({ onPress, a11y = 'Добавить' }: { onPress: () => vo
     >
       <Text style={{ color: t.onAccent, fontSize: 22, fontWeight: '600', marginTop: -2 }}>+</Text>
     </Pressable>
+  );
+}
+
+export interface ToastMsg {
+  text: string;
+  action?: { label: string; onPress: () => Promise<unknown> | void };
+}
+
+const TOAST_MS = 4000;
+
+/** Bottom toast above the tab bar. Rendered once by AppStateProvider; screens call useApp().showToast. */
+export function ToastHost({
+  msg,
+  onHide,
+  onAction,
+}: {
+  msg: (ToastMsg & { key: number }) | null;
+  onHide: () => void;
+  onAction: (run: () => Promise<unknown> | void) => void;
+}) {
+  const t = useTheme();
+  const insets = useSafeAreaInsets();
+  const anim = React.useRef(new Animated.Value(0)).current;
+  const [shown, setShown] = React.useState(msg);
+
+  React.useEffect(() => {
+    if (!msg) {
+      Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(({ finished }) => finished && setShown(null));
+      return;
+    }
+    setShown(msg);
+    Animated.timing(anim, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    AccessibilityInfo.announceForAccessibility(msg.action ? `${msg.text}. ${msg.action.label}` : msg.text);
+    const id = setTimeout(onHide, TOAST_MS);
+    return () => clearTimeout(id);
+  }, [msg, anim, onHide]);
+
+  if (!shown) return null;
+  const action = shown.action;
+  return (
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: space.l, right: space.l, bottom: insets.bottom + 60 }}>
+      <Animated.View
+        accessibilityLiveRegion="polite"
+        style={{
+          opacity: anim,
+          transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: space.m,
+          backgroundColor: t.card,
+          borderRadius: radius.m,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: t.border,
+          paddingLeft: space.l,
+          paddingRight: action ? space.s : space.l,
+          paddingVertical: action ? 2 : space.m,
+          shadowColor: '#000',
+          shadowOpacity: 0.18,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 6,
+        }}
+      >
+        <T size={14} style={{ flex: 1 }} numberOfLines={2}>
+          {shown.text}
+        </T>
+        {action ? (
+          <Pressable
+            onPress={() => onAction(action.onPress)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={action.label}
+            style={({ pressed }) => ({ minHeight: 44, paddingHorizontal: space.s, justifyContent: 'center', opacity: pressed ? 0.5 : 1 })}
+          >
+            <Text style={{ color: t.accent, fontSize: 15, fontWeight: '700' }}>{action.label}</Text>
+          </Pressable>
+        ) : null}
+      </Animated.View>
+    </View>
   );
 }

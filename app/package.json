@@ -1,6 +1,6 @@
 {
   "name": "kalorii",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "main": "expo-router/entry",
   "dependencies": {
     "@react-native-community/datetimepicker": "9.2.1",
@@ -34,7 +34,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "bundle:ios": "expo export --platform ios --output-dir dist-check"
+    "bundle:ios": "expo export --platform ios --output-dir dist-check",
+    "lint": "expo lint"
   },
   "private": true
 }

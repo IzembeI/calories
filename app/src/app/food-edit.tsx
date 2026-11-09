@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { deleteFood, getFood, saveFood, servingsOf, type Serving } from '@/db/repo';
+import { deleteFood, getFood, saveFood, servingsOf, type FoodRow, type Serving } from '@/db/repo';
 import { CATEGORIES, categoryTitle, guessCategory } from '@/lib/micros';
-import { fmt, parseNum, type MealType } from '@/lib/nutrition';
+import { fmt, kcalCheck, kcalCheckText, parseNum, round1, type MealType } from '@/lib/nutrition';
 import { Button, Card, Field, IconButton, NumField, Row, Screen, T } from '@/ui/components';
 import { space, useTheme } from '@/ui/theme';
 
@@ -27,6 +27,8 @@ export default function FoodEdit() {
   const [pickCat, setPickCat] = useState(false);
   const [sName, setSName] = useState('');
   const [sGrams, setSGrams] = useState('');
+  // builtin / OFF product being corrected: keep its source and mark it edited
+  const [origSource, setOrigSource] = useState<FoodRow['source'] | null>(null);
 
   useEffect(() => {
     const src = params.id ?? params.copyFrom;
@@ -46,6 +48,7 @@ export default function FoodEdit() {
       setSalt(s(food.salt));
       setServings(servingsOf(food));
       setCategory(food.category);
+      if (params.id) setOrigSource(food.source);
     });
   }, [db, params.id, params.copyFrom]);
 
@@ -53,7 +56,9 @@ export default function FoodEdit() {
   const pn = parseNum(p);
   const fn = parseNum(f);
   const cn = parseNum(c);
-  const computed = (pn ?? 0) * 4 + (fn ?? 0) * 9 + (cn ?? 0) * 4;
+  const check =
+    kcalNum != null ? kcalCheck({ name, category: category ?? guessCategory(name), kcal: kcalNum, protein: pn, fat: fn, carbs: cn, fiber: parseNum(fiber) }) : null;
+  const correcting = origSource != null && origSource !== 'custom';
   const valid = name.trim().length > 0 && kcalNum != null && kcalNum >= 0 && kcalNum <= 950;
 
   const save = async () => {
@@ -62,7 +67,7 @@ export default function FoodEdit() {
       const id = await saveFood(
         db,
         {
-          source: 'custom',
+          source: correcting ? origSource! : 'custom',
           barcode: barcode.trim() || null,
           name: name.trim(),
           brand: brand.trim() || null,
@@ -75,6 +80,7 @@ export default function FoodEdit() {
           salt: parseNum(salt),
           servings,
           category,
+          ...(correcting ? { edited: 1 } : null),
         },
         params.id,
       );
@@ -108,6 +114,11 @@ export default function FoodEdit() {
 
   return (
     <Screen>
+      {correcting ? (
+        <T dim size={13}>
+          {origSource === 'off' ? 'Продукт из Open Food Facts' : 'Продукт из базы'}. Ваша правка сохранится и не будет перезаписана.
+        </T>
+      ) : null}
       <Field label="Название" value={name} onChangeText={setName} placeholder="Например, сырники домашние" />
       <Field label="Производитель (необязательно)" value={brand} onChangeText={setBrand} />
       <Field label="Штрихкод (необязательно)" value={barcode} onChangeText={setBarcode} keyboardType="number-pad" />
@@ -120,10 +131,17 @@ export default function FoodEdit() {
         <NumField style={{ flex: 1 }} label="Жиры" suffix="г" value={f} onChangeText={setF} />
         <NumField style={{ flex: 1 }} label="Углеводы" suffix="г" value={c} onChangeText={setC} />
       </Row>
-      {kcalNum != null && computed > 0 && Math.abs(computed - kcalNum) > Math.max(30, kcalNum * 0.2) ? (
-        <T size={13} color={t.warn}>
-          По БЖУ выходит около {fmt(computed)} ккал — проверьте значения.
-        </T>
+      {check ? (
+        <Card>
+          <T size={13} color={t.warn}>
+            {kcalCheckText(check)}
+          </T>
+          {check.kind === 'carbs_include_fiber' ? (
+            <Button small title="Углеводы с клетчаткой → вычесть" kind="ghost" onPress={() => setC(String(check.carbs))} />
+          ) : (
+            <Button small title={`Пересчитать калории: ${fmt(check.est)} ккал`} kind="ghost" onPress={() => setKcal(String(round1(check.est)))} />
+          )}
+        </Card>
       ) : null}
       <Card>
         <Pressable onPress={() => setPickCat((v) => !v)} accessibilityRole="button" accessibilityLabel="Тип продукта">

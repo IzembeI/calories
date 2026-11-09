@@ -132,6 +132,25 @@ const MIGRATIONS: string[] = [
   alter table profile add column fat_g real;
   alter table profile add column carbs_g real;
   `,
+  // 4: who owns kcal_goal ('formula' | 'adaptive' | 'manual'); replaces kcal_auto, which is kept in sync for old code and backups
+  `
+  alter table profile add column kcal_mode text not null default 'formula' check (kcal_mode in ('formula','adaptive','manual'));
+  update profile set kcal_mode = 'manual' where kcal_auto = 0;
+  `,
+  // 5: protein goal in g per kg of body weight (null = mode off); reference weight: 'adjusted' = weight at BMI 27 when BMI >= 30, 'actual' = trend weight
+  `
+  alter table profile add column protein_gkg real;
+  alter table profile add column protein_ref text not null default 'adjusted' check (protein_ref in ('adjusted','actual'));
+  `,
+  // 6: the user corrected a builtin / Open Food Facts product; such rows are never overwritten by OFF data
+  `
+  alter table foods add column edited integer not null default 0;
+  `,
+  // 7: the portion of the last diary entry of this food (total grams + serving name, null = grams); the food screen opens with it
+  `
+  alter table foods add column last_grams real;
+  alter table foods add column last_serving text;
+  `,
 ];
 
 export async function migrate(db: SQLiteDatabase): Promise<void> {

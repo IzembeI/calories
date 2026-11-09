@@ -5,6 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useProfile } from '@/lib/app-state';
 import { addDays, diffDays, formatDay, fromKey, toKey, todayKey } from '@/lib/dates';
 import { buildPdf, sharePdf } from '@/lib/pdf';
+import { exportCsv, type CsvDialect, type CsvKind } from '@/lib/csv';
 import { Button, Card, Divider, Row, Screen, Segmented, T } from '@/ui/components';
 import { space, useTheme } from '@/ui/theme';
 
@@ -24,6 +25,9 @@ export default function Export() {
   const [busy, setBusy] = useState(false);
   const [last, setLast] = useState<{ uri: string; pages: number } | null>(null);
   const [picking, setPicking] = useState<'from' | 'to' | null>(null);
+  const [format, setFormat] = useState<'pdf' | 'csv'>('pdf');
+  const [dialect, setDialect] = useState<CsvDialect>('excel');
+  const [csvBusy, setCsvBusy] = useState<CsvKind | null>(null);
 
   const applyPreset = (p: Preset) => {
     setPreset(p);
@@ -35,12 +39,30 @@ export default function Export() {
 
   const days = diffDays(from, to) + 1;
 
-  const make = async () => {
-    if (!diary && !meas) return;
+  const rangeOk = () => {
     if (from > to) {
       Alert.alert('Неверный период', 'Дата начала позже даты окончания.');
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const makeCsv = async (kind: CsvKind) => {
+    if (!rangeOk()) return;
+    setCsvBusy(kind);
+    try {
+      const rows = await exportCsv(db, profile, kind, from, to, dialect);
+      if (!rows) Alert.alert('Нет данных', 'За выбранный период записей нет.');
+    } catch (e) {
+      Alert.alert('Не удалось создать CSV', String(e instanceof Error ? e.message : e));
+    } finally {
+      setCsvBusy(null);
+    }
+  };
+
+  const make = async () => {
+    if (!diary && !meas) return;
+    if (!rangeOk()) return;
     setBusy(true);
     try {
       const res = await buildPdf(db, profile, { from, to, diary, diaryDetailed: detailed, measurements: meas, charts });
@@ -69,7 +91,18 @@ export default function Export() {
 
   return (
     <Screen>
-      <T weight="700">Период</T>
+      <T weight="700">Формат</T>
+      <Segmented
+        options={[
+          { value: 'pdf', title: 'PDF' },
+          { value: 'csv', title: 'CSV (Excel)' },
+        ]}
+        value={format}
+        onChange={setFormat}
+      />
+      <T weight="700" style={{ marginTop: space.s }}>
+        Период
+      </T>
       <Segmented
         options={[
           { value: '7', title: '7 дней' },
@@ -102,28 +135,60 @@ export default function Export() {
         )}
       </Card>
 
-      <T weight="700" style={{ marginTop: space.s }}>
-        Что включить
-      </T>
-      <Card>
-        {toggle('Дневник питания', diary, setDiary, 'Итоги по дням: калории, БЖУ, витамины и минералы')}
-        <Divider />
-        {toggle('Подробно по продуктам', detailed, setDetailed, days > 60 ? 'Для длинного периода PDF будет большим' : 'Каждый день: приёмы пищи и продукты', !diary)}
-        <Divider />
-        {toggle('Замеры тела', meas, setMeas, 'Вес, шея, грудь, бицепс, талия, ягодицы, бедро')}
-        <Divider />
-        {toggle('Графики', charts, setCharts, 'Калории по дням и динамика каждого замера')}
-      </Card>
-
-      <Button title="Создать PDF и отправить" onPress={make} loading={busy} disabled={!diary && !meas} />
-      {last ? (
+      {format === 'csv' ? (
         <>
-          <T dim size={13} center>
-            Готово: {last.pages} стр.
+          <T weight="700" style={{ marginTop: space.s }}>
+            Разделитель
           </T>
-          <Button title="Отправить ещё раз" kind="ghost" onPress={() => sharePdf(last.uri)} />
+          <Segmented
+            options={[
+              { value: 'excel', title: 'Excel (;)' },
+              { value: 'universal', title: 'Универсальный (,)' },
+            ]}
+            value={dialect}
+            onChange={setDialect}
+          />
+          <T dim size={12}>
+            {dialect === 'excel'
+              ? 'Точка с запятой и десятичная запятая — для Excel с русскими настройками.'
+              : 'Запятая и десятичная точка — для Google Таблиц, Numbers и других программ.'}
+          </T>
+          <T weight="700" style={{ marginTop: space.s }}>
+            Файлы
+          </T>
+          <T dim size={12}>
+            Каждый файл отправляется отдельно.
+          </T>
+          <Button title="Все записи с продуктами" onPress={() => makeCsv('entries')} loading={csvBusy === 'entries'} disabled={csvBusy != null} />
+          <Button title="Итоги по дням" kind="secondary" onPress={() => makeCsv('days')} loading={csvBusy === 'days'} disabled={csvBusy != null} />
+          <Button title="Замеры тела" kind="secondary" onPress={() => makeCsv('measurements')} loading={csvBusy === 'measurements'} disabled={csvBusy != null} />
         </>
-      ) : null}
+      ) : (
+        <>
+          <T weight="700" style={{ marginTop: space.s }}>
+            Что включить
+          </T>
+          <Card>
+            {toggle('Дневник питания', diary, setDiary, 'Итоги по дням: калории, БЖУ, витамины и минералы')}
+            <Divider />
+            {toggle('Подробно по продуктам', detailed, setDetailed, days > 60 ? 'Для длинного периода PDF будет большим' : 'Каждый день: приёмы пищи и продукты', !diary)}
+            <Divider />
+            {toggle('Замеры тела', meas, setMeas, 'Вес, шея, грудь, бицепс, талия, ягодицы, бедро')}
+            <Divider />
+            {toggle('Графики', charts, setCharts, 'Калории по дням и динамика каждого замера')}
+          </Card>
+
+          <Button title="Создать PDF и отправить" onPress={make} loading={busy} disabled={!diary && !meas} />
+          {last ? (
+            <>
+              <T dim size={13} center>
+                Готово: {last.pages} стр.
+              </T>
+              <Button title="Отправить ещё раз" kind="ghost" onPress={() => sharePdf(last.uri)} />
+            </>
+          ) : null}
+        </>
+      )}
     </Screen>
   );
 }

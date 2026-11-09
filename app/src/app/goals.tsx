@@ -6,8 +6,9 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { currentWeight, saveProfile, type Profile } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { fromKey, toKey, todayKey } from '@/lib/dates';
-import { ACTIVITY_LEVELS, GOALS, dailyKcalGoal, fmt, macroGrams, macroTargets, parseNum, type ActivityLevel, type Goal, type Sex } from '@/lib/nutrition';
+import { ACTIVITY_LEVELS, GOALS, PROTEIN_GKG_PRESETS, PROTEIN_REF_BMI, dailyKcalGoal, fmt, gkgMacros, macroGrams, macroTargets, parseNum, proteinRefWeight, type ActivityLevel, type BodyInput, type Goal, type KcalMode, type ProteinRef, type Sex } from '@/lib/nutrition';
 import { Button, Card, Choice, Divider, NumField, Row, Screen, Segmented, T } from '@/ui/components';
+import { GoalExplainCard, PaceChips } from '@/ui/goal-explain';
 import { space, useTheme } from '@/ui/theme';
 
 export default function Goals() {
@@ -22,12 +23,16 @@ export default function Goals() {
   const [goal, setGoal] = useState<Goal>(p.goal);
   const [activity, setActivity] = useState<ActivityLevel>(p.activity_level);
   const [pace, setPace] = useState(String(p.pace_kg_week || 0.5));
-  const [auto, setAuto] = useState(p.kcal_auto === 1);
+  const [kcalMode, setKcalMode] = useState<KcalMode>(p.kcal_mode);
+  const auto = kcalMode !== 'manual';
+  const setAuto = (on: boolean) => setKcalMode(on ? (p.kcal_mode === 'adaptive' ? 'adaptive' : 'formula') : 'manual');
   const [kcal, setKcal] = useState(String(p.kcal_goal));
   const [pp, setPp] = useState(String(p.protein_pct));
   const [fp, setFp] = useState(String(p.fat_pct));
   const [cp, setCp] = useState(String(p.carbs_pct));
-  const [mode, setMode] = useState<'pct' | 'g'>(p.protein_g != null ? 'g' : 'pct');
+  const [mode, setMode] = useState<'pct' | 'g' | 'gkg'>(p.protein_gkg != null ? 'gkg' : p.protein_g != null ? 'g' : 'pct');
+  const [gkg, setGkg] = useState(String(p.protein_gkg ?? 1.6));
+  const [proteinRef, setProteinRef] = useState<ProteinRef>(p.protein_ref === 'actual' ? 'actual' : 'adjusted');
   const start = macroTargets(p);
   const [pg, setPg] = useState(String(start.protein));
   const [fg, setFg] = useState(String(start.fat));
@@ -39,13 +44,21 @@ export default function Goals() {
   }, [db, p]);
 
   const h = parseNum(height) ?? p.height_cm;
-  const autoKcal = dailyKcalGoal({ sex, birth_date: birth, height_cm: h, weight_kg: weight, activity_level: activity, goal, pace_kg_week: goal === 'maintain' ? 0 : parseNum(pace) ?? 0.5 });
-  const kcalGoal = auto ? autoKcal : parseNum(kcal) ?? p.kcal_goal;
+  const body: BodyInput = { sex, birth_date: birth, height_cm: h, weight_kg: weight, activity_level: activity, goal, pace_kg_week: goal === 'maintain' ? 0 : parseNum(pace) ?? 0.5 };
+  const autoKcal = dailyKcalGoal(body);
+  // adaptive: the weekly check-in owns the goal, the formula is only shown for comparison
+  const kcalGoal = kcalMode === 'formula' ? autoKcal : kcalMode === 'adaptive' ? p.kcal_goal : parseNum(kcal) ?? p.kcal_goal;
   const pctSum = (parseNum(pp) ?? 0) + (parseNum(fp) ?? 0) + (parseNum(cp) ?? 0);
   const m = macroGrams(kcalGoal, parseNum(pp) ?? 0, parseNum(fp) ?? 0, parseNum(cp) ?? 0);
+  const gkgVal = parseNum(gkg) ?? 1.6;
+  const refW = proteinRefWeight(weight, h, proteinRef);
+  const obese = proteinRefWeight(weight, h, 'adjusted').adjusted;
+  const mk = gkgMacros(kcalGoal, gkgVal, refW.kg, parseNum(fp) ?? 0);
   const gP = parseNum(pg), gF = parseNum(fg), gC = parseNum(cg);
   const gramsKcal = (gP ?? 0) * 4 + (gF ?? 0) * 9 + (gC ?? 0) * 4;
-  const macrosOk = mode === 'pct' ? pctSum === 100 : gP != null && gF != null && gC != null && gP >= 0 && gF >= 0 && gC >= 0;
+  const fpVal = parseNum(fp);
+  const macrosOk =
+    mode === 'pct' ? pctSum === 100 : mode === 'gkg' ? fpVal != null && fpVal >= 0 && fpVal <= 100 : gP != null && gF != null && gC != null && gP >= 0 && gF >= 0 && gC >= 0;
   const valid = macrosOk && kcalGoal >= 800 && kcalGoal <= 6000 && h >= 100 && h <= 250;
 
   const save = async () => {
@@ -61,12 +74,16 @@ export default function Goals() {
       pace_kg_week: goal === 'maintain' ? 0 : parseNum(pace) ?? 0.5,
       kcal_goal: Math.round(kcalGoal),
       kcal_auto: auto ? 1 : 0,
+      kcal_mode: kcalMode,
       protein_pct: parseNum(pp) ?? 25,
       fat_pct: parseNum(fp) ?? 30,
       carbs_pct: parseNum(cp) ?? 45,
       protein_g: mode === 'g' ? gP : null,
       fat_g: mode === 'g' ? gF : null,
       carbs_g: mode === 'g' ? gC : null,
+      // g/kg mode is exclusive with the grams mode
+      protein_gkg: mode === 'gkg' ? gkgVal : null,
+      protein_ref: proteinRef,
     };
     await saveProfile(db, next);
     await reloadProfile();
@@ -77,10 +94,15 @@ export default function Goals() {
     <Screen>
       <T weight="700">Цель</T>
       <Segmented options={GOALS} value={goal} onChange={setGoal} />
-      <Row>
-        <NumField style={{ flex: 1 }} label="Желаемый вес" suffix="кг" value={target} onChangeText={setTarget} />
-        {goal !== 'maintain' && <NumField style={{ flex: 1 }} label="Темп" suffix="кг/нед" value={pace} onChangeText={setPace} />}
-      </Row>
+      <NumField label="Желаемый вес" suffix="кг" value={target} onChangeText={setTarget} />
+      {goal !== 'maintain' && (
+        <>
+          <T dim size={13}>
+            Темп, кг в неделю · % от веса
+          </T>
+          <PaceChips value={parseNum(pace) ?? 0.5} weight={weight} onChange={(v) => setPace(String(v))} />
+        </>
+      )}
 
       <T weight="700" style={{ marginTop: space.s }}>
         О вас
@@ -98,12 +120,22 @@ export default function Goals() {
       <T weight="700" style={{ marginTop: space.s }}>
         Норма калорий
       </T>
+      <GoalExplainCard
+        body={body}
+        note={
+          kcalMode === 'manual'
+            ? `Сейчас своя норма ${fmt(kcalGoal)} ккал, расчёт — для сравнения.`
+            : kcalMode === 'adaptive'
+              ? `Норму ${fmt(kcalGoal)} ккал ведёт недельный пересчёт по фактическим данным, формула — для сравнения.`
+              : 'Вес берётся по тренду. При изменении нормы на 20 ккал и больше на экране «Прогресс» появится предложение её обновить, не чаще раза в неделю.'
+        }
+      />
       <Card>
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
             <T>Считать автоматически</T>
             <T dim size={12}>
-              По текущему весу {fmt(weight, 1)} кг: {fmt(autoKcal)} ккал
+              По тренду веса {fmt(weight, 1)} кг: {fmt(autoKcal)} ккал
             </T>
           </View>
           <Switch value={auto} onValueChange={setAuto} trackColor={{ true: t.accent }} />
@@ -123,13 +155,15 @@ export default function Goals() {
         options={[
           { value: 'pct', title: 'В процентах' },
           { value: 'g', title: 'В граммах' },
+          { value: 'gkg', title: 'г/кг' },
         ]}
         value={mode}
         onChange={(v) => {
           if (v === 'g') {
-            setPg(String(m.protein));
-            setFg(String(m.fat));
-            setCg(String(m.carbs));
+            const cur = mode === 'gkg' ? mk : m;
+            setPg(String(cur.protein));
+            setFg(String(cur.fat));
+            setCg(String(cur.carbs));
           }
           setMode(v);
         }}
@@ -142,6 +176,55 @@ export default function Goals() {
             <NumField style={{ flex: 1 }} label={`Углев. · ${m.carbs} г`} suffix="%" value={cp} onChangeText={setCp} />
           </Row>
           {pctSum !== 100 ? <T color={t.danger} size={13}>Сумма должна быть 100%, сейчас {fmt(pctSum)}%</T> : null}
+        </>
+      ) : mode === 'gkg' ? (
+        <>
+          <T dim size={13}>
+            Белок, г на кг веса
+          </T>
+          <Segmented
+            options={PROTEIN_GKG_PRESETS.map((v) => ({ value: String(v), title: fmt(v, 1) }))}
+            value={PROTEIN_GKG_PRESETS.map(String).find((v) => Math.abs(Number(v) - gkgVal) < 0.001) ?? ''}
+            onChange={setGkg}
+          />
+          <T dim size={12}>
+            1,2–1,6 — для всех, 1,6–2,2 — при силовых тренировках. Старше 65 — 1,0–1,2; при болезни почек обсудите с врачом.
+          </T>
+          <Card>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <View style={{ flex: 1 }}>
+                <T>
+                  {refW.adjusted ? `Расчётный вес (ИМТ ${PROTEIN_REF_BMI})` : 'Вес по тренду'}: {fmt(refW.kg, 1)} кг
+                </T>
+                <T dim size={12}>
+                  {obese
+                    ? 'При ИМТ от 30 белок считаем от веса при ИМТ 27 — это наш выбор, не норма. Можно считать от фактического веса.'
+                    : 'Белок считается от веса по тренду.'}
+                </T>
+              </View>
+              {obese ? (
+                <Switch
+                  value={proteinRef === 'actual'}
+                  onValueChange={(on) => setProteinRef(on ? 'actual' : 'adjusted')}
+                  trackColor={{ true: t.accent }}
+                  accessibilityLabel="Считать от фактического веса"
+                />
+              ) : null}
+            </Row>
+          </Card>
+          <Row>
+            <View style={{ flex: 1, justifyContent: 'center' }}>
+              <T>Белки · {mk.protein} г</T>
+              <T dim size={12}>
+                Углеводы · {mk.carbs} г — остаток
+              </T>
+            </View>
+            <NumField style={{ flex: 1 }} label={`Жиры · ${mk.fat} г`} suffix="%" value={fp} onChangeText={setFp} />
+          </Row>
+          <T dim size={12}>
+            Жиры не опускаются ниже 20% калорий. Если белок не помещается в норму, он снижается до 1,2 г/кг.
+          </T>
+          {!macrosOk ? <T color={t.danger} size={13}>Укажите долю жиров от 0 до 100%</T> : null}
         </>
       ) : (
         <>

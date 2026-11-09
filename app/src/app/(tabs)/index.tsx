@@ -1,34 +1,52 @@
 import { useCallback, useRef, useState } from 'react';
-import { ActionSheetIOS, Alert, Platform, Pressable, View } from 'react-native';
+import { ActionSheetIOS, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { clearMeal, copyMeal, entriesForDate, type Entry } from '@/db/repo';
+import { clearMeal, copyMeal, currentWeight, entriesForDate, getSetting, measurementsForDate, setMeasurement, type Entry } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { WEEKDAYS_SHORT, addDays, fromKey, relativeDayTitle, todayKey, weekStart } from '@/lib/dates';
-import { dayMicros, microsScore, type Micros } from '@/lib/micros';
-import { MEALS, fmt, macroTargets, type MealType } from '@/lib/nutrition';
+import { NUTRIENTS, dayFiberExact, dayMicros, dvFor, microsScore, type Micros } from '@/lib/micros';
+import { MEALS, PROTEIN_MEAL_MIN_G, fmt, macroTargets, parseNum, type MealType } from '@/lib/nutrition';
+import { BackupNudge } from '@/ui/backup-nudge';
 import { CalendarModal } from '@/ui/calendar';
-import { Bar, Card, Divider, IconButton, ListItem, Plus, Ring, Row, Screen, T } from '@/ui/components';
+import { Bar, Button, Card, Divider, IconButton, ListItem, NumField, Plus, Ring, Row, Screen, T } from '@/ui/components';
 import { radius, space, useTheme } from '@/ui/theme';
 
 export default function Diary() {
   const db = useSQLiteContext();
   const t = useTheme();
   const profile = useProfile();
-  const { date, setDate } = useApp();
+  const { date, setDate, diaryVersion } = useApp();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [micros, setMicros] = useState<Micros>({});
   const [calendar, setCalendar] = useState(false);
+  const [weight, setWeight] = useState<number | null>(null);
+  const [weighing, setWeighing] = useState(false);
+  const [trendW, setTrendW] = useState<number | undefined>(undefined);
+  const [proteinHint, setProteinHint] = useState(true);
+  const [fiberExact, setFiberExact] = useState(false);
   const req = useRef(0);
 
   const load = useCallback(async () => {
+    void diaryVersion; // an undo from the toast bumps it, so the open diary reloads
     const my = ++req.current;
-    const [e, m] = await Promise.all([entriesForDate(db, date), dayMicros(db, date)]);
+    const [e, m, ms, tw, ph, fx] = await Promise.all([
+      entriesForDate(db, date),
+      dayMicros(db, date),
+      measurementsForDate(db, date),
+      currentWeight(db, profile, date),
+      getSetting<boolean>(db, 'protein_hint', true),
+      dayFiberExact(db, date),
+    ]);
     if (my !== req.current) return; // a newer day was requested meanwhile
     setEntries(e);
+    setFiberExact(fx);
+    setTrendW(tw);
+    setProteinHint(ph !== false);
     setMicros(m);
-  }, [db, date]);
+    setWeight(ms.find((x) => x.type === 'weight')?.value ?? null);
+  }, [db, date, profile, diaryVersion]);
 
   useFocusEffect(
     useCallback(() => {
@@ -39,8 +57,14 @@ export default function Diary() {
   const eaten = sum(entries, 'kcal');
   const goal = profile.kcal_goal;
   const left = goal - eaten;
-  const macros = macroTargets(profile);
-  const score = microsScore(micros);
+  const macros = macroTargets(profile, trendW);
+  // Main meals only: snacks are small by design, so they are not marked.
+  const mainMeals = MEALS.filter((m) => m.type !== 'snack');
+  const proteinMeals = mainMeals.filter((m) => sum(entries.filter((e) => e.meal_type === m.type), 'protein') >= PROTEIN_MEAL_MIN_G).length;
+  const normP = { ...profile, weight_kg: trendW };
+  const score = microsScore(micros, normP);
+  const fiber = micros.fiber ?? 0;
+  const fiberDv = dvFor(NUTRIENTS.find((d) => d.key === 'fiber')!, normP);
 
   const mealMenu = (meal: MealType, title: string) => {
     const today = todayKey();
@@ -101,16 +125,24 @@ export default function Diary() {
       </View>
 
       <Screen>
+        <BackupNudge />
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
             <Stat label="Съедено" value={eaten} />
+            {/* Over the goal nothing turns red: the number stays neutral and the label calmly says so */}
             <Ring value={eaten} max={goal} size={140}>
-              <T size={28} weight="800" color={left < 0 ? t.danger : t.text}>
-                {fmt(Math.abs(left))}
-              </T>
-              <T dim size={12}>
-                {left < 0 ? 'ккал сверх' : 'ккал осталось'}
-              </T>
+              <View
+                accessible
+                accessibilityLabel={left < 0 ? `Сверх нормы на ${fmt(-left)} ккал` : `Осталось ${fmt(left)} ккал`}
+                style={{ alignItems: 'center' }}
+              >
+                <T size={28} weight="800">
+                  {fmt(Math.abs(left))}
+                </T>
+                <T dim size={12} center>
+                  {left < 0 ? 'ккал сверх нормы' : 'ккал осталось'}
+                </T>
+              </View>
             </Ring>
             <Stat label="Норма" value={goal} />
           </Row>
@@ -119,11 +151,49 @@ export default function Diary() {
             <MacroBar label="Жиры" value={sum(entries, 'fat')} goal={macros.fat} color={t.fat} />
             <MacroBar label="Углеводы" value={sum(entries, 'carbs')} goal={macros.carbs} color={t.carbs} />
           </Row>
+          <View style={{ gap: 4, marginTop: space.s }}>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <T size={13} weight="600">
+                Клетчатка
+              </T>
+              <T dim size={12}>
+                {/* Mostly estimated from carbs by food type: "≈" unless every entry has a real fiber value */}
+                {fiberExact || entries.length === 0 ? '' : '≈ '}
+                {fmt(fiber)} / {fmt(fiberDv)} г
+              </T>
+            </Row>
+            <Bar value={fiber} max={fiberDv} color={t.accent} />
+          </View>
+          {proteinHint && entries.length > 0 ? (
+            <T dim size={12} style={{ marginTop: space.xs }}>
+              Белковых приёмов (от {PROTEIN_MEAL_MIN_G} г): {proteinMeals} из {mainMeals.length}
+            </T>
+          ) : null}
+          <Pressable
+            onPress={() => setWeighing(true)}
+            accessibilityRole="button"
+            accessibilityLabel={weight != null ? `Вес ${fmt(weight, 1)} кг, изменить` : 'Записать вес'}
+            style={({ pressed }) => ({
+              alignSelf: 'flex-start',
+              backgroundColor: t.accentSoft,
+              borderRadius: radius.m,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              marginTop: space.s,
+              opacity: pressed ? 0.75 : 1,
+            })}
+          >
+            <T size={14} weight="600" color={t.accent}>
+              {weight != null ? `Вес ${fmt(weight, 1)} кг` : date === todayKey() ? '+ Вес сегодня' : '+ Вес за этот день'}
+            </T>
+          </Pressable>
         </Card>
 
         {MEALS.map((m) => {
           const items = entries.filter((e) => e.meal_type === m.type);
           const kcal = sum(items, 'kcal');
+          const protein = sum(items, 'protein');
+          const lowProtein = proteinHint && m.type !== 'snack' && items.length > 0 && protein < PROTEIN_MEAL_MIN_G;
           return (
             <Card key={m.type}>
               <Row style={{ justifyContent: 'space-between' }}>
@@ -132,8 +202,13 @@ export default function Diary() {
                     {m.title}
                   </T>
                   <T dim size={13}>
-                    {items.length ? `${fmt(kcal)} ккал · Б ${fmt(sum(items, 'protein'))} Ж ${fmt(sum(items, 'fat'))} У ${fmt(sum(items, 'carbs'))}` : 'Нет записей'}
+                    {items.length ? `${fmt(kcal)} ккал · Б ${fmt(protein)} Ж ${fmt(sum(items, 'fat'))} У ${fmt(sum(items, 'carbs'))}` : 'Нет записей'}
                   </T>
+                  {lowProtein ? (
+                    <T dim size={12}>
+                      Белка меньше {PROTEIN_MEAL_MIN_G} г
+                    </T>
+                  ) : null}
                 </Pressable>
                 <IconButton label="⋯" a11y={`Действия: ${m.title}`} onPress={() => mealMenu(m.type, m.title)} color={t.textDim} />
                 <Plus a11y={`Добавить в ${m.title.toLowerCase()}`} onPress={() => router.push({ pathname: '/add-food', params: { meal: m.type } })} />
@@ -174,6 +249,17 @@ export default function Diary() {
         </Card>
       </Screen>
 
+      <WeightModal
+        visible={weighing}
+        initial={weight}
+        onClose={() => setWeighing(false)}
+        onSave={async (v) => {
+          await setMeasurement(db, date, 'weight', v);
+          setWeighing(false);
+          load();
+        }}
+      />
+
       <CalendarModal
         visible={calendar}
         value={date}
@@ -203,6 +289,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 function MacroBar({ label, value, goal, color }: { label: string; value: number; goal: number; color: string }) {
+  const over = goal > 0 && value > goal * 1.02;
   return (
     <View style={{ flex: 1, gap: 4 }}>
       <T size={13} weight="600">
@@ -212,6 +299,39 @@ function MacroBar({ label, value, goal, color }: { label: string; value: number;
       <T dim size={12}>
         {fmt(value)} / {fmt(goal)} г
       </T>
+      {over ? (
+        <T dim size={11}>
+          сверх нормы на {fmt(value - goal)} г
+        </T>
+      ) : null}
     </View>
+  );
+}
+
+function WeightModal({ visible, initial, onClose, onSave }: { visible: boolean; initial: number | null; onClose: () => void; onSave: (v: number) => void }) {
+  const t = useTheme();
+  const [text, setText] = useState('');
+  const v = parseNum(text);
+  const ok = v != null && v >= 20 && v <= 400;
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      onShow={() => setText(initial != null ? fmt(initial, 1).replace(/\s/g, '') : '')}
+    >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: space.l }} onPress={onClose}>
+          <Pressable style={{ backgroundColor: t.card, borderRadius: radius.l, padding: space.l, gap: space.m }} onPress={() => {}}>
+            <T weight="700" size={17}>
+              Вес
+            </T>
+            <NumField value={text} onChangeText={setText} suffix="кг" placeholder="0,0" autoFocus returnKeyType="done" onSubmitEditing={() => ok && onSave(v)} />
+            <Button title="Сохранить" disabled={!ok} onPress={() => ok && onSave(v)} />
+          </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }

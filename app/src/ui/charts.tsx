@@ -22,11 +22,15 @@ const label = (key: string) => {
   return `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
-export function LineChart({ points, unit, target }: { points: Point[]; unit?: string; target?: number | null }) {
+/** With `trend`, raw `points` are drawn as small dots and the trend as the solid line. */
+export function LineChart({ points, unit, target, trend }: { points: Point[]; unit?: string; target?: number | null; trend?: Point[] }) {
   const t = useTheme();
   const [w, setW] = useState(0);
   if (points.length === 0) return <T dim>Нет данных за период</T>;
-  const values = points.map((p) => p.value).concat(target != null ? [target] : []);
+  const values = points
+    .map((p) => p.value)
+    .concat(trend ? trend.map((p) => p.value) : [])
+    .concat(target != null ? [target] : []);
   const { lo, hi } = niceRange(Math.min(...values), Math.max(...values));
   const first = points[0].date;
   const span = Math.max(diffDays(first, points[points.length - 1].date), 1);
@@ -34,7 +38,8 @@ export function LineChart({ points, unit, target }: { points: Point[]; unit?: st
   const ih = H - PAD.t - PAD.b;
   const x = (d: string) => PAD.l + (points.length === 1 ? iw / 2 : (diffDays(first, d) / span) * iw);
   const y = (v: number) => PAD.t + (1 - (v - lo) / (hi - lo)) * ih;
-  const path = points.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
+  const line = trend ?? points;
+  const path = line.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   const ticks = [lo + (hi - lo) * 0.1, (lo + hi) / 2, hi - (hi - lo) * 0.1];
   const last = points[points.length - 1];
   return (
@@ -52,8 +57,12 @@ export function LineChart({ points, unit, target }: { points: Point[]; unit?: st
           {target != null && (
             <Line x1={PAD.l} x2={w - PAD.r} y1={y(target)} y2={y(target)} stroke={t.accent} strokeDasharray="4 4" strokeWidth={1} />
           )}
-          <Path d={path} stroke={t.accent} strokeWidth={2.5} fill="none" strokeLinejoin="round" strokeLinecap="round" />
-          {points.length <= 40 &&
+          {trend
+            ? points.map((p) => <Circle key={p.date} cx={x(p.date)} cy={y(p.value)} r={2.5} fill={t.textDim} />)
+            : null}
+          {line.length > 0 && <Path d={path} stroke={t.accent} strokeWidth={2.5} fill="none" strokeLinejoin="round" strokeLinecap="round" />}
+          {!trend &&
+            points.length <= 40 &&
             points.map((p) => <Circle key={p.date} cx={x(p.date)} cy={y(p.value)} r={3} fill={t.accent} />)}
           <SvgText x={PAD.l} y={H - 6} fontSize={10} fill={t.textDim}>
             {label(first)}

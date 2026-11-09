@@ -1,17 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import {
   addFoodEntry,
   customFoods,
+  defaultPortion,
   favouriteFoods,
+  foodUsage,
   listMeals,
   logMeal,
+  portion,
   recentFoods,
   saveFood,
   searchFoods,
-  servingsOf,
+  undoFoodEntry,
   type FoodInput,
   type FoodRow,
   type MealRow,
@@ -20,15 +23,18 @@ import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
 import { OffError, offSearch } from '@/lib/off';
 import { fmt, mealTitle, type MealType } from '@/lib/nutrition';
+import { groupHits, variantsLabel, type Hit, type HitGroup } from '@/lib/search-groups';
 import { Button, Divider, Empty, Field, IconButton, ListItem, Plus, Row, Segmented, T } from '@/ui/components';
 import { space, useTheme } from '@/ui/theme';
 
 type Tab = 'recent' | 'fav' | 'mine';
 
+const SOURCE_CHIP: Record<FoodRow['source'], string> = { builtin: 'база ✓', custom: 'мой', off: 'OFF' };
+
 export default function AddFood() {
   const db = useSQLiteContext();
   const t = useTheme();
-  const { date } = useApp();
+  const { date, showToast } = useApp();
   const { meal = 'breakfast' } = useLocalSearchParams<{ meal: MealType }>();
   const [q, setQ] = useState('');
   const [tab, setTab] = useState<Tab>('recent');
@@ -38,8 +44,10 @@ export default function AddFood() {
   const [off, setOff] = useState<FoodInput[] | null>(null);
   const [offLoading, setOffLoading] = useState(false);
   const [offError, setOffError] = useState<string | null>(null);
-  const [added, setAdded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const lastOffQuery = useRef('');
+  const currentQuery = useRef('');
+  const offReq = useRef(0);
 
   const loadTab = useCallback(async () => {
     if (tab === 'recent') setList(await recentFoods(db));
@@ -59,30 +67,49 @@ export default function AddFood() {
   useEffect(() => {
     const query = q.trim();
     if (query !== lastOffQuery.current) {
+      offReq.current++; // abandons an Open Food Facts request still in flight
       setOff(null);
       setOffError(null);
+      setOffLoading(false);
     }
+    currentQuery.current = query;
     if (query.length < 2) {
       setLocal([]);
       return;
     }
-    const id = setTimeout(() => searchFoods(db, query).then(setLocal), 150);
-    return () => clearTimeout(id);
+    // SQLite answers can come back out of order: drop any that arrive after this query was replaced
+    let live = true;
+    const id = setTimeout(
+      () =>
+        searchFoods(db, query).then((rows) => {
+          if (live) setLocal(rows);
+        }),
+      150,
+    );
+    return () => {
+      live = false;
+      clearTimeout(id);
+    };
   }, [q, db]);
 
   const runOff = async () => {
     const query = q.trim();
     if (query.length < 2) return;
     lastOffQuery.current = query;
+    const req = ++offReq.current;
+    // a late Open Food Facts answer for an older query or an older request must not land under the new text
+    const stale = () => req !== offReq.current || currentQuery.current !== query;
     setOffLoading(true);
     setOffError(null);
     try {
-      setOff(await offSearch(query));
+      const hits = await offSearch(query);
+      if (!stale()) setOff(hits);
     } catch (e) {
+      if (stale()) return;
       setOffError(e instanceof OffError ? e.message : 'Не удалось выполнить поиск');
       setOff([]);
     } finally {
-      setOffLoading(false);
+      if (req === offReq.current) setOffLoading(false);
     }
   };
 
@@ -97,10 +124,24 @@ export default function AddFood() {
   };
 
   const quickAdd = async (f: FoodRow) => {
-    const s = servingsOf(f)[0];
-    await addFoodEntry(db, date, meal, f, s ? s.grams : 100, s ? `1 ${s.name}` : null);
-    setAdded(`${f.name}: ${s ? `1 ${s.name}` : '100 г'} добавлено`);
-    setTimeout(() => setAdded(null), 1800);
+    // repeats the last logged portion; never logged → the same default the food screen opens with
+    const d = defaultPortion(f);
+    try {
+      const prev = await foodUsage(db, f.id);
+      const id = await addFoodEntry(db, date, meal, f, d.grams, d.label);
+      showToast({
+        text: `Добавлено: ${f.name} ${d.label ?? `${fmt(d.grams)} г`} · ${fmt(portion(f, d.grams).kcal)} ккал`,
+        action: {
+          label: 'Отменить',
+          onPress: async () => {
+            await undoFoodEntry(db, id, prev);
+            loadTab();
+          },
+        },
+      });
+    } catch (e) {
+      Alert.alert('Не удалось добавить', String(e instanceof Error ? e.message : e));
+    }
   };
 
   const addMeal = (m: MealRow) =>
@@ -116,16 +157,55 @@ export default function AddFood() {
     ]);
 
   const searching = q.trim().length >= 2;
-  const rows = searching ? local : list;
+  const grouped = useMemo(() => groupHits(local, off), [local, off]);
+  const rows: HitGroup[] = searching ? grouped.local : list.map((f) => ({ key: f.id, head: { kind: 'local', f }, rest: [] }));
 
-  const foodRow = (f: FoodRow) => (
-    <ListItem
-      title={f.name}
-      subtitle={[f.brand, `${fmt(f.kcal)} ккал / 100 г`, f.source === 'custom' ? 'мой' : null].filter(Boolean).join(' · ')}
-      onPress={() => openFood(f.id)}
-      right={<Plus a11y={`Быстро добавить ${f.name}`} onPress={() => quickAdd(f)} />}
-    />
-  );
+  const toggle = (key: string) =>
+    setExpanded((s) => {
+      const n = new Set(s);
+      if (n.has(key)) n.delete(key);
+      else n.add(key);
+      return n;
+    });
+
+  const subtitle = (f: Pick<FoodRow, 'source' | 'brand' | 'kcal'>) => [SOURCE_CHIP[f.source], f.brand, `${fmt(f.kcal)} ккал / 100 г`].filter(Boolean).join(' · ');
+
+  const hitRow = (h: Hit) =>
+    h.kind === 'local' ? (
+      <ListItem
+        title={h.f.name}
+        subtitle={subtitle(h.f)}
+        onPress={() => openFood(h.f.id)}
+        right={<Plus a11y={`Быстро добавить ${h.f.name}`} onPress={() => quickAdd(h.f)} />}
+      />
+    ) : (
+      <ListItem title={h.f.name} subtitle={subtitle(h.f)} onPress={() => openOff(h.f)} />
+    );
+
+  const groupRow = (g: HitGroup) => {
+    const open = expanded.has(g.key);
+    return (
+      <View>
+        {hitRow(g.head)}
+        {g.rest.length > 0 && (
+          <View style={{ alignItems: 'flex-start', marginTop: -space.s }}>
+            <IconButton
+              label={open ? 'Свернуть' : variantsLabel(g.rest.length)}
+              a11y={open ? 'Свернуть варианты' : `Показать ещё ${variantsLabel(g.rest.length).slice(1)}`}
+              onPress={() => toggle(g.key)}
+            />
+          </View>
+        )}
+        {open &&
+          g.rest.map((h, i) => (
+            <View key={h.kind === 'local' ? h.f.id : `${h.f.barcode ?? h.f.name}-${i}`} style={{ paddingLeft: space.l }}>
+              <Divider />
+              {hitRow(h)}
+            </View>
+          ))}
+      </View>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -155,21 +235,17 @@ export default function AddFood() {
             onChange={setTab}
           />
         )}
-        {added ? (
-          <T color={t.accent} size={14} weight="600">
-            ✓ {added}
-          </T>
-        ) : null}
       </View>
 
       <FlatList
         data={rows}
-        keyExtractor={(f) => f.id}
+        keyExtractor={(g) => g.key}
+        extraData={expanded}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         contentContainerStyle={{ paddingHorizontal: space.l, paddingBottom: 60 }}
         ItemSeparatorComponent={Divider}
-        renderItem={({ item }) => foodRow(item)}
+        renderItem={({ item }) => groupRow(item)}
         ListHeaderComponent={
           !searching && tab === 'mine' ? (
             <View style={{ gap: space.s, paddingBottom: space.m }}>
@@ -226,20 +302,19 @@ export default function AddFood() {
                 )}
                 {offLoading && <ActivityIndicator color={t.accent} />}
                 {offError ? <T color={t.danger}>{offError}</T> : null}
-                {off && off.length > 0 && (
+                {off && grouped.off.length > 0 && (
                   <View>
                     <T weight="700">Open Food Facts</T>
-                    {off.map((f, i) => (
-                      <View key={f.barcode ?? `${f.name}-${i}`}>
+                    {grouped.off.map((g, i) => (
+                      <View key={g.key}>
                         {i > 0 && <Divider />}
-                        <ListItem
-                          title={f.name}
-                          subtitle={[f.brand, `${fmt(f.kcal)} ккал / 100 г`].filter(Boolean).join(' · ')}
-                          onPress={() => openOff(f)}
-                        />
+                        {groupRow(g)}
                       </View>
                     ))}
                   </View>
+                )}
+                {off && off.length > 0 && grouped.off.length === 0 && (
+                  <T dim size={14}>Совпадения из Open Food Facts объединены с результатами выше.</T>
                 )}
                 {off && off.length === 0 && !offError && <T dim>В Open Food Facts тоже ничего не нашлось.</T>}
               </>

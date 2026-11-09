@@ -1,8 +1,9 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import { nowIso } from '@/lib/dates';
-import type { ActivityLevel, Goal, MealType, Sex } from '@/lib/nutrition';
+import type { ActivityLevel, Goal, KcalMode, MealType, ProteinRef, Sex } from '@/lib/nutrition';
 import type { MeasurementType } from '@/lib/measurements';
+import { weightTrend, type WeightTrend } from '@/lib/trend';
 import type { Serving } from '@/data/basic-foods';
 
 export type { Serving };
@@ -20,7 +21,10 @@ export interface Profile {
   goal: Goal;
   pace_kg_week: number;
   kcal_goal: number;
+  /** legacy flag, saved as kcal_mode !== 'manual'; use kcal_mode */
   kcal_auto: number;
+  /** who owns kcal_goal: 'formula' recalculates by trend weight, 'adaptive' is the weekly check-in, 'manual' is the user */
+  kcal_mode: KcalMode;
   protein_pct: number;
   fat_pct: number;
   carbs_pct: number;
@@ -30,6 +34,10 @@ export interface Profile {
   protein_g?: number | null;
   fat_g?: number | null;
   carbs_g?: number | null;
+  /** protein goal in g per kg of weight; when set it wins over protein_g/fat_g/carbs_g and protein_pct */
+  protein_gkg?: number | null;
+  /** weight for protein_gkg: 'adjusted' = weight at BMI 27 when BMI >= 30, 'actual' = trend weight */
+  protein_ref?: ProteinRef | null;
 }
 
 export interface FoodRow {
@@ -51,12 +59,20 @@ export interface FoodRow {
   category: string | null;
   /** JSON Micros per 100 g from the product label (Open Food Facts); missing keys are estimated */
   micros: string | null;
+  /** 1 = the user corrected this builtin / OFF product; Open Food Facts data never overwrites it */
+  edited: number;
+  /** total grams of the last diary entry of this food; null = never logged */
+  last_grams?: number | null;
+  /** serving name of that entry (Serving.name); null = it was logged in grams */
+  last_serving?: string | null;
 }
 
-export type FoodInput = Omit<FoodRow, 'id' | 'favourite' | 'last_used_at' | 'servings' | 'category' | 'micros'> & {
+export type FoodInput = Omit<FoodRow, 'id' | 'favourite' | 'last_used_at' | 'servings' | 'category' | 'micros' | 'edited' | 'last_grams' | 'last_serving'> & {
   servings: Serving[];
   category?: string | null;
   micros?: string | null;
+  /** 1 marks a user correction; omitted keeps the stored flag */
+  edited?: number;
 };
 
 export interface Entry {
@@ -91,6 +107,53 @@ export function portion(f: Pick<FoodRow, 'kcal' | 'protein' | 'fat' | 'carbs'>, 
   return { kcal: f.kcal * k, protein: (f.protein ?? 0) * k, fat: (f.fat ?? 0) * k, carbs: (f.carbs ?? 0) * k };
 }
 
+/** A whole pack bigger than this (900 ml milk, 1 kg cereal) is never the default portion. */
+const MAX_DEFAULT_PACK_G = 250;
+
+/** Serving name from a diary serving label «2 порция (30 g)» → «порция (30 g)»; null for grams. */
+export function servingNameOf(label: string | null): string | null {
+  const m = label ? /^([\d.,]+)\s+(.+)$/.exec(label) : null;
+  return m ? m[2] : null;
+}
+
+/** «1,5» style amount: at most 2 decimals, comma separator. */
+const amountText = (x: number) => String(Math.round(x * 100) / 100).replace('.', ',');
+
+export interface DefaultPortion {
+  /** null = grams */
+  unit: Serving | null;
+  /** text for the amount field, in `unit` (or grams) */
+  amount: string;
+  grams: number;
+  /** label for the diary entry, null when in grams */
+  label: string | null;
+  /** true = repeats the last diary entry of this food */
+  last: boolean;
+}
+
+/**
+ * Portion a food opens with: the last logged portion, else «порция», else a pack of at most 250 g,
+ * else another named serving (шт, стакан…), else 100 g.
+ */
+export function defaultPortion(f: Pick<FoodRow, 'servings' | 'last_grams' | 'last_serving'>): DefaultPortion {
+  const sv = servingsOf(f);
+  if (f.last_grams != null && f.last_grams > 0) {
+    const s = f.last_serving ? sv.find((x) => x.name === f.last_serving && x.grams > 0) : undefined;
+    if (s) {
+      const amount = amountText(f.last_grams / s.grams);
+      return { unit: s, amount, grams: f.last_grams, label: `${amount} ${s.name}`, last: true };
+    }
+    return { unit: null, amount: amountText(f.last_grams), grams: f.last_grams, label: null, last: true };
+  }
+  const isPack = (s: Serving) => s.name.startsWith('упаковка');
+  const s =
+    sv.find((x) => x.name.startsWith('порция')) ??
+    sv.find((x) => isPack(x) && x.grams <= MAX_DEFAULT_PACK_G) ??
+    sv.find((x) => !isPack(x));
+  if (s && s.grams > 0) return { unit: s, amount: '1', grams: s.grams, label: `1 ${s.name}`, last: false };
+  return { unit: null, amount: '100', grams: 100, label: null, last: false };
+}
+
 // ---------- profile & settings ----------
 
 export async function getProfile(db: SQLiteDatabase): Promise<Profile | null> {
@@ -101,15 +164,16 @@ export async function saveProfile(db: SQLiteDatabase, p: Profile): Promise<void>
   const now = nowIso();
   await db.runAsync(
     `insert into profile (id, sex, birth_date, height_cm, start_weight_kg, target_weight_kg, activity_level, goal,
-       pace_kg_week, kcal_goal, kcal_auto, protein_pct, fat_pct, carbs_pct, water_goal_ml, glass_ml, protein_g, fat_g, carbs_g, created_at, updated_at)
-     values (1, $sex, $birth, $h, $sw, $tw, $al, $goal, $pace, $kcal, $auto, $p, $f, $c, $water, $glass, $pg, $fg, $cg, $now, $now)
+       pace_kg_week, kcal_goal, kcal_auto, kcal_mode, protein_pct, fat_pct, carbs_pct, water_goal_ml, glass_ml, protein_g, fat_g, carbs_g, protein_gkg, protein_ref, created_at, updated_at)
+     values (1, $sex, $birth, $h, $sw, $tw, $al, $goal, $pace, $kcal, $auto, $mode, $p, $f, $c, $water, $glass, $pg, $fg, $cg, $gkg, $pref, $now, $now)
      on conflict(id) do update set sex=$sex, birth_date=$birth, height_cm=$h, start_weight_kg=$sw, target_weight_kg=$tw,
-       activity_level=$al, goal=$goal, pace_kg_week=$pace, kcal_goal=$kcal, kcal_auto=$auto, protein_pct=$p, fat_pct=$f,
-       carbs_pct=$c, water_goal_ml=$water, glass_ml=$glass, protein_g=$pg, fat_g=$fg, carbs_g=$cg, updated_at=$now`,
+       activity_level=$al, goal=$goal, pace_kg_week=$pace, kcal_goal=$kcal, kcal_auto=$auto, kcal_mode=$mode, protein_pct=$p, fat_pct=$f,
+       carbs_pct=$c, water_goal_ml=$water, glass_ml=$glass, protein_g=$pg, fat_g=$fg, carbs_g=$cg, protein_gkg=$gkg, protein_ref=$pref, updated_at=$now`,
     {
       $sex: p.sex, $birth: p.birth_date, $h: p.height_cm, $sw: p.start_weight_kg, $tw: p.target_weight_kg,
-      $al: p.activity_level, $goal: p.goal, $pace: p.pace_kg_week, $kcal: p.kcal_goal, $auto: p.kcal_auto,
-      $p: p.protein_pct, $f: p.fat_pct, $c: p.carbs_pct, $water: p.water_goal_ml, $glass: p.glass_ml, $pg: p.protein_g ?? null, $fg: p.fat_g ?? null, $cg: p.carbs_g ?? null, $now: now,
+      $al: p.activity_level, $goal: p.goal, $pace: p.pace_kg_week, $kcal: p.kcal_goal, $auto: p.kcal_mode === 'manual' ? 0 : 1, $mode: p.kcal_mode,
+      $p: p.protein_pct, $f: p.fat_pct, $c: p.carbs_pct, $water: p.water_goal_ml, $glass: p.glass_ml, $pg: p.protein_g ?? null, $fg: p.fat_g ?? null, $cg: p.carbs_g ?? null,
+      $gkg: p.protein_gkg ?? null, $pref: p.protein_ref === 'actual' ? 'actual' : 'adjusted', $now: now,
     },
   );
 }
@@ -156,6 +220,7 @@ export async function searchFoods(db: SQLiteDatabase, q: string, limit = 50): Pr
       let score = 0;
       if (name.startsWith(words[0])) score += 10;
       if (r.source !== 'off') score += 3;
+      if (/[а-яё]/i.test(r.name)) score += 2;
       score += Math.min((r as FoodRow & { use_count?: number }).use_count ?? 0, 20);
       score -= name.length / 40;
       return { r, score };
@@ -196,21 +261,22 @@ export async function saveFood(db: SQLiteDatabase, f: FoodInput, id?: string): P
   const now = nowIso();
   const existingByBarcode =
     !id && f.barcode ? await db.getFirstAsync<FoodRow & { deleted: number }>('select * from foods where barcode = ?', f.barcode) : null;
-  if (existingByBarcode && existingByBarcode.source === 'custom' && f.source === 'off') {
-    // the user's own product wins over Open Food Facts data
+  if (existingByBarcode && (existingByBarcode.source === 'custom' || existingByBarcode.edited === 1) && f.source === 'off') {
+    // the user's own or corrected product wins over Open Food Facts data
     if (existingByBarcode.deleted) await db.runAsync('update foods set deleted = 0 where id = ?', existingByBarcode.id);
     return existingByBarcode.id;
   }
   const theId = id ?? existingByBarcode?.id ?? uuid();
   await db.runAsync(
-    `insert into foods (id, source, barcode, name, brand, kcal, protein, fat, carbs, sugar, fiber, salt, servings, category, micros, created_at, updated_at)
-     values ($id, $source, $barcode, $name, $brand, $kcal, $p, $f, $c, $sugar, $fiber, $salt, $servings, $cat, $micros, $now, $now)
+    `insert into foods (id, source, barcode, name, brand, kcal, protein, fat, carbs, sugar, fiber, salt, servings, category, micros, edited, created_at, updated_at)
+     values ($id, $source, $barcode, $name, $brand, $kcal, $p, $f, $c, $sugar, $fiber, $salt, $servings, $cat, $micros, coalesce($edited, 0), $now, $now)
      on conflict(id) do update set source=$source, barcode=$barcode, name=$name, brand=$brand, kcal=$kcal, protein=$p, fat=$f,
-       carbs=$c, sugar=$sugar, fiber=$fiber, salt=$salt, servings=$servings, category=$cat, micros=$micros, deleted=0, updated_at=$now`,
+       carbs=$c, sugar=$sugar, fiber=$fiber, salt=$salt, servings=$servings, category=$cat, micros=$micros,
+       edited=coalesce($edited, edited), deleted=0, updated_at=$now`,
     {
       $id: theId, $source: f.source, $barcode: f.barcode || null, $name: f.name, $brand: f.brand || null,
       $kcal: f.kcal, $p: f.protein, $f: f.fat, $c: f.carbs, $sugar: f.sugar, $fiber: f.fiber, $salt: f.salt,
-      $servings: JSON.stringify(f.servings), $cat: f.category ?? null, $micros: f.micros ?? null, $now: now,
+      $servings: JSON.stringify(f.servings), $cat: f.category ?? null, $micros: f.micros ?? null, $edited: f.edited ?? null, $now: now,
     },
   );
   return theId;
@@ -226,8 +292,11 @@ export async function toggleFavourite(db: SQLiteDatabase, id: string): Promise<b
   return r?.favourite === 1;
 }
 
-async function markUsed(db: SQLiteDatabase, foodId: string) {
-  await db.runAsync('update foods set last_used_at = ?, use_count = use_count + 1 where id = ?', nowIso(), foodId);
+async function markUsed(db: SQLiteDatabase, foodId: string, grams: number, servingLabel: string | null) {
+  await db.runAsync(
+    'update foods set last_used_at = ?, use_count = use_count + 1, last_grams = ?, last_serving = ? where id = ?',
+    nowIso(), grams, servingNameOf(servingLabel), foodId,
+  );
 }
 
 // ---------- diary ----------
@@ -239,16 +308,18 @@ export async function addFoodEntry(
   food: FoodRow,
   grams: number,
   servingLabel: string | null,
-): Promise<void> {
+): Promise<string> {
   const n = portion(food, grams);
   const now = nowIso();
+  const id = uuid();
   await db.runAsync(
     `insert into diary_entries (id, date, meal_type, food_id, name, grams, serving_label, kcal, protein, fat, carbs, created_at, updated_at)
      values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    uuid(), date, meal, food.id, food.brand ? `${food.name} (${food.brand})` : food.name, grams, servingLabel,
+    id, date, meal, food.id, food.brand ? `${food.name} (${food.brand})` : food.name, grams, servingLabel,
     n.kcal, n.protein, n.fat, n.carbs, now, now,
   );
-  await markUsed(db, food.id);
+  await markUsed(db, food.id, grams, servingLabel);
+  return id;
 }
 
 export async function addQuickEntry(
@@ -257,13 +328,15 @@ export async function addQuickEntry(
   meal: MealType,
   name: string,
   v: { kcal: number; protein: number; fat: number; carbs: number },
-): Promise<void> {
+): Promise<string> {
   const now = nowIso();
+  const id = uuid();
   await db.runAsync(
     `insert into diary_entries (id, date, meal_type, food_id, name, grams, serving_label, kcal, protein, fat, carbs, created_at, updated_at)
      values (?, ?, ?, null, ?, null, null, ?, ?, ?, ?, ?, ?)`,
-    uuid(), date, meal, name, v.kcal, v.protein, v.fat, v.carbs, now, now,
+    id, date, meal, name, v.kcal, v.protein, v.fat, v.carbs, now, now,
   );
+  return id;
 }
 
 export async function getEntry(db: SQLiteDatabase, id: string): Promise<Entry | null> {
@@ -277,6 +350,46 @@ export async function updateEntryGrams(db: SQLiteDatabase, e: Entry, grams: numb
     `update diary_entries set grams = ?, serving_label = ?, meal_type = ?, kcal = ?, protein = ?, fat = ?, carbs = ?, updated_at = ? where id = ?`,
     grams, servingLabel, meal, e.kcal * k, e.protein * k, e.fat * k, e.carbs * k, nowIso(), e.id,
   );
+  if (e.food_id) {
+    // only the newest entry of the food defines its "last portion"; editing an older one must not overwrite it
+    await db.runAsync(
+      `update foods set last_grams = ?, last_serving = ? where id = ?
+         and not exists (
+           select 1 from diary_entries o, diary_entries me
+            where me.id = ? and o.food_id = foods.id and o.id != me.id and o.created_at > me.created_at
+         )`,
+      grams, servingNameOf(servingLabel), e.food_id, e.id,
+    );
+  }
+}
+
+/** Usage fields of a food as they were before an add, so the toast's undo can put them back. */
+export interface FoodUsage { id: string; last_used_at: string | null; use_count: number; last_grams: number | null; last_serving: string | null }
+
+export async function foodUsage(db: SQLiteDatabase, foodId: string): Promise<FoodUsage | null> {
+  return db.getFirstAsync<FoodUsage>('select id, last_used_at, use_count, last_grams, last_serving from foods where id = ?', foodId);
+}
+
+/**
+ * Undo of a just-added food entry: deletes the row and rolls back what markUsed wrote.
+ * If the same food was logged again after this entry, its newer usage is kept and only use_count drops.
+ */
+export async function undoFoodEntry(db: SQLiteDatabase, entryId: string, prev: FoodUsage | null) {
+  const e = await db.getFirstAsync<{ food_id: string | null; created_at: string }>('select food_id, created_at from diary_entries where id = ?', entryId);
+  await deleteEntry(db, entryId);
+  if (!e?.food_id || !prev || prev.id !== e.food_id) return;
+  const newer = await db.getFirstAsync<{ n: number }>(
+    'select count(*) as n from diary_entries where food_id = ? and created_at > ?',
+    e.food_id, e.created_at,
+  );
+  if (newer && newer.n > 0) {
+    await db.runAsync('update foods set use_count = max(use_count - 1, 0) where id = ?', e.food_id);
+    return;
+  }
+  await db.runAsync(
+    'update foods set last_used_at = ?, use_count = max(use_count - 1, 0), last_grams = ?, last_serving = ? where id = ?',
+    prev.last_used_at, prev.last_grams, prev.last_serving, e.food_id,
+  );
 }
 
 export async function updateQuickEntry(db: SQLiteDatabase, id: string, meal: MealType, name: string, v: { kcal: number; protein: number; fat: number; carbs: number }) {
@@ -288,6 +401,17 @@ export async function updateQuickEntry(db: SQLiteDatabase, id: string, meal: Mea
 
 export async function deleteEntry(db: SQLiteDatabase, id: string) {
   await db.runAsync('delete from diary_entries where id = ?', id);
+}
+
+/** Undo of a delete: puts the same row back with its id and original order (created_at). */
+export async function restoreEntry(db: SQLiteDatabase, e: Entry & { created_at?: string; updated_at?: string }) {
+  const now = nowIso();
+  const foodId = e.food_id ? ((await db.getFirstAsync<{ id: string }>('select id from foods where id = ?', e.food_id))?.id ?? null) : null;
+  await db.runAsync(
+    `insert or ignore into diary_entries (id, date, meal_type, food_id, name, grams, serving_label, kcal, protein, fat, carbs, created_at, updated_at)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    e.id, e.date, e.meal_type, foodId, e.name, e.grams, e.serving_label, e.kcal, e.protein, e.fat, e.carbs, e.created_at ?? now, now,
+  );
 }
 
 export async function entriesForDate(db: SQLiteDatabase, date: string): Promise<Entry[]> {
@@ -435,11 +559,12 @@ export async function measuredTypes(db: SQLiteDatabase): Promise<string[]> {
   return rows.map((r) => r.type);
 }
 
-/** Weight to use for calculations: latest logged weight, else the profile's start weight. */
+/** Weight trend from all weigh-ins on or before a date (anchored at the last weigh-in). */
+export async function weightTrendAt(db: SQLiteDatabase, at: string): Promise<WeightTrend | null> {
+  return weightTrend(await series(db, 'weight', '0000-01-01', at));
+}
+
+/** Weight to use for calculations: the smoothed trend (not the raw scale value), else the profile's start weight. */
 export async function currentWeight(db: SQLiteDatabase, p: Profile, at: string): Promise<number> {
-  const r = await db.getFirstAsync<{ value: number }>(
-    "select value from measurements where type = 'weight' and date <= ? order by date desc limit 1",
-    at,
-  );
-  return r?.value ?? p.start_weight_kg;
+  return (await weightTrendAt(db, at))?.value ?? p.start_weight_kg;
 }

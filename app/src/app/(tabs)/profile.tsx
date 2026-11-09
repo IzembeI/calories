@@ -19,7 +19,7 @@ export default function ProfileTab() {
       currentWeight(db, p, todayKey()).then(setW);
     }, [db, p]),
   );
-  const m = macroTargets(p);
+  const m = macroTargets(p, w);
   const go = (path: '/goals' | '/export' | '/settings' | '/my-foods' | '/measurements') => () => router.push(path);
   const chevron = <T dim>›</T>;
 
@@ -48,7 +48,7 @@ export default function ProfileTab() {
         <Divider />
         <ListItem title="Замеры тела" subtitle="Вес и объёмы за выбранный день" onPress={go('/measurements')} right={chevron} />
         <Divider />
-        <ListItem title="Экспорт в PDF" subtitle="Дневник питания и замеры за период" onPress={go('/export')} right={chevron} />
+        <ListItem title="Экспорт в PDF и CSV" subtitle="Дневник питания и замеры за период, таблицы для Excel" onPress={go('/export')} right={chevron} />
         <Divider />
         <ListItem title="Мои продукты и блюда" onPress={go('/my-foods')} right={chevron} />
         <Divider />
