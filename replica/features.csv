@@ -1,40 +1,40 @@
 feature,area,priority,original,clone,notes
-Onboarding: goal + body data -> daily kcal plan (Mifflin-St Jeor),onboarding,must,yes,no,
-Diary per day with week strip and date picker,diary,must,yes,no,
-Calorie ring: eaten / left / burned,diary,must,yes,no,
-Macro bars protein fat carbs vs goal,diary,must,yes,no,
-Four meals: breakfast lunch dinner snack,diary,must,yes,no,
-Search foods (built-in + my foods + Open Food Facts),food,must,yes,no,OFF instead of YAZIO DB
-Built-in basic foods list in Russian,food,must,no,no,new: covers generic foods OFF lacks
-Barcode scanner via camera,food,must,yes,no,
-Food detail: amount + serving + nutrients,food,must,yes,no,
-Recent foods,food,must,yes,no,
-Create custom food,food,must,yes,no,
-Edit / delete diary entries,diary,must,yes,no,
-Water tracker with daily goal,water,must,yes,no,
-Log weight,measurements,must,yes,no,
-Log body measurements: neck chest biceps waist belly hips thigh calf forearm body fat,measurements,must,yes,no,extended list per user
-Weight chart over time,progress,must,yes,no,
-Chart for each measurement,progress,must,partial,no,
-Edit goals and macro split,profile,must,yes,no,
-PDF export of food diary for a period,export,must,no,no,new: user request
-PDF export of measurements history for a period,export,must,no,no,new: user request
-Share PDF via iOS share sheet,export,must,no,no,new
-Russian UI,general,must,yes,no,
-Favourites,food,should,yes,no,
-Custom meals (combination of foods),food,should,yes,no,
-Quick add kcal,food,should,yes,no,
-Copy meal / day to another date,diary,should,yes,no,
-Activity log with burned kcal,activity,should,yes,no,
-Kcal vs goal bar chart week / month,progress,should,yes,no,
-Nutrient averages for a period,progress,should,yes,no,
-Barcode miss -> create food prefilled,food,should,yes,no,
-Offline: everything except OFF works without internet,general,should,yes,no,
-Backup / restore to JSON file,settings,should,no,no,new: device-only data needs a backup
-Meal reminders,settings,should,yes,no,local notifications
-Dark mode,general,should,yes,no,
-Include charts in the PDF,export,could,no,no,
-Water reminders,water,could,yes,no,
+Onboarding: goal + body data -> daily kcal plan (Mifflin-St Jeor),onboarding,must,yes,yes,
+Diary per day with week strip and date picker,diary,must,yes,yes,
+Calorie ring: eaten / left / burned,diary,must,yes,yes,
+Macro bars protein fat carbs vs goal,diary,must,yes,yes,
+Four meals: breakfast lunch dinner snack,diary,must,yes,yes,
+Search foods (built-in + my foods + Open Food Facts),food,must,yes,yes,OFF instead of YAZIO DB
+Built-in basic foods list in Russian,food,must,no,yes,new: covers generic foods OFF lacks
+Barcode scanner via camera,food,must,yes,yes,
+Food detail: amount + serving + nutrients,food,must,yes,yes,
+Recent foods,food,must,yes,yes,
+Create custom food,food,must,yes,yes,
+Edit / delete diary entries,diary,must,yes,yes,
+Water tracker with daily goal,water,must,yes,yes,
+Log weight,measurements,must,yes,yes,
+Log body measurements: neck chest biceps waist belly hips thigh calf forearm body fat,measurements,must,yes,yes,extended list per user
+Weight chart over time,progress,must,yes,yes,
+Chart for each measurement,progress,must,partial,yes,
+Edit goals and macro split,profile,must,yes,yes,
+PDF export of food diary for a period,export,must,no,yes,new: user request
+PDF export of measurements history for a period,export,must,no,yes,new: user request
+Share PDF via iOS share sheet,export,must,no,yes,new
+Russian UI,general,must,yes,yes,
+Favourites,food,should,yes,yes,
+Custom meals (combination of foods),food,should,yes,yes,
+Quick add kcal,food,should,yes,yes,
+Copy meal / day to another date,diary,should,yes,yes,
+Activity log with burned kcal,activity,should,yes,yes,
+Kcal vs goal bar chart week / month,progress,should,yes,yes,
+Nutrient averages for a period,progress,should,yes,yes,
+Barcode miss -> create food prefilled,food,should,yes,yes,
+Offline: everything except OFF works without internet,general,should,yes,yes,
+Backup / restore to JSON file,settings,should,no,yes,new: device-only data needs a backup
+Meal reminders,settings,should,yes,yes,local notifications
+Dark mode,general,should,yes,yes,
+Include charts in the PDF,export,could,no,yes,
+Water reminders,water,could,yes,yes,
 Progress photos,measurements,could,yes,no,
 Apple Health: write weight / read steps,integrations,could,yes,no,later
 Home screen widget,general,could,yes,no,later
