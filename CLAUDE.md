@@ -25,8 +25,8 @@
 
 ## Сборка IPA
 1. Поднять версию в `app/app.json` (`expo.version`, `ios.buildNumber`) и `app/package.json`.
-2. `git push origin main`, затем `git tag vX.Y.Z && git push origin vX.Y.Z`.
-3. Workflow `.github/workflows/ios-ipa.yml` собирает IPA и кладёт в Release: `https://github.com/IzembeI/calories/releases/tag/vX.Y.Z`.
+2. `git push origin main` — этого достаточно: workflow `.github/workflows/ios-ipa.yml` видит новую версию в `app/app.json`, собирает IPA и сам создаёт тег и Release `vX.Y.Z` (из облачной сессии Claude теги ставить нельзя). Тег вручную (`git tag vX.Y.Z && git push origin vX.Y.Z`) тоже работает.
+3. Release: `https://github.com/IzembeI/calories/releases/tag/vX.Y.Z`.
 4. Проверить IPA: внутри `Payload/Kalorii.app`, `Info.plist` (CFBundleDisplayName «Калории»), `main.jsbundle`.
 
 ## Процесс (плагины)
