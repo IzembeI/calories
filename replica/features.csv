@@ -49,3 +49,24 @@ AI photo food recognition,food,skip,yes,skip,needs paid vision API
 Fitbit / Garmin sync,integrations,skip,yes,skip,partner integrations
 Account and cloud sync,general,skip,yes,skip,user chose device-only storage
 Apple Watch app,platform,skip,yes,skip,later if wanted
+Food pictures: original vector art by name and category,diary,should,no,yes,54 pictures; offline
+Growing plant: levels / day streak / achievements (can be switched off),motivation,could,no,yes,computed from the diary
+Weekly review by rules (no AI),progress,should,no,yes,
+Pause screen for cravings: breathing timer + what still fits,diary,could,no,yes,
+Measured expenditure and weekly goal check-in,goals,should,no,yes,
+Goal date forecast as a range,progress,could,no,yes,
+Home-made dish by cooked weight with saved cookware,foods,should,no,yes,
+Household measures and dry / cooked pairs,foods,should,no,yes,
+Select several entries: copy / move / delete; copy a day,diary,should,no,yes,
+Day start hour,diary,could,no,yes,
+Nutrient sources: which foods gave it and where to get more,nutrients,could,no,yes,
+My foods manager: search / sort / undo delete / merge duplicates,foods,could,no,yes,
+Quick actions on the app icon and haptics,system,could,no,yes,needs a check on the device
+Calorie schedule by weekday,goals,could,no,yes,
+Micronutrients from USDA: specific foods and dishes as blends,nutrients,should,no,yes,217 foods
+Custom meal slots (second breakfast etc),diary,could,no,no,roadmap w3
+Day notes and wellbeing tags,diary,could,no,no,roadmap w3
+Plateau / diet break / maintenance mode,goals,could,no,no,roadmap w3
+Offline barcode queue,foods,should,no,no,roadmap w2
+Restaurant chains pack,foods,could,no,no,roadmap w3
+Siri / Shortcuts / Spotlight,system,could,no,no,roadmap w4; TrollStore risk
