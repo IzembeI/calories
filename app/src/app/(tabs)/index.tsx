@@ -6,12 +6,14 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { clearMeal, copyMeal, currentWeight, entriesForDate, getSetting, measurementsForDate, setMeasurement, type Entry } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { WEEKDAYS_SHORT, addDays, fromKey, relativeDayTitle, todayKey, weekStart } from '@/lib/dates';
+import { daysWord, type Game } from '@/lib/game';
+import { loadGame } from '@/lib/game-load';
 import { NUTRIENTS, dayFiberExact, dayMicros, dvFor, microsScore, type Micros } from '@/lib/micros';
 import { MEALS, PROTEIN_MEAL_MIN_G, fmt, macroTargets, parseNum, type MealType } from '@/lib/nutrition';
 import { BackupNudge } from '@/ui/backup-nudge';
 import { CalendarModal } from '@/ui/calendar';
 import { Bar, Button, Card, Divider, IconButton, ListItem, NumField, Plus, Ring, Row, Screen, T } from '@/ui/components';
-import { artFor, FoodPic, Icon, MEAL_ART } from '@/ui/icons';
+import { artFor, FoodPic, Icon, MEAL_ART, Plant } from '@/ui/icons';
 import { radius, space, useTheme } from '@/ui/theme';
 
 export default function Diary() {
@@ -28,6 +30,7 @@ export default function Diary() {
   const [proteinHint, setProteinHint] = useState(true);
   const [fiberExact, setFiberExact] = useState(false);
   const req = useRef(0);
+  const [game, setGame] = useState<Game | null>(null);
 
   const load = useCallback(async () => {
     void diaryVersion; // an undo from the toast bumps it, so the open diary reloads
@@ -47,6 +50,9 @@ export default function Diary() {
     setProteinHint(ph !== false);
     setMicros(m);
     setWeight(ms.find((x) => x.type === 'weight')?.value ?? null);
+    // the streak and level are about today, whatever day is open
+    const g = await loadGame(db, profile, todayKey());
+    if (my === req.current) setGame(g);
   }, [db, date, profile, diaryVersion]);
 
   useFocusEffect(
@@ -170,6 +176,7 @@ export default function Diary() {
               Белковых приёмов (от {PROTEIN_MEAL_MIN_G} г): {proteinMeals} из {mainMeals.length}
             </T>
           ) : null}
+          <Row style={{ marginTop: space.s, flexWrap: 'wrap' }}>
           <Pressable
             onPress={() => setWeighing(true)}
             accessibilityRole="button"
@@ -180,7 +187,6 @@ export default function Diary() {
               borderRadius: radius.m,
               paddingVertical: 6,
               paddingHorizontal: 12,
-              marginTop: space.s,
               opacity: pressed ? 0.75 : 1,
             })}
           >
@@ -188,7 +194,36 @@ export default function Diary() {
               {weight != null ? `Вес ${fmt(weight, 1)} кг` : date === todayKey() ? '+ Вес сегодня' : '+ Вес за этот день'}
             </T>
           </Pressable>
+          {date === todayKey() ? (
+            <Pressable
+              onPress={() => router.push('/sos')}
+              accessibilityRole="button"
+              accessibilityLabel="Пауза: если тянет сорваться"
+              style={({ pressed }) => ({ backgroundColor: t.input, borderRadius: radius.m, paddingVertical: 6, paddingHorizontal: 12, opacity: pressed ? 0.75 : 1 })}
+            >
+              <T size={14} weight="600" dim>
+                Тянет сорваться?
+              </T>
+            </Pressable>
+          ) : null}
+          </Row>
         </Card>
+
+        {game ? (
+          <Card onPress={() => router.push('/game')}>
+            <Row gap={space.m}>
+              <Plant stage={game.stage} awake={game.streak > 0} size={52} />
+              <View style={{ flex: 1, gap: 4 }}>
+                <T weight="700">{game.streak > 0 ? `Серия: ${daysWord(game.streak)}` : 'Начните серию сегодня'}</T>
+                <T dim size={13}>
+                  Уровень {game.level} · {game.stageTitle} · до следующего {fmt(game.levelTo - game.xp)} очков
+                </T>
+                <Bar value={game.xp - game.levelFrom} max={game.levelTo - game.levelFrom} color={t.accent} />
+              </View>
+              <Icon name="chevRight" size={18} color={t.textDim} />
+            </Row>
+          </Card>
+        ) : null}
 
         {MEALS.map((m) => {
           const items = entries.filter((e) => e.meal_type === m.type);

@@ -83,6 +83,9 @@ function Nav() {
         <Stack.Screen name="goals" options={{ title: 'Цели и данные' }} />
         <Stack.Screen name="settings" options={{ title: 'Настройки' }} />
         <Stack.Screen name="my-foods" options={{ title: 'Мои продукты и блюда' }} />
+        <Stack.Screen name="game" options={{ title: 'Мой росток' }} />
+        <Stack.Screen name="review" options={{ title: 'Разбор недели' }} />
+        <Stack.Screen name="sos" options={{ title: 'Пауза' }} />
         </Stack.Protected>
       </Stack>
     </>

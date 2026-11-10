@@ -143,6 +143,11 @@ export default function Progress() {
         </Card>
       ) : null}
 
+      <Row>
+        <Button title="Разбор недели" kind="secondary" onPress={() => router.push('/review')} style={{ flex: 1 }} />
+        <Button title="Мой росток" kind="secondary" onPress={() => router.push('/game')} style={{ flex: 1 }} />
+      </Row>
+
       <Card>
         <Row style={{ justifyContent: 'space-between' }}>
           <T weight="700">Калории</T>

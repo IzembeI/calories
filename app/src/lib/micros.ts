@@ -64,7 +64,7 @@ const rx = (src: string) => new RegExp(src.replace(/\\b/g, '(?![a-zа-яё])'), 
 const RULES: [RegExp, CategoryKey][] = (
   [
     [String.raw`чай\b|кофе|вода\b|минерал|tea\b|coffee|water|espresso`, 'drinks'],
-    [String.raw`сок\b|сока\b|кола\b|cola|лимонад|газиров|морс|компот|кисель|нектар|энергетик|juice|soda|lemonade|soft drink|nectar|energy drink`, 'sweet_drinks'],
+    [String.raw`сок\b|сока\b|(^|[^а-яё])кола\b|cola|лимонад|газиров|морс|компот|кисель|нектар|энергетик|juice|soda|lemonade|soft drink|nectar|energy drink`, 'sweet_drinks'],
     [String.raw`колбас|сосиск|сарделек|сарделька|ветчин|бекон|салями|буженин|карбонад|паштет|sausage|ham\b|bacon|salami|frankfurt|hot dog`, 'processed_meat'],
     [String.raw`шоколад|конфет|nutella|chocolate|candy`, 'sweets'],
     [String.raw`печень(?![еяю])|печени|печенк|liver|субпродукт`, 'liver'],
@@ -80,6 +80,8 @@ const RULES: [RegExp, CategoryKey][] = (
     [String.raw`лосос|семг|форел|скумбри|сельд|селед|сардин|кета\b|горбуш|нерк|кижуч|угор|палтус|salmon|trout|mackerel|herring|sardine`, 'fatty_fish'],
     [String.raw`треск|минта|тунец|тунц|хек\b|судак|окун|щук|тилапи|навага|пикш|рыб|cod\b|pollock|tuna|hake|fish`, 'lean_fish'],
     [String.raw`кревет|кальмар|мидии|краб|осьмин|гребеш|икра|морепрод|shrimp|squid|mussel|crab|seafood|caviar`, 'seafood'],
+    // before poultry: «яйцо куриное» is an egg
+    [String.raw`яйцо\b|яйца\b|яиц\b|яичниц|омлет`, 'eggs'],
     [String.raw`курица|куриц|курин|индейк|индюш|цыпл|утка|утки|утиная|гусь|chicken|turkey|duck`, 'poultry'],
     [String.raw`говядин|свинин|баранин|телятин|фарш|котлет|шашлык|стейк|мясо|мясн|бифштекс|тефтел|beef|pork|lamb|veal|steak|meat`, 'red_meat'],
     [String.raw`яйц|яичн|омлет|egg|omelet`, 'eggs'],

@@ -450,6 +450,36 @@ export async function dailyTotals(db: SQLiteDatabase, from: string, to: string):
   );
 }
 
+/** Raw material for levels and achievements (see lib/game.ts). */
+export async function gameData(db: SQLiteDatabase, today: string) {
+  const [days, ms, foods, custom] = await Promise.all([
+    dailyTotals(db, '0000-01-01', today),
+    db.getAllAsync<{ date: string }>('select distinct date from measurements where date <= ?', today),
+    db.getFirstAsync<{ n: number }>('select count(distinct food_id) as n from diary_entries where food_id is not null'),
+    db.getFirstAsync<{ n: number }>("select count(*) as n from foods where deleted = 0 and source = 'custom'"),
+  ]);
+  return { days, measurementDates: ms.map((m) => m.date), distinctFoods: foods?.n ?? 0, customFoods: custom?.n ?? 0 };
+}
+
+/** kcal by meal type over a period. */
+export async function mealKcal(db: SQLiteDatabase, from: string, to: string) {
+  return db.getAllAsync<{ meal_type: MealType; kcal: number }>(
+    'select meal_type, sum(kcal) as kcal from diary_entries where date between ? and ? group by meal_type',
+    from,
+    to,
+  );
+}
+
+/** Diary names that gave the most kcal over a period. */
+export async function topKcalFoods(db: SQLiteDatabase, from: string, to: string, limit = 3) {
+  return db.getAllAsync<{ name: string; kcal: number; times: number }>(
+    'select name, sum(kcal) as kcal, count(*) as times from diary_entries where date between ? and ? group by name order by kcal desc limit ?',
+    from,
+    to,
+    limit,
+  );
+}
+
 export async function datesWithEntries(db: SQLiteDatabase, from: string, to: string): Promise<Set<string>> {
   const rows = await db.getAllAsync<{ date: string }>('select distinct date from diary_entries where date between ? and ?', from, to);
   return new Set(rows.map((r) => r.date));
