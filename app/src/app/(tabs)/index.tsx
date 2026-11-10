@@ -51,7 +51,7 @@ export default function Diary() {
     setMicros(m);
     setWeight(ms.find((x) => x.type === 'weight')?.value ?? null);
     // the streak and level are about today, whatever day is open
-    const g = await loadGame(db, profile, todayKey());
+    const g = (await getSetting<boolean>(db, 'game_card', true)) !== false ? await loadGame(db, profile, todayKey()) : null;
     if (my === req.current) setGame(g);
   }, [db, date, profile, diaryVersion]);
 

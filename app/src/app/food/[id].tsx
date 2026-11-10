@@ -2,7 +2,8 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { addFoodEntry, defaultPortion, foodUsage, getFood, portion, saveFood, servingsOf, toggleFavourite, undoFoodEntry, type FoodRow, type Serving } from '@/db/repo';
+import { addFoodEntry, defaultPortion, foodUsage, getBuiltinByName, getFood, portion, saveFood, servingsOf, toggleFavourite, undoFoodEntry, type FoodRow, type Serving } from '@/db/repo';
+import { pairOf } from '@/data/food-pairs';
 import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
 import { guessCategory } from '@/lib/micros';
@@ -26,6 +27,8 @@ export default function FoodDetail() {
   /** grams of the last logged portion, shown as a hint while the amount still matches it */
   const [lastGrams, setLastGrams] = useState<number | null>(null);
   const initialised = useRef(false);
+  /** the same built-in food in the other state (dry ↔ cooked), if there is one */
+  const [twin, setTwin] = useState<FoodRow | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,6 +41,9 @@ export default function FoodDetail() {
           setLastGrams(d.last ? d.grams : null);
         }
         initialised.current = true;
+        const pair = f && f.source === 'builtin' && !f.edited ? pairOf(f.name) : undefined;
+        if (pair) getBuiltinByName(db, pair.other).then(setTwin);
+        else setTwin(null);
       });
     }, [db, params.id]),
   );
@@ -123,6 +129,17 @@ export default function FoodDetail() {
           ) : (
             <Button small kind="ghost" title="Исправить" onPress={edit} />
           )}
+        </Card>
+      ) : null}
+
+      {twin ? (
+        <Card onPress={() => router.replace({ pathname: '/food/[id]', params: { id: twin.id, meal } })}>
+          <T size={14}>
+            Это {pairOf(food.name)?.state}: {fmt(food.kcal)} ккал на 100 г. Взвешивайте его именно в таком виде.
+          </T>
+          <T size={14} weight="600" color={t.accent}>
+            Взвешиваете {pairOf(food.name)?.otherState.replace(' продукт', '')}? → {twin.name}, {fmt(twin.kcal)} ккал
+          </T>
         </Card>
       ) : null}
 

@@ -11,8 +11,19 @@ export function fromKey(key: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export function todayKey(): string {
-  return toKey(new Date());
+// «Начало дня»: with 4, a snack at 01:30 still belongs to yesterday. Set once at startup from the
+// 'day_start_hour' setting (lib/app-state.tsx); toKey/fromKey stay pure calendar functions.
+let dayStartHour = 0;
+
+export function setDayStartHour(h: number): void {
+  dayStartHour = Number.isFinite(h) ? Math.min(Math.max(Math.round(h), 0), 6) : 0;
+}
+
+export const getDayStartHour = () => dayStartHour;
+
+/** The diary day that `now` belongs to. */
+export function todayKey(now: Date = new Date()): string {
+  return toKey(new Date(now.getTime() - dayStartHour * 3600e3));
 }
 
 export function addDays(key: string, n: number): string {

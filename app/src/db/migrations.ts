@@ -151,7 +151,21 @@ const MIGRATIONS: string[] = [
   alter table foods add column last_grams real;
   alter table foods add column last_serving text;
   `,
+  // 8: more built-in foods (dry / raw pairs) and household measures; the rows are synced by AFTER[7]
+  `
+  select 1;
+  `,
+  // 9: a home-made dish weighed after cooking: the meal keeps its ready weight and owns a hidden food row with КБЖУ per 100 g
+  `
+  alter table meals add column cooked_weight_g real;
+  alter table foods add column meal_id text;
+  `,
 ];
+
+/** Code that runs right after the migration with the same index (inside its transaction). */
+const AFTER: Record<number, (db: SQLiteDatabase) => Promise<void>> = {
+  7: syncBasicFoods,
+};
 
 export async function migrate(db: SQLiteDatabase): Promise<void> {
   await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
@@ -163,6 +177,7 @@ export async function migrate(db: SQLiteDatabase): Promise<void> {
     await db.withTransactionAsync(async () => {
       await db.execAsync(sql);
       if (isFirst) await seedBasicFoods(db);
+      await AFTER[version]?.(db);
     });
     version++;
     await db.execAsync(`PRAGMA user_version = ${version}`);
@@ -191,5 +206,20 @@ async function seedBasicFoods(db: SQLiteDatabase) {
     }
   } finally {
     await stmt.finalizeAsync();
+  }
+}
+
+/** Adds built-in foods that appeared since the install and refreshes the servings of the ones the user has not corrected. */
+async function syncBasicFoods(db: SQLiteDatabase) {
+  await seedBasicFoods(db);
+  for (let i = 0; i < BASIC_FOODS.length; i++) {
+    const servings = BASIC_FOODS[i][5];
+    if (!servings?.length) continue;
+    await db.runAsync(
+      "update foods set servings = ? where id = ? and source = 'builtin' and edited = 0 and servings != ?",
+      JSON.stringify(servings),
+      `builtin-${i + 1}`,
+      JSON.stringify(servings),
+    );
   }
 }

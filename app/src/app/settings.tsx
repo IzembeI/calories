@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getSetting, setSetting } from '@/db/repo';
 import { useApp } from '@/lib/app-state';
+import { setDayStartHour } from '@/lib/dates';
 import { autoBackup, exportBackup, importBackup } from '@/lib/backup';
 import { DEFAULT_REMINDERS, applyReminders, ensurePermission, type Reminder } from '@/lib/reminders';
 import { type WeighHint } from '@/lib/trend';
@@ -20,6 +21,8 @@ export default function Settings() {
   const [weighHint, setWeighHint] = useState<WeighHint>('daily');
   const [proteinHint, setProteinHint] = useState(true);
   const [autoOn, setAutoOn] = useState(true);
+  const [dayStart, setDayStart] = useState('0');
+  const [gameOn, setGameOn] = useState(true);
   const [lastAuto, setLastAuto] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,6 +31,8 @@ export default function Settings() {
     );
     getSetting<WeighHint>(db, 'weigh_hint', 'daily').then((h) => setWeighHint(h === 'weekly' ? 'weekly' : 'daily'));
     getSetting<boolean>(db, 'protein_hint', true).then((v) => setProteinHint(v !== false));
+    getSetting<number>(db, 'day_start_hour', 0).then((h) => setDayStart(String(h)));
+    getSetting<boolean>(db, 'game_card', true).then((v) => setGameOn(v !== false));
     getSetting<boolean>(db, 'auto_backup', true).then((v) => setAutoOn(v !== false));
     getSetting<string | null>(db, 'last_auto_backup', null).then(setLastAuto);
   }, [db]);
@@ -146,6 +151,43 @@ export default function Settings() {
             trackColor={{ true: t.accent }}
           />
         </Row>
+        <Divider />
+        <Row style={{ justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <T>Росток и серия дней</T>
+            <T dim size={12}>
+              Карточка с уровнем и серией в дневнике. Выключите, если она отвлекает: записи и очки никуда не денутся.
+            </T>
+          </View>
+          <Switch
+            value={gameOn}
+            onValueChange={(v) => {
+              setGameOn(v);
+              setSetting(db, 'game_card', v);
+            }}
+            trackColor={{ true: t.accent }}
+          />
+        </Row>
+        <Divider />
+        <T>Начало дня</T>
+        <Segmented
+          options={[
+            { value: '0', title: '00:00' },
+            { value: '3', title: '03:00' },
+            { value: '4', title: '04:00' },
+            { value: '5', title: '05:00' },
+          ]}
+          value={dayStart}
+          onChange={async (v) => {
+            setDayStart(v);
+            await setSetting(db, 'day_start_hour', Number(v));
+            setDayStartHour(Number(v));
+            await reloadProfile(); // moves the open diary if «сегодня» has just changed
+          }}
+        />
+        <T dim size={12}>
+          Для тех, кто ложится поздно: если день начинается в 04:00, перекус в 01:30 запишется во вчерашний день.
+        </T>
       </Card>
 
       <T weight="700" style={{ marginTop: space.s }}>

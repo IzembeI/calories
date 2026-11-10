@@ -1,9 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Alert, AppState as RNAppState } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { getProfile, type Profile } from '@/db/repo';
+import { getProfile, getSetting, type Profile } from '@/db/repo';
 import { ToastHost, type ToastMsg } from '@/ui/components';
-import { todayKey } from './dates';
+import { setDayStartHour, todayKey } from './dates';
 
 interface AppState {
   profile: Profile | null;
@@ -42,7 +42,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const lastToday = useRef(todayKey());
   const reloadProfile = useCallback(async () => {
+    // «Начало дня» moves the boundary of today; apply it before anything reads todayKey()
+    const before = todayKey();
+    setDayStartHour(await getSetting<number>(db, 'day_start_hour', 0));
+    const after = todayKey();
+    lastToday.current = after;
+    if (after !== before) setDate((d) => (d === before ? after : d));
     setProfile(await getProfile(db));
     setLoaded(true);
   }, [db]);
@@ -52,7 +59,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, [reloadProfile]);
 
   // If the app stays open past midnight and the diary still shows the old "today", move it to the new day.
-  const lastToday = useRef(todayKey());
   useEffect(() => {
     const sub = RNAppState.addEventListener('change', (s) => {
       if (s !== 'active') return;

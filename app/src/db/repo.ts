@@ -253,6 +253,11 @@ export async function getFood(db: SQLiteDatabase, id: string): Promise<FoodRow |
   return db.getFirstAsync<FoodRow>('select * from foods where id = ?', id);
 }
 
+/** A built-in food by its exact name (used for the «сухая / варёная» pairs). */
+export async function getBuiltinByName(db: SQLiteDatabase, name: string): Promise<FoodRow | null> {
+  return db.getFirstAsync<FoodRow>("select * from foods where source = 'builtin' and deleted = 0 and name = ?", name);
+}
+
 export async function getFoodByBarcode(db: SQLiteDatabase, code: string): Promise<FoodRow | null> {
   return db.getFirstAsync<FoodRow>('select * from foods where barcode = ? and deleted = 0', code);
 }
