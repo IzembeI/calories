@@ -28,6 +28,8 @@ export interface GameInput {
   distinctFoods: number;
   customFoods: number;
   kcalGoal: number;
+  /** goal of a particular day when the calorie schedule is on; defaults to kcalGoal */
+  goalFor?: (date: string) => number;
   proteinGoal: number;
   goal: Goal;
   today: string;
@@ -84,7 +86,7 @@ export function computeGame(g: GameInput): Game {
   let kcalDays = 0;
   let proteinDays = 0;
   for (const d of g.days) {
-    if (inKcalBand(d.kcal, g.kcalGoal, g.goal)) kcalDays++;
+    if (inKcalBand(d.kcal, g.goalFor?.(d.date) ?? g.kcalGoal, g.goal)) kcalDays++;
     if (g.proteinGoal > 0 && d.protein >= g.proteinGoal * PROTEIN_OK_SHARE) proteinDays++;
   }
   const weeks = new Set(g.measurementDates.map(weekStart));
@@ -129,7 +131,7 @@ export function computeGame(g: GameInput): Game {
     streak, bestStreak, loggedDays: dates.size, kcalDays, proteinDays, measureWeeks: weeks.size,
     today: {
       logged: !!t,
-      kcal: !!t && inKcalBand(t.kcal, g.kcalGoal, g.goal),
+      kcal: !!t && inKcalBand(t.kcal, g.goalFor?.(t.date) ?? g.kcalGoal, g.goal),
       protein: !!t && g.proteinGoal > 0 && t.protein >= g.proteinGoal * PROTEIN_OK_SHARE,
       measuredThisWeek: weeks.has(weekStart(g.today)),
     },

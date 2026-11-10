@@ -7,6 +7,7 @@ import { addFoodEntry, dailyTotals, defaultPortion, favouriteFoods, foodUsage, p
 import { useApp, useProfile } from '@/lib/app-state';
 import { todayKey, weekStart } from '@/lib/dates';
 import { fmt } from '@/lib/nutrition';
+import { goalForDate } from '@/lib/schedule';
 import { Button, Card, Divider, ListItem, Plus, Screen, T } from '@/ui/components';
 import { artFor, FoodPic } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
@@ -35,11 +36,11 @@ export default function Sos() {
     const today = todayKey();
     const [week, fav, recent] = await Promise.all([dailyTotals(db, weekStart(today), today), favouriteFoods(db), recentFoods(db)]);
     const eaten = week.find((d) => d.date === today)?.kcal ?? 0;
-    const l = profile.kcal_goal - eaten;
+    const l = goalForDate(profile, today) - eaten;
     setLeft(l);
     // finished days of this week only: today is still open
     const past = week.filter((d) => d.date !== today);
-    setWeekBalance(past.length ? { kcal: past.reduce((s, d) => s + (profile.kcal_goal - d.kcal), 0), days: past.length } : null);
+    setWeekBalance(past.length ? { kcal: past.reduce((s, d) => s + (goalForDate(profile, d.date) - d.kcal), 0), days: past.length } : null);
     const budget = Math.max(l, MIN_BUDGET);
     const seen = new Set<string>();
     const opts: Option[] = [];

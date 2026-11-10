@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Switch, View } from 'react-native';
+import { Pressable, Switch, View } from 'react-native';
 import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSQLiteContext } from 'expo-sqlite';
-import { currentWeight, saveProfile, type Profile } from '@/db/repo';
+import { currentWeight, saveProfile, setSetting, type Profile } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
-import { fromKey, toKey, todayKey } from '@/lib/dates';
+import { WEEKDAYS_SHORT, fromKey, toKey, todayKey } from '@/lib/dates';
+import { getKcalSchedule, scheduleGoals } from '@/lib/schedule';
 import { ACTIVITY_LEVELS, GOALS, PROTEIN_GKG_PRESETS, PROTEIN_REF_BMI, dailyKcalGoal, fmt, gkgMacros, macroGrams, macroTargets, parseNum, proteinRefWeight, type ActivityLevel, type BodyInput, type Goal, type KcalMode, type ProteinRef, type Sex } from '@/lib/nutrition';
-import { Button, Card, Choice, Divider, NumField, Row, Screen, Segmented, T } from '@/ui/components';
+import { Button, Card, Choice, Divider, NumField, Row, Screen, Segmented, Stepper, T } from '@/ui/components';
 import { GoalExplainCard, PaceChips } from '@/ui/goal-explain';
 import { space, useTheme } from '@/ui/theme';
 
@@ -27,6 +28,8 @@ export default function Goals() {
   const auto = kcalMode !== 'manual';
   const setAuto = (on: boolean) => setKcalMode(on ? (p.kcal_mode === 'adaptive' ? 'adaptive' : 'formula') : 'manual');
   const [kcal, setKcal] = useState(String(p.kcal_goal));
+  const [highDays, setHighDays] = useState<number[]>(() => getKcalSchedule().days);
+  const [bonus, setBonus] = useState(() => getKcalSchedule().bonus || 300);
   const [pp, setPp] = useState(String(p.protein_pct));
   const [fp, setFp] = useState(String(p.fat_pct));
   const [cp, setCp] = useState(String(p.carbs_pct));
@@ -86,6 +89,7 @@ export default function Goals() {
       protein_ref: proteinRef,
     };
     await saveProfile(db, next);
+    await setSetting(db, 'kcal_schedule', { days: highDays, bonus: highDays.length ? bonus : 0 });
     await reloadProfile();
     router.back();
   };
@@ -146,6 +150,53 @@ export default function Goals() {
             <NumField label="Своя норма" suffix="ккал" value={kcal} onChangeText={setKcal} />
           </>
         )}
+      </Card>
+
+      <T weight="700" style={{ marginTop: space.s }}>
+        Калорийный график
+      </T>
+      <Card>
+        <T dim size={13}>
+          Отметьте дни, когда хочется есть больше: выходные или дни тренировок. Остальные дни станут чуть скромнее, а сумма за неделю не изменится.
+        </T>
+        <Row gap={4}>
+          {WEEKDAYS_SHORT.map((d, i) => {
+            const on = highDays.includes(i);
+            return (
+              <Pressable
+                key={d}
+                onPress={() => setHighDays(on ? highDays.filter((x) => x !== i) : highDays.length < 6 ? [...highDays, i].sort() : highDays)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={d}
+                style={{ flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10, backgroundColor: on ? t.accent : t.input }}
+              >
+                <T size={14} weight="600" color={on ? t.onAccent : t.text}>
+                  {d}
+                </T>
+              </Pressable>
+            );
+          })}
+        </Row>
+        {highDays.length > 0 ? (
+          <>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <T>В эти дни больше на</T>
+              <Stepper onMinus={() => setBonus(Math.max(bonus - 50, 50))} onPlus={() => setBonus(Math.min(bonus + 50, 1000))}>
+                <T weight="700">{bonus} ккал</T>
+              </Stepper>
+            </Row>
+            {(() => {
+              const g = scheduleGoals(Math.round(kcalGoal), sex, { days: highDays, bonus });
+              return (
+                <T size={14}>
+                  В отмеченные дни {fmt(g.high)} ккал, в остальные {fmt(g.low)} ккал.
+                  {g.high - Math.round(kcalGoal) < bonus - 10 ? ' Прибавка меньше заданной: обычные дни не опускаются ниже безопасного минимума.' : ''}
+                </T>
+              );
+            })()}
+          </>
+        ) : null}
       </Card>
 
       <T weight="700" style={{ marginTop: space.s }}>

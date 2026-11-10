@@ -3,12 +3,13 @@ import { ActionSheetIOS, Alert, KeyboardAvoidingView, Modal, Platform, Pressable
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { clearMeal, copyEntries, copyMeal, currentWeight, deleteEntries, entriesForDate, moveEntries, restoreEntry, unmoveEntries, getSetting, measurementsForDate, setMeasurement, type Entry } from '@/db/repo';
+import { clearMeal, copyEntries, copyMeal, currentWeight, dailyTotals, deleteEntries, entriesForDate, moveEntries, restoreEntry, unmoveEntries, getSetting, measurementsForDate, setMeasurement, type Entry } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { WEEKDAYS_SHORT, addDays, formatDay, fromKey, relativeDayTitle, todayKey, weekStart } from '@/lib/dates';
 import { daysWord, type Game } from '@/lib/game';
 import { loadGame } from '@/lib/game-load';
 import { NUTRIENTS, dayFiberExact, dayMicros, dvFor, microsScore, type Micros } from '@/lib/micros';
+import { goalForDate, scheduleOn } from '@/lib/schedule';
 import { MEALS, PROTEIN_MEAL_MIN_G, fmt, macroTargets, parseNum, type MealType } from '@/lib/nutrition';
 import { BackupNudge } from '@/ui/backup-nudge';
 import { CalendarModal } from '@/ui/calendar';
@@ -31,6 +32,7 @@ export default function Diary() {
   const [proteinHint, setProteinHint] = useState(true);
   const [fiberExact, setFiberExact] = useState(false);
   const req = useRef(0);
+  const [weekEaten, setWeekEaten] = useState(0);
   const [game, setGame] = useState<Game | null>(null);
   /** ids of the entries picked by a long press: copy, move or delete several at once */
   const [sel, setSel] = useState<Set<string>>(() => new Set());
@@ -49,14 +51,16 @@ export default function Diary() {
   const load = useCallback(async () => {
     void diaryVersion; // an undo from the toast bumps it, so the open diary reloads
     const my = ++req.current;
-    const [e, m, ms, tw, ph, fx] = await Promise.all([
+    const [e, m, ms, tw, ph, fx, wk] = await Promise.all([
       entriesForDate(db, date),
       dayMicros(db, date),
       measurementsForDate(db, date),
       currentWeight(db, profile, date),
       getSetting<boolean>(db, 'protein_hint', true),
       dayFiberExact(db, date),
+      dailyTotals(db, weekStart(date), addDays(weekStart(date), 6)),
     ]);
+    if (my === req.current) setWeekEaten(wk.reduce((s, d) => s + d.kcal, 0));
     if (my !== req.current) return; // a newer day was requested meanwhile
     setEntries(e);
     setFiberExact(fx);
@@ -76,9 +80,11 @@ export default function Diary() {
   );
 
   const eaten = sum(entries, 'kcal');
-  const goal = profile.kcal_goal;
+  const goal = goalForDate(profile, date);
   const left = goal - eaten;
-  const macros = macroTargets(profile, trendW);
+  const baseMacros = macroTargets(profile, trendW);
+  // on a «high» or «low» day protein and fat stay put, carbs take the difference
+  const macros = { ...baseMacros, carbs: Math.max(Math.round(baseMacros.carbs + (goal - profile.kcal_goal) / 4), 0) };
   // Main meals only: snacks are small by design, so they are not marked.
   const mainMeals = MEALS.filter((m) => m.type !== 'snack');
   const proteinMeals = mainMeals.filter((m) => sum(entries.filter((e) => e.meal_type === m.type), 'protein') >= PROTEIN_MEAL_MIN_G).length;
@@ -231,6 +237,12 @@ export default function Diary() {
             </Ring>
             <Stat label="Норма" value={goal} />
           </Row>
+          {scheduleOn() ? (
+            <T dim size={12} center>
+              {goal > profile.kcal_goal ? 'День с прибавкой по графику' : 'Обычный день по графику'} · неделя: осталось{' '}
+              {fmt(Math.max(profile.kcal_goal * 7 - weekEaten, 0))} из {fmt(profile.kcal_goal * 7)} ккал
+            </T>
+          ) : null}
           <Row gap={space.m} style={{ marginTop: space.s }}>
             <MacroBar label="Белки" value={sum(entries, 'protein')} goal={macros.protein} color={t.protein} />
             <MacroBar label="Жиры" value={sum(entries, 'fat')} goal={macros.fat} color={t.fat} />

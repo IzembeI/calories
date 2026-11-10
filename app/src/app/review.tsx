@@ -6,6 +6,7 @@ import { currentWeight, dailyTotals, mealKcal, topKcalFoods, weightTrendAt } fro
 import { useProfile } from '@/lib/app-state';
 import { formatShort, todayKey } from '@/lib/dates';
 import { macroTargets, fmt } from '@/lib/nutrition';
+import { goalForDate } from '@/lib/schedule';
 import { buildReview, reviewPeriod, type Review, type Tone } from '@/lib/review';
 import { Card, Row, Screen, T } from '@/ui/components';
 import { radius, space, useTheme } from '@/ui/theme';
@@ -32,6 +33,7 @@ export default function ReviewScreen() {
           buildReview({
             days, from, to, meals, topFoods,
             kcalGoal: profile.kcal_goal,
+            goalFor: (d) => goalForDate(profile, d),
             proteinGoal: macroTargets(profile, w).protein,
             goal: profile.goal,
             sex: profile.sex,

@@ -14,6 +14,8 @@ export interface ReviewInput {
   from: string;
   to: string;
   kcalGoal: number;
+  /** goal of a particular day when the calorie schedule is on; defaults to kcalGoal */
+  goalFor?: (date: string) => number;
   proteinGoal: number;
   goal: Goal;
   sex: Sex;
@@ -54,7 +56,8 @@ export function buildReview(r: ReviewInput): Review {
   const avg = (k: 'kcal' | 'protein') => (n ? days.reduce((s, d) => s + d[k], 0) / n : 0);
   const avgKcal = avg('kcal');
   const avgProtein = avg('protein');
-  const inBand = days.filter((d) => inKcalBand(d.kcal, r.kcalGoal, r.goal)).length;
+  const goalOf = (date: string) => r.goalFor?.(date) ?? r.kcalGoal;
+  const inBand = days.filter((d) => inKcalBand(d.kcal, goalOf(d.date), r.goal)).length;
   const f: Finding[] = [];
   const base: Review = { from: r.from, to: r.to, logged: n, avgKcal, avgProtein, inBand, findings: f };
 
@@ -83,9 +86,9 @@ export function buildReview(r: ReviewInput): Review {
   } else f.push({ tone: 'good', title: 'Калории в норме', text: `В среднем ${fmt(avgKcal)} ккал при норме ${fmt(r.kcalGoal)}. В норме были ${inBand} из ${n} дней.` });
 
   // 3. days far above the goal, and whether a very low day came right before
-  const big = days.filter((d) => d.kcal > r.kcalGoal * 1.2);
+  const big = days.filter((d) => d.kcal > goalOf(d.date) * 1.2);
   if (big.length) {
-    const list = big.map((d) => `${dayName(d.date)} — ${fmt(d.kcal)} (+${fmt(d.kcal - r.kcalGoal)})`).join(', ');
+    const list = big.map((d) => `${dayName(d.date)} — ${fmt(d.kcal)} (+${fmt(d.kcal - goalOf(d.date))})`).join(', ');
     const afterLow = big.some((d) => {
       const prev = days.find((x) => x.date === addDays(d.date, -1));
       return prev != null && prev.kcal < r.kcalGoal * 0.8;
