@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { View } from 'react-native';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Pressable, View } from 'react-native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { currentWeight } from '@/db/repo';
 import { useProfile } from '@/lib/app-state';
@@ -72,7 +72,13 @@ export default function Nutrients() {
         const over = d.limit && pct > 100;
         const deficit = !d.limit && canFlagDeficit && pct < DEFICIT_PCT;
         return (
-          <View key={d.key} style={{ gap: 4 }}>
+          <Pressable
+            key={d.key}
+            onPress={() => router.push({ pathname: '/nutrient/[key]', params: { key: d.key, from: rangeFrom, to } })}
+            accessibilityRole="button"
+            accessibilityHint="Показать, какие продукты его дали"
+            style={({ pressed }) => ({ gap: 4, opacity: pressed ? 0.6 : 1 })}
+          >
             {i > 0 && <Divider />}
             <Row style={{ justifyContent: 'space-between', paddingTop: 6 }}>
               <T size={15} style={{ flexShrink: 1 }}>
@@ -84,7 +90,7 @@ export default function Nutrients() {
             </Row>
             <Bar value={Math.min(pct, 100)} max={100} color={color} />
             {over ? badge('выше лимита', t.danger) : deficit ? badge('возможный недостаток', t.warn) : null}
-          </View>
+          </Pressable>
         );
       })}
     </Card>
@@ -107,7 +113,7 @@ export default function Nutrients() {
       />
       <T dim size={13}>
         {periodText}. Примерная оценка: по данным с этикетки, если они есть, иначе по типу продукта (справочник USDA). Нормы — по МР
-        2.3.1.0253-21 для вашего пола и возраста. Быстрые записи без продукта не учитываются.
+        2.3.1.0253-21 для вашего пола и возраста. Быстрые записи без продукта не учитываются. Нажмите на строку, чтобы увидеть, какие продукты это дали.
       </T>
       {!canFlagDeficit ? (
         <T dim size={12}>

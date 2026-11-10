@@ -426,3 +426,39 @@ export function microsScore(m: Micros, p?: NormProfile | null): { ok: number; to
   const defs = NUTRIENTS.filter((d) => d.group !== 'other' && !d.limit);
   return { ok: defs.filter((d) => pctDV(d, m[d.key], p) >= 80).length, total: defs.length };
 }
+
+/** Which diary foods gave a nutrient over a period: amount per food name, biggest first. */
+export async function nutrientSources(db: SQLiteDatabase, key: NutrientKey, from: string, to: string): Promise<{ name: string; amount: number; grams: number }[]> {
+  const rows = await db.getAllAsync<Row & { entry_name: string }>(
+    `select e.name as entry_name, e.date, e.grams, f.name, f.category, f.micros, f.kcal, f.protein, f.carbs, f.fat, f.sugar, f.fiber, f.salt
+     from diary_entries e join foods f on f.id = e.food_id
+     where e.date between ? and ? and e.grams is not null`,
+    from,
+    to,
+  );
+  const by = new Map<string, { name: string; amount: number; grams: number }>();
+  for (const r of rows) {
+    const v = ((microsPer100(r).values[key] ?? 0) * r.grams) / 100;
+    const cur = by.get(r.entry_name) ?? { name: r.entry_name, amount: 0, grams: 0 };
+    cur.amount += v;
+    cur.grams += r.grams;
+    by.set(r.entry_name, cur);
+  }
+  return [...by.values()].filter((x) => x.amount > 0).sort((a, b) => b.amount - a.amount);
+}
+
+/** Foods rich in a nutrient among the built-in, own and already used ones: per 100 g and per 100 kcal. */
+export async function richFoods(db: SQLiteDatabase, key: NutrientKey, limit = 15) {
+  const rows = await db.getAllAsync<FoodLike & { id: string }>(
+    `select id, name, category, micros, kcal, protein, carbs, fat, sugar, fiber, salt from foods
+     where deleted = 0 and kcal > 0 and (source != 'off' or use_count > 0)`,
+  );
+  return rows
+    .map((f) => {
+      const per100 = microsPer100(f).values[key] ?? 0;
+      return { id: f.id, name: f.name, per100, per100kcal: (per100 / f.kcal) * 100 };
+    })
+    .filter((x) => x.per100 > 0)
+    .sort((a, b) => b.per100 - a.per100)
+    .slice(0, limit);
+}
