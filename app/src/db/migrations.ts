@@ -160,6 +160,10 @@ const MIGRATIONS: string[] = [
   alter table meals add column cooked_weight_g real;
   alter table foods add column meal_id text;
   `,
+  // 10: Nutri-Score grade (a–e) from Open Food Facts, when the product has one
+  `
+  alter table foods add column nutriscore text;
+  `,
 ];
 
 /** Code that runs right after the migration with the same index (inside its transaction). */

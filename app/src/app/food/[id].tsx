@@ -15,6 +15,15 @@ import { MicrosCard } from '@/ui/micros-card';
 import { MealPicker, NutrientCard, PortionPicker } from '@/ui/portion';
 import { space, useTheme } from '@/ui/theme';
 
+/** Nutri-Score: A is the best overall nutritional quality, E the worst. Fixed colours of the scale; white text passes on all five. */
+const NUTRI: Record<string, { color: string; text: string }> = {
+  a: { color: '#1E7B3C', text: 'Лучшая оценка состава.' },
+  b: { color: '#3F7D14', text: 'Хороший состав.' },
+  c: { color: '#946E00', text: 'Средний состав.' },
+  d: { color: '#B9520D', text: 'Состав ниже среднего: много сахара, соли или насыщенных жиров.' },
+  e: { color: '#C2392D', text: 'Худшая оценка состава: на каждый день не лучший выбор.' },
+};
+
 export default function FoodDetail() {
   const db = useSQLiteContext();
   const t = useTheme();
@@ -135,6 +144,18 @@ export default function FoodDetail() {
         </Card>
       ) : null}
 
+      {food.nutriscore ? (
+        <Row gap={space.s}>
+          <View style={{ backgroundColor: NUTRI[food.nutriscore]?.color ?? t.input, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
+            <T weight="800" color="#FFFFFF">
+              Nutri-Score {food.nutriscore.toUpperCase()}
+            </T>
+          </View>
+          <T dim size={13} style={{ flex: 1 }}>
+            {NUTRI[food.nutriscore]?.text} Оценка производителя базы Open Food Facts, от A до E.
+          </T>
+        </Row>
+      ) : null}
       {twin ? (
         <Card onPress={() => router.replace({ pathname: '/food/[id]', params: { id: twin.id, meal } })}>
           <T size={14}>

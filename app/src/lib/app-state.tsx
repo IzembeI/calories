@@ -5,7 +5,8 @@ import { getProfile, getSetting, type Profile } from '@/db/repo';
 import { ToastHost, type ToastMsg } from '@/ui/components';
 import { setDayStartHour, todayKey } from './dates';
 import { setHapticsEnabled } from './haptics';
-import { setKcalSchedule, type KcalSchedule } from './schedule';
+import { setMealTitles } from './nutrition';
+import { setDietBreak, setKcalSchedule, type DietBreak, type KcalSchedule } from './schedule';
 
 interface AppState {
   profile: Profile | null;
@@ -50,6 +51,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const before = todayKey();
     setDayStartHour(await getSetting<number>(db, 'day_start_hour', 0));
     setHapticsEnabled((await getSetting<boolean>(db, 'haptics', true)) !== false);
+    setDietBreak(await getSetting<DietBreak | null>(db, 'diet_break', null));
+    setMealTitles(await getSetting<Record<string, string> | null>(db, 'meal_titles', null));
     setKcalSchedule(await getSetting<KcalSchedule | null>(db, 'kcal_schedule', null));
     const after = todayKey();
     lastToday.current = after;

@@ -5,11 +5,12 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { dailyTotals, getSetting, latestMeasurements, measuredTypes, saveProfile, series, setSetting, type DayTotals, type MeasurementRow } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { addDays, daysBetween, formatShort, todayKey } from '@/lib/dates';
-import { estimateExpenditure, suggestGoal, MIN_LOGGED, MIN_WEIGH_INS } from '@/lib/expenditure';
+import { estimateExpenditure, isPlateau, suggestGoal, MIN_LOGGED, MIN_WEIGH_INS } from '@/lib/expenditure';
+import { dietBreakOn } from '@/lib/schedule';
 import { forecast, forecastText } from '@/lib/forecast';
 import { answerKcalRecalc, pendingKcalRecalc, type KcalRecalc } from '@/lib/goal-recalc';
 import { MEASUREMENTS } from '@/lib/measurements';
-import { ACTIVITY_LEVELS, fmt, macroTargets, tdee } from '@/lib/nutrition';
+import { ACTIVITY_LEVELS, fmt, kcalFloor, macroTargets, tdee } from '@/lib/nutrition';
 import { TREND_FROM, WEIGH_HINTS, trendText, weightTrend, type WeighHint } from '@/lib/trend';
 import { BarChart, LineChart } from '@/ui/charts';
 import { Bar, Button, Card, Divider, IconButton, ListItem, Row, Screen, Segmented, T } from '@/ui/components';
@@ -34,13 +35,15 @@ export default function Progress() {
   const [recent, setRecent] = useState<DayTotals[]>([]);
   /** local date of the last answer to the weekly expenditure check-in */
   const [checkinAt, setCheckinAt] = useState<string | null | undefined>(undefined);
+  /** local date of the last answer to the plateau card; undefined until loaded */
+  const [plateauAt, setPlateauAt] = useState<string | null | undefined>(undefined);
 
   const to = todayKey();
   const from = addDays(to, -(Number(range) - 1));
 
   const load = useCallback(async () => {
     // All weigh-ins up to the range end: the trend needs history before the range to be settled.
-    const [w, tt, l, ty, h, rc, ca] = await Promise.all([
+    const [w, tt, l, ty, h, rc, ca, pa] = await Promise.all([
       series(db, 'weight', '0000-01-01', to),
       dailyTotals(db, from, to),
       latestMeasurements(db, to),
@@ -48,7 +51,9 @@ export default function Progress() {
       getSetting<WeighHint>(db, 'weigh_hint', 'daily'),
       dailyTotals(db, addDays(to, -35), to),
       getSetting<string | null>(db, 'adaptive_checkin_at', null),
+      getSetting<string | null>(db, 'plateau_asked_at', null),
     ]);
+    setPlateauAt(pa);
     setRecent(rc);
     setCheckinAt(ca);
     setWeights(w);
@@ -111,6 +116,29 @@ export default function Progress() {
       await saveProfile(db, { ...profile, kcal_goal: suggestion.to, kcal_mode: 'adaptive' });
       await reloadProfile();
     }
+  };
+
+  // ----- plateau: three weeks without movement with an honest diary -----
+  const onBreak = dietBreakOn(to);
+  const plateau =
+    !onBreak &&
+    plateauAt !== undefined &&
+    (plateauAt == null || plateauAt <= addDays(to, -14)) &&
+    isPlateau(recent, trend?.series ?? [], profile.goal, profile.kcal_goal, to);
+  const answerPlateau = async (choice: 'lower' | 'break' | 'keep') => {
+    setPlateauAt(to);
+    await setSetting(db, 'plateau_asked_at', to);
+    if (choice === 'lower') {
+      const step = profile.goal === 'lose' ? -100 : 100;
+      const next = profile.goal === 'lose' ? Math.max(profile.kcal_goal + step, kcalFloor(profile.sex)) : profile.kcal_goal + step;
+      await saveProfile(db, { ...profile, kcal_goal: next, kcal_mode: profile.kcal_mode === 'formula' ? 'adaptive' : profile.kcal_mode });
+    }
+    if (choice === 'break') await setSetting(db, 'diet_break', { until: addDays(to, 13), kcal: exp.ok ? exp.e.tdee : Math.round(tdee(body) / 10) * 10 });
+    if (choice !== 'keep') await reloadProfile();
+  };
+  const endBreak = async () => {
+    await setSetting(db, 'diet_break', null);
+    await reloadProfile();
   };
 
   // ----- forecast of the goal date -----
@@ -209,6 +237,28 @@ export default function Progress() {
             : `Реальный расход посчитаем, когда за 4 недели наберётся ${MIN_LOGGED} заполненных дней и ${MIN_WEIGH_INS} взвешивания. Сейчас: ${exp.loggedDays} дн. и ${exp.weighIns} взвеш.`}
         </T>
       )}
+
+      {onBreak ? (
+        <Card>
+          <T weight="700">Перерыв в диете до {formatShort(onBreak.until)}</T>
+          <T dim size={13}>
+            Сейчас норма равна расходу: {fmt(onBreak.kcal)} ккал. Вес в эти дни держится, а не снижается — так и задумано. Потом вернётся прежняя норма {fmt(profile.kcal_goal)} ккал.
+          </T>
+          <Button small kind="secondary" title="Закончить перерыв" onPress={endBreak} />
+        </Card>
+      ) : null}
+
+      {plateau ? (
+        <Card>
+          <T weight="700">Вес стоит три недели</T>
+          <T dim size={13}>
+            Дневник вёлся и калории были в норме, значит дело не в пропусках. Так бывает: тело привыкает, расход падает. Есть три спокойных варианта.
+          </T>
+          <Button small title={profile.goal === 'lose' ? 'Снизить норму на 100 ккал' : 'Поднять норму на 100 ккал'} onPress={() => answerPlateau('lower')} />
+          <Button small kind="secondary" title="Перерыв на 2 недели: есть по расходу" onPress={() => answerPlateau('break')} />
+          <Button small kind="ghost" title="Оставить как есть" onPress={() => answerPlateau('keep')} />
+        </Card>
+      ) : null}
 
       {recalc && !exp.ok ? (
         <Card>

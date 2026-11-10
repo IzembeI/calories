@@ -9,7 +9,8 @@ import { setHapticsEnabled } from '@/lib/haptics';
 import { autoBackup, exportBackup, importBackup } from '@/lib/backup';
 import { DEFAULT_REMINDERS, applyReminders, ensurePermission, type Reminder } from '@/lib/reminders';
 import { type WeighHint } from '@/lib/trend';
-import { Button, Card, Divider, Row, Screen, Segmented, T } from '@/ui/components';
+import { MEALS } from '@/lib/nutrition';
+import { Button, Card, Divider, Field, Row, Screen, Segmented, T } from '@/ui/components';
 import { space, useTheme } from '@/ui/theme';
 
 const WEEKDAYS = ['', 'вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
@@ -25,6 +26,7 @@ export default function Settings() {
   const [dayStart, setDayStart] = useState('0');
   const [gameOn, setGameOn] = useState(true);
   const [haptics, setHaptics] = useState(true);
+  const [mealTitles, setMealTitlesState] = useState<Record<string, string>>({});
   const [lastAuto, setLastAuto] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export default function Settings() {
     getSetting<WeighHint>(db, 'weigh_hint', 'daily').then((h) => setWeighHint(h === 'weekly' ? 'weekly' : 'daily'));
     getSetting<boolean>(db, 'protein_hint', true).then((v) => setProteinHint(v !== false));
     getSetting<number>(db, 'day_start_hour', 0).then((h) => setDayStart(String(h)));
+    getSetting<Record<string, string>>(db, 'meal_titles', {}).then((v) => setMealTitlesState(v ?? {}));
     getSetting<boolean>(db, 'haptics', true).then((v) => setHaptics(v !== false));
     getSetting<boolean>(db, 'game_card', true).then((v) => setGameOn(v !== false));
     getSetting<boolean>(db, 'auto_backup', true).then((v) => setAutoOn(v !== false));
@@ -209,6 +212,31 @@ export default function Settings() {
         <T dim size={12}>
           Для тех, кто ложится поздно: если день начинается в 04:00, перекус в 01:30 запишется во вчерашний день.
         </T>
+      </Card>
+
+      <T weight="700" style={{ marginTop: space.s }}>
+        Названия приёмов пищи
+      </T>
+      <Card>
+        <T dim size={13}>
+          Можно назвать по-своему: например, «Перекусы» → «Полдник». Пустое поле вернёт обычное название.
+        </T>
+        <Row style={{ flexWrap: 'wrap' }}>
+          {MEALS.map((m) => (
+            <Field
+              key={m.type}
+              style={{ width: '47%' }}
+              value={mealTitles[m.type] ?? ''}
+              placeholder={m.title}
+              maxLength={20}
+              onChangeText={(v) => setMealTitlesState({ ...mealTitles, [m.type]: v })}
+              onEndEditing={async () => {
+                await setSetting(db, 'meal_titles', mealTitles);
+                await reloadProfile();
+              }}
+            />
+          ))}
+        </Row>
       </Card>
 
       <T weight="700" style={{ marginTop: space.s }}>

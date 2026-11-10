@@ -1,11 +1,13 @@
 import { useRef, useState } from 'react';
+import { queueBarcode } from '@/lib/barcode-queue';
 import { success } from '@/lib/haptics';
+import { setPickedFood } from '@/lib/picked';
 import { mealForNow } from '@/lib/nutrition';
 import { ActivityIndicator, Alert, Linking, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { getFoodByBarcode, saveFood } from '@/db/repo';
+import { getFoodByBarcode, saveFood, getFood } from '@/db/repo';
 import { normalizeScan } from '@/lib/gs1';
 import { OffError, offByBarcode } from '@/lib/off';
 import type { MealType } from '@/lib/nutrition';
@@ -15,7 +17,9 @@ import { space, useTheme } from '@/ui/theme';
 export default function Scanner() {
   const db = useSQLiteContext();
   const t = useTheme();
-  const params = useLocalSearchParams<{ meal?: MealType }>();
+  /** `pick` = opened from the dish editor: the found food goes back there instead of into the diary */
+  const params = useLocalSearchParams<{ meal?: MealType; pick?: string }>();
+  const picking = params.pick === '1';
   const [fallbackMeal] = useState(mealForNow);
   const meal = params.meal ?? fallbackMeal;
   const [permission, requestPermission] = useCameraPermissions();
@@ -54,6 +58,15 @@ export default function Scanner() {
     }
     try {
       const local = await getFoodByBarcode(db, code);
+      if (picking) {
+        const food = local ?? (await offByBarcode(code).then(async (f) => (f ? getFood(db, await saveFood(db, f)) : null)));
+        if (food) {
+          setPickedFood(food);
+          router.back();
+          setTimeout(success, 400);
+        } else Alert.alert('Продукт не найден', `Штрихкода ${code} нет в базе. Добавьте продукт в состав через поиск.`, [{ text: 'OK', onPress: unlock }]);
+        return;
+      }
       if (local) {
         router.replace({ pathname: '/food/[id]', params: { id: local.id, meal } });
         setTimeout(success, 400); // the Taptic Engine is silent while the camera is on
@@ -72,6 +85,22 @@ export default function Scanner() {
       ]);
     } catch (e) {
       const msg = e instanceof OffError ? e.message : 'Не удалось проверить штрихкод';
+      const offline = e instanceof OffError && (e.kind === 'network' || e.kind === 'rate');
+      if (offline && !picking) {
+        // no connection to the product database: log an estimate now, the barcode is looked up again later
+        Alert.alert('Нет связи с базой продуктов', 'Запишите еду примерно, а штрихкод мы проверим сами, когда связь появится, и предложим точный продукт.', [
+          { text: 'Ещё раз', style: 'cancel', onPress: unlock },
+          {
+            text: 'Записать примерно',
+            onPress: async () => {
+              await queueBarcode(db, code);
+              router.replace({ pathname: '/quick-add', params: { meal } });
+            },
+          },
+          { text: 'Создать продукт', onPress: () => router.replace({ pathname: '/food-edit', params: { barcode: code, meal } }) },
+        ]);
+        return;
+      }
       Alert.alert('Ошибка', `${msg}. Можно создать продукт вручную.`, [
         { text: 'Ещё раз', style: 'cancel', onPress: unlock },
         { text: 'Создать', onPress: () => router.replace({ pathname: '/food-edit', params: { barcode: code, meal } }) },

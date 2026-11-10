@@ -16,6 +16,15 @@ export function setKcalSchedule(s: KcalSchedule | null | undefined): void {
 }
 
 export const getKcalSchedule = () => current;
+
+/** «Перерыв в диете»: until this date (inclusive) every day gets the maintenance calories instead of the goal. */
+export interface DietBreak { until: string; kcal: number }
+let dietBreak: DietBreak | null = null;
+export function setDietBreak(b: DietBreak | null | undefined): void {
+  dietBreak = b && typeof b.until === 'string' && b.kcal > 0 ? b : null;
+}
+/** The break that covers `date`, if any. */
+export const dietBreakOn = (date: string): DietBreak | null => (dietBreak && date <= dietBreak.until ? dietBreak : null);
 export const scheduleOn = (s: KcalSchedule = current) => s.days.length > 0 && s.bonus > 0;
 
 /** Goals of a «high» day and of a usual day; the usual day never goes below the safe floor, the high day gives the rest. */
@@ -30,6 +39,8 @@ export function scheduleGoals(base: number, sex: Sex, s: KcalSchedule = current)
 
 /** Calorie goal of a diary day. */
 export function goalForDate(p: { kcal_goal: number; sex: Sex }, date: string, s: KcalSchedule = current): number {
+  const b = dietBreakOn(date);
+  if (b) return b.kcal;
   if (!scheduleOn(s)) return p.kcal_goal;
   const g = scheduleGoals(p.kcal_goal, p.sex, s);
   return s.days.includes(weekdayIndex(date)) ? g.high : g.low;

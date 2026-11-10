@@ -62,6 +62,8 @@ export interface FoodRow {
   micros: string | null;
   /** 1 = the user corrected this builtin / OFF product; Open Food Facts data never overwrites it */
   edited: number;
+  /** Nutri-Score grade 'a'…'e' from Open Food Facts, null when unknown */
+  nutriscore?: string | null;
   /** set on the hidden food of a home-made dish weighed after cooking (see saveMeal) */
   meal_id?: string | null;
   /** total grams of the last diary entry of this food; null = never logged */
@@ -279,15 +281,15 @@ export async function saveFood(db: SQLiteDatabase, f: FoodInput, id?: string): P
   }
   const theId = id ?? existingByBarcode?.id ?? uuid();
   await db.runAsync(
-    `insert into foods (id, source, barcode, name, brand, kcal, protein, fat, carbs, sugar, fiber, salt, servings, category, micros, edited, created_at, updated_at)
-     values ($id, $source, $barcode, $name, $brand, $kcal, $p, $f, $c, $sugar, $fiber, $salt, $servings, $cat, $micros, coalesce($edited, 0), $now, $now)
+    `insert into foods (id, source, barcode, name, brand, kcal, protein, fat, carbs, sugar, fiber, salt, servings, category, micros, nutriscore, edited, created_at, updated_at)
+     values ($id, $source, $barcode, $name, $brand, $kcal, $p, $f, $c, $sugar, $fiber, $salt, $servings, $cat, $micros, $ns, coalesce($edited, 0), $now, $now)
      on conflict(id) do update set source=$source, barcode=$barcode, name=$name, brand=$brand, kcal=$kcal, protein=$p, fat=$f,
-       carbs=$c, sugar=$sugar, fiber=$fiber, salt=$salt, servings=$servings, category=$cat, micros=$micros,
+       carbs=$c, sugar=$sugar, fiber=$fiber, salt=$salt, servings=$servings, category=$cat, micros=$micros, nutriscore=coalesce($ns, nutriscore),
        edited=coalesce($edited, edited), deleted=0, updated_at=$now`,
     {
       $id: theId, $source: f.source, $barcode: f.barcode || null, $name: f.name, $brand: f.brand || null,
       $kcal: f.kcal, $p: f.protein, $f: f.fat, $c: f.carbs, $sugar: f.sugar, $fiber: f.fiber, $salt: f.salt,
-      $servings: JSON.stringify(f.servings), $cat: f.category ?? null, $micros: f.micros ?? null, $edited: f.edited ?? null, $now: now,
+      $servings: JSON.stringify(f.servings), $cat: f.category ?? null, $micros: f.micros ?? null, $ns: f.nutriscore ?? null, $edited: f.edited ?? null, $now: now,
     },
   );
   return theId;

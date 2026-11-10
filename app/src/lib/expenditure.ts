@@ -98,3 +98,24 @@ export function suggestGoal(e: Expenditure, body: BodyInput, kcalGoal: number): 
           : `При нынешней норме профицит ${Math.round(kcalGoal - e.tdee)} ккал — это около ${kg(perWeek)} кг в неделю при плане ${kg(body.pace_kg_week)}.`;
   return { from: kcalGoal, to, reason };
 }
+
+// ---------- plateau ----------
+export const PLATEAU_DAYS = 21;
+
+/**
+ * True when the weight trend has not moved towards the goal for three weeks although the diary was kept
+ * (at least 15 filled days of 21) and the calories were on target. Then it is not a missed week, it is a plateau.
+ */
+export function isPlateau(days: DayTotals[], series: TrendPoint[], goal: 'lose' | 'gain' | 'maintain', kcalGoal: number, today: string): boolean {
+  if (goal === 'maintain' || !series.length) return false;
+  const from = addDays(today, -PLATEAU_DAYS);
+  const last = series[series.length - 1];
+  if (last.date < addDays(today, -4)) return false; // no recent weigh-in
+  const a = trendAt(series, from);
+  if (a == null || series.filter((p) => p.date >= from).length < 6) return false;
+  const logged = days.filter((d) => d.date >= from && d.date < today && d.kcal >= kcalGoal * LOGGED_SHARE);
+  if (logged.length < 15) return false;
+  const avg = logged.reduce((s, d) => s + d.kcal, 0) / logged.length;
+  const moved = last.trend - a; // kg over three weeks
+  return goal === 'lose' ? moved > -0.3 && avg <= kcalGoal * 1.05 : moved < 0.3 && avg >= kcalGoal * 0.95;
+}

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { deleteMeal, getMeal, getSetting, portion, saveMeal, searchFoods, setSetting, type FoodRow } from '@/db/repo';
 import { fmt, parseNum } from '@/lib/nutrition';
+import { takePickedFood } from '@/lib/picked';
 import { Button, Card, Divider, Field, IconButton, ListItem, NumField, Row, Screen, T } from '@/ui/components';
 import { artFor, FoodPic } from '@/ui/icons';
 import { NutrientCard } from '@/ui/portion';
@@ -46,6 +47,14 @@ export default function MealEdit() {
       setItems(m.items.map((i) => ({ food: { id: i.food_id, name: i.name, kcal: i.kcal, protein: i.protein, fat: i.fat, carbs: i.carbs }, grams: String(i.grams) })));
     });
   }, [db, id]);
+
+  // back from the scanner opened with «Скан»: the scanned food joins the ingredients
+  useFocusEffect(
+    useCallback(() => {
+      const f = takePickedFood();
+      if (f) setItems((cur) => [...cur, { food: f, grams: '100' }]);
+    }, []),
+  );
 
   useEffect(() => {
     if (q.trim().length < 2) return setResults([]);
@@ -155,7 +164,10 @@ export default function MealEdit() {
           </Row>
         ))}
       </Card>
-      <Field value={q} onChangeText={setQ} placeholder="Добавить продукт: поиск" autoCorrect={false} />
+      <Row>
+        <Field style={{ flex: 1 }} value={q} onChangeText={setQ} placeholder="Добавить продукт: поиск" autoCorrect={false} />
+        <Button title="Скан" icon="scan" kind="secondary" onPress={() => router.push({ pathname: '/scanner', params: { pick: '1' } })} />
+      </Row>
       {listText == null ? (
         <Button small kind="ghost" title="Вставить список текстом" onPress={() => setListText('')} />
       ) : (

@@ -12,6 +12,13 @@ export const MEALS: { type: MealType; title: string }[] = [
   { type: 'snack', title: 'Перекусы' },
 ];
 
+const DEFAULT_TITLES: Record<MealType, string> = { breakfast: 'Завтрак', lunch: 'Обед', dinner: 'Ужин', snack: 'Перекусы' };
+
+/** Own names of the four meals («Перекусы» → «Полдник»); empty or missing = the default. Loaded at startup by lib/app-state.tsx. */
+export function setMealTitles(titles: Record<string, string> | null | undefined): void {
+  for (const m of MEALS) m.title = titles?.[m.type]?.trim() || DEFAULT_TITLES[m.type];
+}
+
 /** Meal for «now», used when a screen is opened without one (the icon's quick actions). */
 export function mealForNow(now: Date = new Date()): MealType {
   const h = now.getHours();

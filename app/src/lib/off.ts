@@ -4,7 +4,7 @@ import type { FoodInput, Serving } from '@/db/repo';
 import { guessCategory } from './micros';
 
 const UA = 'Kalorii/1.0 (personal iOS app)';
-const FIELDS = 'code,product_name,product_name_ru,generic_name_ru,brands,nutriments,serving_size,serving_quantity,quantity';
+const FIELDS = 'nutriscore_grade,code,product_name,product_name_ru,generic_name_ru,brands,nutriments,serving_size,serving_quantity,quantity';
 const TIMEOUT_MS = 12000;
 
 export class OffError extends Error {
@@ -79,6 +79,7 @@ export function mapProduct(p: any): FoodInput | null {
   const real = Object.fromEntries(Object.entries(label).filter(([, v]) => v != null));
   return {
     category: guessCategory(name),
+    nutriscore: /^[a-e]$/.test(text(p.nutriscore_grade).toLowerCase()) ? text(p.nutriscore_grade).toLowerCase() : null,
     micros: Object.keys(real).length ? JSON.stringify(real) : null,
     source: 'off',
     barcode: text(p.code) || null,

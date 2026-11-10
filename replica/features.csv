@@ -38,7 +38,7 @@ Water reminders,water,could,yes,yes,
 Progress photos,measurements,could,yes,no,
 Apple Health: write weight / read steps,integrations,could,yes,no,later
 Home screen widget,general,could,yes,no,later
-Food quality rating (Nutri-Score from OFF),food,could,yes,no,
+Food quality rating (Nutri-Score from OFF),food,could,yes,yes,
 Intermittent fasting timer and plans,fasting,skip,yes,skip,removed at user request
 YAZIO recipe catalogue,recipes,skip,yes,skip,owned content
 YAZIO food database,food,skip,yes,skip,owned data; replaced by Open Food Facts
@@ -64,9 +64,11 @@ My foods manager: search / sort / undo delete / merge duplicates,foods,could,no,
 Quick actions on the app icon and haptics,system,could,no,yes,needs a check on the device
 Calorie schedule by weekday,goals,could,no,yes,
 Micronutrients from USDA: specific foods and dishes as blends,nutrients,should,no,yes,217 foods
-Custom meal slots (second breakfast etc),diary,could,no,no,roadmap w3
+Custom meal slots (second breakfast etc),diary,could,no,partial,the four meals can be renamed; extra slots need a table rebuild
 Day notes and wellbeing tags,diary,could,no,no,roadmap w3
-Plateau / diet break / maintenance mode,goals,could,no,no,roadmap w3
-Offline barcode queue,foods,should,no,no,roadmap w2
+Plateau card with a two-week diet break,goals,could,no,yes,
+Offline barcode queue: log an estimate and look the code up later,foods,should,no,yes,
 Restaurant chains pack,foods,could,no,no,roadmap w3
 Siri / Shortcuts / Spotlight,system,could,no,no,roadmap w4; TrollStore risk
+Scan a barcode while composing a dish,foods,could,no,yes,asked for in reviews
+Portions when logging a dish by ingredients,foods,could,no,yes,asked for in reviews

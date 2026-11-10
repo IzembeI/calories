@@ -24,7 +24,7 @@ import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
 import { OffError, offSearch } from '@/lib/off';
 import { tap } from '@/lib/haptics';
-import { fmt, mealForNow, mealTitle, type MealType } from '@/lib/nutrition';
+import { fmt, mealForNow, mealTitle, parseNum, type MealType } from '@/lib/nutrition';
 import { groupHits, variantsLabel, type Hit, type HitGroup } from '@/lib/search-groups';
 import { Button, Divider, Empty, Field, IconButton, ListItem, Plus, Row, Segmented, T } from '@/ui/components';
 import { artFor, FoodPic } from '@/ui/icons';
@@ -154,16 +154,26 @@ export default function AddFood() {
     // a dish weighed after cooking is logged by grams, like any food
     m.cooked_weight_g
       ? openFood(mealFoodId(m.id))
-      : Alert.alert(m.name, `Добавить все продукты блюда (${fmt(m.kcal)} ккал) в «${mealTitle(meal)}»?`, [
-      { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Добавить',
-        onPress: async () => {
-          await logMeal(db, m.id, date, meal);
-          router.back();
-        },
-      },
-    ]);
+      : Alert.prompt(
+          m.name,
+          `Всё блюдо — ${fmt(m.kcal)} ккал. Сколько порций добавить в «${mealTitle(meal)}»? Можно дробно: 0,5.`,
+          [
+            { text: 'Отмена', style: 'cancel' },
+            {
+              text: 'Добавить',
+              onPress: async (text?: string) => {
+                const k = parseNum(text ?? '1');
+                if (!k || k <= 0 || k > 20) return Alert.alert('Введите число порций, например 1 или 0,5');
+                await logMeal(db, m.id, date, meal, k);
+                tap();
+                router.back();
+              },
+            },
+          ],
+          'plain-text',
+          '1',
+          'decimal-pad',
+        );
 
   const searching = q.trim().length >= 2;
   const grouped = useMemo(() => groupHits(local, off), [local, off]);

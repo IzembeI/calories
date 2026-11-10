@@ -1,0 +1,348 @@
+{
+ "_about": "Themes for calorie-tracking apps, Russian and English. See replica-entrepreneur.",
+ "request_patterns": [
+  "\\bi wish\\b",
+  "\\bplease add\\b",
+  "\\bwould be (nice|great|good|helpful)\\b",
+  "\\bwould love\\b",
+  "\\bneeds? (a|an|the|to|more)\\b",
+  "\\bno way to\\b",
+  "\\bthere'?s no (way|option)\\b",
+  "\\b(can'?t|cannot|unable to) (even )?(add|change|edit|set|choose|export|import|customi[sz]e|connect|undo|delete|turn off)\\b",
+  "\\b(missing|lacks|lacking)\\b",
+  "\\bdoesn'?t (have|support|let|allow)\\b",
+  "\\bif only\\b",
+  "\\bfeature request\\b",
+  "\\bwhy (can'?t|isn'?t|doesn'?t)\\b",
+  "хотелось бы",
+  "добавьте",
+  "пожалуйста,? (добавьте|сделайте|верните)",
+  "не хватает",
+  "нет возможности",
+  "нельзя (добавить|изменить|удалить|отключить|выбрать)",
+  "было бы (здорово|удобно|хорошо)",
+  "почему (нельзя|нет)",
+  "верните"
+ ],
+ "themes": [
+  {
+   "id": "pricing",
+   "label": "Цена, подписка, платные функции",
+   "kind": "complaint",
+   "patterns": [
+    "подписк",
+    "платн",
+    "за деньги",
+    "дорог",
+    "премиум",
+    "pro\\b",
+    "paywall",
+    "subscription",
+    "premium",
+    "expensive",
+    "\\bpric",
+    "free (version|trial)",
+    "бесплатн\\w* (верси|период)",
+    "оплат"
+   ]
+  },
+  {
+   "id": "billing",
+   "label": "Списания, отмена и возврат денег",
+   "kind": "complaint",
+   "patterns": [
+    "списал",
+    "списани",
+    "вернит\\w* деньги",
+    "возврат",
+    "отмен\\w* подписк",
+    "мошенн",
+    "развод",
+    "charged",
+    "refund",
+    "cancel",
+    "scam",
+    "auto.?renew"
+   ]
+  },
+  {
+   "id": "ads",
+   "label": "Реклама и навязчивые окна",
+   "kind": "complaint",
+   "patterns": [
+    "реклам",
+    "баннер",
+    "всплыва",
+    "\\bads\\b",
+    "advert",
+    "pop.?up"
+   ]
+  },
+  {
+   "id": "bugs",
+   "label": "Ошибки, вылеты, не работает",
+   "kind": "complaint",
+   "patterns": [
+    "вылета",
+    "зависа",
+    "глюч",
+    "ошибк",
+    "не работает",
+    "не открывается",
+    "не загружа",
+    "сломал",
+    "crash",
+    "\\bbugs?\\b",
+    "glitch",
+    "freez",
+    "not working",
+    "doesn'?t work",
+    "broken",
+    "error"
+   ]
+  },
+  {
+   "id": "updates",
+   "label": "После обновления стало хуже",
+   "kind": "complaint",
+   "patterns": [
+    "после обновлени",
+    "обновлени\\w* (испорти|слома|убра|хуже)",
+    "раньше было",
+    "верните",
+    "новый дизайн",
+    "redesign",
+    "since the (last |latest )?update",
+    "new (update|version|design)",
+    "used to be",
+    "bring back"
+   ]
+  },
+  {
+   "id": "database",
+   "label": "База продуктов: ошибки, дубли, нет продуктов",
+   "kind": "complaint",
+   "patterns": [
+    "баз\\w* продукт",
+    "нет продукт",
+    "неправильн\\w* (калори|данн|бжу)",
+    "неверн\\w* (калори|данн|бжу)",
+    "дубл",
+    "не находит",
+    "database",
+    "wrong (calorie|nutrition|macro)",
+    "inaccurate",
+    "incorrect",
+    "can'?t find (the )?food",
+    "duplicate"
+   ]
+  },
+  {
+   "id": "scanner",
+   "label": "Сканер штрихкодов",
+   "kind": "complaint",
+   "patterns": [
+    "штрих.?код",
+    "сканер",
+    "сканир",
+    "barcode",
+    "scanner",
+    "\\bscan"
+   ]
+  },
+  {
+   "id": "ai",
+   "label": "ИИ и распознавание по фото",
+   "kind": "complaint",
+   "patterns": [
+    "\\bии\\b",
+    "искусственн",
+    "нейросет",
+    "по фото",
+    "распознава",
+    "\\bai\\b",
+    "photo (log|recogn|scan)",
+    "meal scan",
+    "snap"
+   ]
+  },
+  {
+   "id": "logging",
+   "label": "Долго и неудобно записывать еду",
+   "kind": "complaint",
+   "patterns": [
+    "неудобн",
+    "много (нажатий|действий|кликов)",
+    "долго (вводить|добавлять|записывать)",
+    "сложно",
+    "запутан",
+    "confus",
+    "clunky",
+    "too many (steps|taps|clicks)",
+    "hard to (use|log|find)",
+    "tedious",
+    "time.?consuming",
+    "complicated"
+   ]
+  },
+  {
+   "id": "data",
+   "label": "Потеря данных, синхронизация, вход",
+   "kind": "complaint",
+   "patterns": [
+    "пропал\\w* (данн|запис|всё|все)",
+    "потерял",
+    "синхрониз",
+    "не могу войти",
+    "аккаунт",
+    "регистрац",
+    "lost (my|all)",
+    "sync",
+    "log ?in",
+    "sign ?in",
+    "account",
+    "data (loss|gone)"
+   ]
+  },
+  {
+   "id": "offline",
+   "label": "Работа без интернета и из России",
+   "kind": "complaint",
+   "patterns": [
+    "без интернет",
+    "офлайн",
+    "оффлайн",
+    "из россии",
+    "в россии",
+    "vpn",
+    "впн",
+    "offline",
+    "no internet",
+    "without (wifi|internet)"
+   ]
+  },
+  {
+   "id": "goals",
+   "label": "Нормы калорий и цели считаются плохо",
+   "kind": "complaint",
+   "patterns": [
+    "норм\\w* калори",
+    "слишком (мало|много) калори",
+    "цел\\w* (калори|вес)",
+    "calorie goal",
+    "too (few|low|many) calories",
+    "1200",
+    "goal (weight|calories)",
+    "recalculat",
+    "пересчит"
+   ]
+  },
+  {
+   "id": "support",
+   "label": "Поддержка не отвечает",
+   "kind": "complaint",
+   "patterns": [
+    "поддержк",
+    "не отвечают",
+    "support",
+    "no (response|reply)",
+    "customer service"
+   ]
+  },
+  {
+   "id": "recipes",
+   "label": "Рецепты и свои блюда",
+   "kind": "request",
+   "patterns": [
+    "рецепт",
+    "сво\\w+ блюд",
+    "recipe",
+    "my (meals|dishes)",
+    "custom (meal|food)"
+   ]
+  },
+  {
+   "id": "micros",
+   "label": "Витамины, минералы, клетчатка, сахар",
+   "kind": "request",
+   "patterns": [
+    "витамин",
+    "минерал",
+    "клетчатк",
+    "микронутр",
+    "сахар",
+    "vitamin",
+    "mineral",
+    "fiber",
+    "micronutr",
+    "sodium",
+    "sugar"
+   ]
+  },
+  {
+   "id": "export",
+   "label": "Экспорт, отчёты, резервная копия",
+   "kind": "request",
+   "patterns": [
+    "экспорт",
+    "выгруз",
+    "pdf",
+    "excel",
+    "csv",
+    "резервн",
+    "бэкап",
+    "export",
+    "backup",
+    "report"
+   ]
+  },
+  {
+   "id": "watch",
+   "label": "Часы, виджеты, Apple Здоровье",
+   "kind": "request",
+   "patterns": [
+    "apple watch",
+    "часы",
+    "виджет",
+    "здоровье",
+    "health ?kit",
+    "apple health",
+    "widget",
+    "garmin",
+    "fitbit"
+   ]
+  },
+  {
+   "id": "fasting",
+   "label": "Интервальное голодание",
+   "kind": "request",
+   "patterns": [
+    "голодани",
+    "fasting"
+   ]
+  },
+  {
+   "id": "water",
+   "label": "Вода",
+   "kind": "request",
+   "patterns": [
+    "\\bвод[аыу]\\b",
+    "water"
+   ]
+  },
+  {
+   "id": "mealplan",
+   "label": "Свои приёмы пищи, планы питания",
+   "kind": "request",
+   "patterns": [
+    "при[её]м\\w* пищи",
+    "перекус",
+    "план питани",
+    "meal plan",
+    "snack",
+    "meal (slot|times?)",
+    "more meals"
+   ]
+  }
+ ]
+}

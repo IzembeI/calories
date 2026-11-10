@@ -6,10 +6,11 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { clearMeal, copyEntries, copyMeal, currentWeight, dailyTotals, deleteEntries, entriesForDate, moveEntries, restoreEntry, unmoveEntries, getSetting, measurementsForDate, setMeasurement, type Entry } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { WEEKDAYS_SHORT, addDays, formatDay, fromKey, relativeDayTitle, todayKey, weekStart } from '@/lib/dates';
+import { retryQueuedBarcode } from '@/lib/barcode-queue';
 import { daysWord, type Game } from '@/lib/game';
 import { loadGame } from '@/lib/game-load';
 import { NUTRIENTS, dayFiberExact, dayMicros, dvFor, microsScore, type Micros } from '@/lib/micros';
-import { goalForDate, scheduleOn } from '@/lib/schedule';
+import { dietBreakOn, goalForDate, scheduleOn } from '@/lib/schedule';
 import { MEALS, PROTEIN_MEAL_MIN_G, fmt, macroTargets, parseNum, type MealType } from '@/lib/nutrition';
 import { BackupNudge } from '@/ui/backup-nudge';
 import { CalendarModal } from '@/ui/calendar';
@@ -71,6 +72,12 @@ export default function Diary() {
     // the streak and level are about today, whatever day is open
     const g = (await getSetting<boolean>(db, 'game_card', true)) !== false ? await loadGame(db, profile, todayKey()) : null;
     if (my === req.current) setGame(g);
+    // barcodes scanned without a connection: look one up again, quietly
+    retryQueuedBarcode(db)
+      .then((f) => {
+        if (f) showToast({ text: `Нашёлся продукт по штрихкоду: ${f.name}`, action: { label: 'Открыть', onPress: () => router.push({ pathname: '/food/[id]', params: { id: f.id } }) } });
+      })
+      .catch(() => {});
   }, [db, date, profile, diaryVersion]);
 
   useFocusEffect(
@@ -237,7 +244,11 @@ export default function Diary() {
             </Ring>
             <Stat label="Норма" value={goal} />
           </Row>
-          {scheduleOn() ? (
+          {dietBreakOn(date) ? (
+            <T dim size={12} center>
+              Перерыв в диете: норма равна расходу
+            </T>
+          ) : scheduleOn() ? (
             <T dim size={12} center>
               {goal > profile.kcal_goal ? 'День с прибавкой по графику' : 'Обычный день по графику'} · неделя: осталось{' '}
               {fmt(Math.max(profile.kcal_goal * 7 - weekEaten, 0))} из {fmt(profile.kcal_goal * 7)} ккал
