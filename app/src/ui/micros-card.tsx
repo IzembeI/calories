@@ -9,7 +9,7 @@ import { useTheme } from './theme';
 type FoodLike = Parameters<typeof microsPer100>[0];
 
 /** Vitamins, minerals and sugars in a portion, with % of the daily value. */
-export function MicrosCard({ food, grams }: { food: FoodLike; grams: number }) {
+export function MicrosCard({ food, grams }: { food: FoodLike & { meal_id?: string | null }; grams: number }) {
   const t = useTheme();
   const { profile } = useApp();
   const [all, setAll] = useState(false);
@@ -28,7 +28,7 @@ export function MicrosCard({ food, grams }: { food: FoodLike; grams: number }) {
         </T>
       </Row>
       <T dim size={12}>
-        {!estimated ? 'по данным с этикетки' : parts ? `≈ оценка по составу: ${partsText(parts)}` : `≈ оценка по типу «${categoryTitle(category)}»`}
+        {food.meal_id ? '≈ посчитано по составу блюда' : !estimated ? 'по данным с этикетки' : parts ? `≈ оценка по составу: ${partsText(parts)}` : `≈ оценка по типу «${categoryTitle(category)}»`}
       </T>
       {shown.map(({ d, v, pct }, i) => (
         <View key={d.key}>

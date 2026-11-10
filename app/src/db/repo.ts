@@ -3,6 +3,7 @@ import { randomUUID } from 'expo-crypto';
 import { nowIso } from '@/lib/dates';
 import type { ActivityLevel, Goal, KcalMode, MealType, ProteinRef, Sex } from '@/lib/nutrition';
 import type { MeasurementType } from '@/lib/measurements';
+import { addMicros, microsPer100, scaleMicros, type Micros } from '@/lib/micros';
 import { weightTrend, type WeightTrend } from '@/lib/trend';
 import type { Serving } from '@/data/basic-foods';
 
@@ -61,13 +62,15 @@ export interface FoodRow {
   micros: string | null;
   /** 1 = the user corrected this builtin / OFF product; Open Food Facts data never overwrites it */
   edited: number;
+  /** set on the hidden food of a home-made dish weighed after cooking (see saveMeal) */
+  meal_id?: string | null;
   /** total grams of the last diary entry of this food; null = never logged */
   last_grams?: number | null;
   /** serving name of that entry (Serving.name); null = it was logged in grams */
   last_serving?: string | null;
 }
 
-export type FoodInput = Omit<FoodRow, 'id' | 'favourite' | 'last_used_at' | 'servings' | 'category' | 'micros' | 'edited' | 'last_grams' | 'last_serving'> & {
+export type FoodInput = Omit<FoodRow, 'id' | 'favourite' | 'last_used_at' | 'servings' | 'category' | 'micros' | 'edited' | 'last_grams' | 'last_serving' | 'meal_id'> & {
   servings: Serving[];
   category?: string | null;
   micros?: string | null;
@@ -90,7 +93,10 @@ export interface Entry {
 }
 
 export interface MeasurementRow { id: string; date: string; type: MeasurementType; value: number }
-export interface MealRow { id: string; name: string; items: number; kcal: number }
+export interface MealRow { id: string; name: string; items: number; kcal: number; /** net weight of the cooked dish, null = logged by ingredients */ cooked_weight_g: number | null }
+
+/** Id of the hidden food row that stands for a dish weighed after cooking. */
+export const mealFoodId = (mealId: string) => `meal-${mealId}`;
 export interface MealItemRow { id: string; meal_id: string; food_id: string; grams: number; name: string; kcal: number; protein: number | null; fat: number | null; carbs: number | null }
 
 export const servingsOf = (f: Pick<FoodRow, 'servings'>): Serving[] => {
@@ -246,7 +252,7 @@ export async function favouriteFoods(db: SQLiteDatabase): Promise<FoodRow[]> {
 }
 
 export async function customFoods(db: SQLiteDatabase): Promise<FoodRow[]> {
-  return db.getAllAsync<FoodRow>("select * from foods where deleted = 0 and source = 'custom' order by name");
+  return db.getAllAsync<FoodRow>("select * from foods where deleted = 0 and source = 'custom' and meal_id is null order by name");
 }
 
 export async function getFood(db: SQLiteDatabase, id: string): Promise<FoodRow | null> {
@@ -494,14 +500,14 @@ export async function datesWithEntries(db: SQLiteDatabase, from: string, to: str
 
 export async function listMeals(db: SQLiteDatabase): Promise<MealRow[]> {
   return db.getAllAsync<MealRow>(
-    `select m.id, m.name, count(i.id) as items, coalesce(sum(f.kcal * i.grams / 100), 0) as kcal
+    `select m.id, m.name, m.cooked_weight_g, count(i.id) as items, coalesce(sum(f.kcal * i.grams / 100), 0) as kcal
      from meals m left join meal_items i on i.meal_id = m.id left join foods f on f.id = i.food_id
      group by m.id order by m.name`,
   );
 }
 
 export async function getMeal(db: SQLiteDatabase, id: string) {
-  const meal = await db.getFirstAsync<{ id: string; name: string }>('select id, name from meals where id = ?', id);
+  const meal = await db.getFirstAsync<{ id: string; name: string; cooked_weight_g: number | null }>('select id, name, cooked_weight_g from meals where id = ?', id);
   const items = await db.getAllAsync<MealItemRow>(
     `select i.id, i.meal_id, i.food_id, i.grams, f.name, f.kcal, f.protein, f.fat, f.carbs
      from meal_items i join foods f on f.id = i.food_id where i.meal_id = ? order by rowid`,
@@ -510,24 +516,62 @@ export async function getMeal(db: SQLiteDatabase, id: string) {
   return meal ? { ...meal, items } : null;
 }
 
-export async function saveMeal(db: SQLiteDatabase, id: string | null, name: string, items: { food_id: string; grams: number }[]) {
+/**
+ * `cookedWeight` = net grams of the ready dish (pot subtracted). With it the dish also becomes a food
+ * («350 г борща»): a hidden row with КБЖУ and micronutrients per 100 g of the cooked weight, summed from the ingredients.
+ */
+export async function saveMeal(
+  db: SQLiteDatabase,
+  id: string | null,
+  name: string,
+  items: { food_id: string; grams: number }[],
+  cookedWeight: number | null = null,
+) {
   const theId = id ?? uuid();
   const now = nowIso();
   await db.withTransactionAsync(async () => {
     await db.runAsync(
-      'insert into meals (id, name, created_at, updated_at) values (?, ?, ?, ?) on conflict(id) do update set name = excluded.name, updated_at = excluded.updated_at',
-      theId, name, now, now,
+      `insert into meals (id, name, cooked_weight_g, created_at, updated_at) values (?, ?, ?, ?, ?)
+       on conflict(id) do update set name = excluded.name, cooked_weight_g = excluded.cooked_weight_g, updated_at = excluded.updated_at`,
+      theId, name, cookedWeight, now, now,
     );
     await db.runAsync('delete from meal_items where meal_id = ?', theId);
     for (const it of items) {
       await db.runAsync('insert into meal_items (id, meal_id, food_id, grams) values (?, ?, ?, ?)', uuid(), theId, it.food_id, it.grams);
     }
+    const foodId = mealFoodId(theId);
+    if (cookedWeight == null || cookedWeight <= 0) {
+      await db.runAsync('update foods set deleted = 1, favourite = 0 where id = ?', foodId);
+      return;
+    }
+    // totals of the pot → per 100 g of the ready dish
+    const sum = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
+    let micros: Micros = {};
+    for (const it of items) {
+      const f = await getFood(db, it.food_id);
+      if (!f) continue;
+      const n = portion(f, it.grams);
+      sum.kcal += n.kcal; sum.protein += n.protein; sum.fat += n.fat; sum.carbs += n.carbs;
+      micros = addMicros(micros, scaleMicros(microsPer100(f).values, it.grams));
+    }
+    const k = 100 / cookedWeight;
+    const r2 = (x: number) => Math.round(x * k * 100) / 100;
+    const per100 = Object.fromEntries(Object.entries(micros).map(([key, v]) => [key, Math.round((v ?? 0) * k * 1000) / 1000]));
+    await db.runAsync(
+      `insert into foods (id, source, name, kcal, protein, fat, carbs, sugar, fiber, servings, micros, meal_id, created_at, updated_at)
+       values (?, 'custom', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       on conflict(id) do update set name = excluded.name, kcal = excluded.kcal, protein = excluded.protein, fat = excluded.fat,
+         carbs = excluded.carbs, sugar = excluded.sugar, fiber = excluded.fiber, micros = excluded.micros, deleted = 0, updated_at = excluded.updated_at`,
+      foodId, name, r2(sum.kcal), r2(sum.protein), r2(sum.fat), r2(sum.carbs), per100.sugar ?? null, per100.fiber ?? null,
+      JSON.stringify([{ name: 'порция', grams: 250 }]), JSON.stringify(per100), theId, now, now,
+    );
   });
   return theId;
 }
 
 export async function deleteMeal(db: SQLiteDatabase, id: string) {
   await db.runAsync('delete from meals where id = ?', id);
+  await db.runAsync('update foods set deleted = 1, favourite = 0 where id = ?', mealFoodId(id));
 }
 
 export async function logMeal(db: SQLiteDatabase, mealId: string, date: string, mealType: MealType, factor = 1) {

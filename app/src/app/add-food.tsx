@@ -9,6 +9,7 @@ import {
   favouriteFoods,
   foodUsage,
   listMeals,
+  mealFoodId,
   logMeal,
   portion,
   recentFoods,
@@ -146,7 +147,10 @@ export default function AddFood() {
   };
 
   const addMeal = (m: MealRow) =>
-    Alert.alert(m.name, `Добавить все продукты блюда (${fmt(m.kcal)} ккал) в «${mealTitle(meal)}»?`, [
+    // a dish weighed after cooking is logged by grams, like any food
+    m.cooked_weight_g
+      ? openFood(mealFoodId(m.id))
+      : Alert.alert(m.name, `Добавить все продукты блюда (${fmt(m.kcal)} ккал) в «${mealTitle(meal)}»?`, [
       { text: 'Отмена', style: 'cancel' },
       {
         text: 'Добавить',
@@ -265,7 +269,7 @@ export default function AddFood() {
                     key={m.id}
                     left={<FoodPic art="plate" />}
                     title={m.name}
-                    subtitle={`${m.items} прод. · ${fmt(m.kcal)} ккал`}
+                    subtitle={m.cooked_weight_g ? `${fmt((m.kcal / m.cooked_weight_g) * 100)} ккал / 100 г · готового ${fmt(m.cooked_weight_g)} г` : `${m.items} прод. · ${fmt(m.kcal)} ккал`}
                     onPress={() => addMeal(m)}
                     onLongPress={() => router.push({ pathname: '/meal-edit', params: { id: m.id } })}
                     right={<IconButton label="✎" onPress={() => router.push({ pathname: '/meal-edit', params: { id: m.id } })} />}

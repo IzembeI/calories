@@ -79,7 +79,8 @@ export default function FoodDetail() {
   };
 
   const missing = food.protein == null || food.fat == null || food.carbs == null;
-  const edit = () => router.push({ pathname: '/food-edit', params: { id: food.id } });
+  // a dish weighed after cooking is edited as a dish: its numbers come from the ingredients
+  const edit = () => (food.meal_id ? router.push({ pathname: '/meal-edit', params: { id: food.meal_id } }) : router.push({ pathname: '/food-edit', params: { id: food.id } }));
   // the user's own and already corrected products are not nagged; the edit form still shows the hint
   const check =
     food.source !== 'custom' && !food.edited ? kcalCheck({ ...food, category: food.category ?? guessCategory(food.name) }) : null;
