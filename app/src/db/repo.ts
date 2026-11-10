@@ -297,6 +297,19 @@ export async function deleteFood(db: SQLiteDatabase, id: string): Promise<void> 
   await db.runAsync('update foods set deleted = 1, favourite = 0 where id = ?', id);
 }
 
+export async function restoreFood(db: SQLiteDatabase, id: string): Promise<void> {
+  await db.runAsync('update foods set deleted = 0 where id = ?', id);
+}
+
+/** Merges a duplicate into another food: diary entries and dish ingredients move to `keepId`, the duplicate is hidden. */
+export async function mergeFoods(db: SQLiteDatabase, keepId: string, removeId: string): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('update diary_entries set food_id = ? where food_id = ?', keepId, removeId);
+    await db.runAsync('update meal_items set food_id = ? where food_id = ?', keepId, removeId);
+    await db.runAsync('update foods set deleted = 1, favourite = 0 where id = ?', removeId);
+  });
+}
+
 export async function toggleFavourite(db: SQLiteDatabase, id: string): Promise<boolean> {
   await db.runAsync('update foods set favourite = 1 - favourite where id = ?', id);
   const r = await db.getFirstAsync<{ favourite: number }>('select favourite from foods where id = ?', id);
