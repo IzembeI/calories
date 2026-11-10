@@ -13,7 +13,7 @@ export function MicrosCard({ food, grams }: { food: FoodLike & { meal_id?: strin
   const t = useTheme();
   const { profile } = useApp();
   const [all, setAll] = useState(false);
-  const { values, estimated, category, parts } = microsPer100(food);
+  const { values, estimated, category, parts, specific } = microsPer100(food);
   const m = scaleMicros(values, grams);
   const rows = NUTRIENTS.map((d) => ({ d, v: m[d.key] ?? 0, pct: pctDV(d, m[d.key], profile) }));
   const top = rows.filter((r) => r.d.group !== 'other' && !r.d.limit).sort((a, b) => b.pct - a.pct);
@@ -28,7 +28,7 @@ export function MicrosCard({ food, grams }: { food: FoodLike & { meal_id?: strin
         </T>
       </Row>
       <T dim size={12}>
-        {food.meal_id ? '≈ посчитано по составу блюда' : !estimated ? 'по данным с этикетки' : parts ? `≈ оценка по составу: ${partsText(parts)}` : `≈ оценка по типу «${categoryTitle(category)}»`}
+        {food.meal_id ? '≈ посчитано по составу блюда' : !estimated ? 'по данным с этикетки' : parts ? `≈ оценка по составу: ${partsText(parts)}` : specific ? '≈ по таблице USDA для этого продукта' : `≈ оценка по типу «${categoryTitle(category)}»`}
       </T>
       {shown.map(({ d, v, pct }, i) => (
         <View key={d.key}>

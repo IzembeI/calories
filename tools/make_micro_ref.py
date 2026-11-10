@@ -37,7 +37,7 @@ NUTRIENTS = {
     'se': ('Selenium, Se', 'µg'),
     'chol': ('Cholesterol', 'mg'),
 }
-EXTRA = {'carb': 'Carbohydrate, by difference', 'fat': 'Total lipid (fat)', 'sugar': 'Sugars, Total',
+EXTRA = {'protein': 'Protein', 'carb': 'Carbohydrate, by difference', 'fat': 'Total lipid (fat)', 'sugar': 'Sugars, Total',
          'fiber': 'Fiber, total dietary', 'satfat': 'Fatty acids, total saturated'}
 
 # key: (title, include regex, exclude regex or None, added-sugar share of total sugars)
@@ -125,6 +125,8 @@ for cat, (title, _, _, added_share) in CATEGORIES.items():
     rec['fiber_per_carb'] = round(min(fiber / carb, 1), 3) if carb > 0.5 else 0
     rec['sat_per_fat'] = round(min(sat / fat, 1), 3) if fat > 0.3 else 0
     rec['added_share'] = added_share
+    # typical protein / fat / carbs: used to fit the shares of a composite dish to the entered macros
+    rec['macros'] = [round(mean([x.get('protein') for x in v]), 1), round(fat, 1), round(carb, 1)]
     out[cat] = {'title': title, 'n': len(ids), 'per100': rec}
     print(f'{cat:16} {len(ids):4} foods  e.g. {foods[ids[0]][:60]}')
 

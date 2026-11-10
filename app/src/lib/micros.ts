@@ -2,6 +2,7 @@
 // Reference values: USDA FoodData Central (see src/data/micro-ref.ts), daily values: МР 2.3.1.0253-21
 // by sex and age (see src/data/norms.ts, dvFor). Everything here is an estimate unless the product had real data.
 import type { SQLiteDatabase } from 'expo-sqlite';
+import { MICRO_FOODS, MICRO_FOOD_COLUMNS } from '@/data/micro-foods';
 import { MICRO_REF, type CategoryKey } from '@/data/micro-ref';
 import { ADDED_SUGAR_SHARE, ADDED_SUGAR_SHARE_OVERWEIGHT, NORMS, SAT_FAT_SHARE, type Norm, type SexNorm } from '@/data/norms';
 import { ageFrom } from './dates';
@@ -131,17 +132,13 @@ export function guessCategory(name: string): CategoryKey {
 export type PartKey = CategoryKey | 'water';
 export interface Part { key: PartKey; share: number }
 
-/** Typical protein / fat / carbs per 100 g of a category: only used to fit the shares of a blend. */
-const CATEGORY_MACROS: Record<PartKey, [p: number, f: number, c: number]> = {
-  grains_cooked: [3.5, 1, 22], grains_dry: [11, 3, 68], pasta: [5, 1, 27], legumes: [8, 0.6, 20], bread: [8, 2.5, 48],
-  bakery: [7, 15, 50], potato: [2, 2, 18], red_meat: [24, 15, 0], poultry: [25, 6, 0], processed_meat: [14, 25, 2],
-  liver: [20, 5, 4], fatty_fish: [21, 12, 0], lean_fish: [20, 1.5, 0], seafood: [18, 1.5, 2], eggs: [12.6, 10.6, 1],
-  milk: [3, 2.5, 4.7], sweet_dairy: [4, 8, 22], cottage_cheese: [16, 5, 2], cheese: [24, 27, 2], cream: [3, 18, 3.5],
-  butter: [0.6, 82, 0.8], oils: [0, 100, 0], sauces: [2, 25, 12], leafy: [2.5, 0.4, 3], vegetables: [1.3, 0.2, 6],
-  pickles: [1, 0.1, 2.5], mushrooms: [3.5, 0.7, 2], avocado_olives: [1.6, 15, 3], citrus: [0.9, 0.2, 8], fruits: [0.6, 0.3, 12],
-  berries: [0.8, 0.4, 8], dried_fruit: [3, 0.5, 62], nuts_seeds: [18, 53, 13], sweets: [4, 15, 65], sweet_drinks: [0.2, 0, 10.5],
-  drinks: [0.1, 0, 0.2], alcohol: [0.3, 0, 3], mixed_dish: [5, 5, 12], water: [0, 0, 0],
-};
+/** Typical protein / fat / carbs per 100 g of a category (USDA averages): only used to fit the shares of a blend. */
+const CATEGORY_MACROS = {
+  ...(Object.fromEntries((Object.keys(MICRO_REF) as CategoryKey[]).map((k) => [k, MICRO_REF[k].per100.macros])) as unknown as Record<CategoryKey, readonly [number, number, number]>),
+  water: [0, 0, 0],
+} as Record<PartKey, readonly [number, number, number]>;
+
+const refOf = (c: CategoryKey) => MICRO_REF[c].per100 as unknown as Record<string, number>;
 
 /** Which meat a dish is made of, by its name. */
 const meatOf = (n: string): CategoryKey =>
@@ -154,6 +151,7 @@ const meatOf = (n: string): CategoryKey =>
 type Recipe = Partial<Record<PartKey, number>>;
 /** Known dishes: typical shares by weight. Checked before anything else; `m` is the meat from the name. */
 const DISHES: [RegExp, (n: string, m: CategoryKey) => Recipe][] = [
+  [/(^|[^а-яе])суп(а|ы|ом|чик)?(?![а-яе])|борщ|(^|[^а-яе])щи(?![а-яе])|солянк|рассольник|бульон|(^|[^а-яе])уха(?![а-яе])|окрошк|харчо|soup|broth/, (_n, m) => ({ water: 0.6, vegetables: 0.2, potato: 0.08, [m]: 0.12 })],
   [/бургер|burger/, (n, m) => ({ bread: 0.33, [m]: 0.35, vegetables: 0.12, sauces: 0.1, ...(/чиз|сыр|cheese/.test(n) ? { cheese: 0.1 } : {}) })],
   [/шаурм|шаверм|донер|кебаб в лаваше|буррито|shawarma|burrito|wrap/, (n, m) => ({ bread: 0.28, [m === 'red_meat' && !/говя|свин|баран|beef|pork|lamb/.test(n) ? 'poultry' : m]: 0.32, vegetables: 0.28, sauces: 0.12 })],
   [/пицц|pizza/, () => ({ bread: 0.5, cheese: 0.2, sauces: 0.1, processed_meat: 0.1, vegetables: 0.1 })],
@@ -259,12 +257,49 @@ interface FoodLike {
 }
 
 /** Per 100 g. `estimated` = some values came from the category reference rather than the product label. */
-export function microsPer100(f: FoodLike): { values: Micros; estimated: boolean; category: CategoryKey; parts: Part[] | null } {
+// ---------- specific foods ----------
+// 217 common foods with their own USDA values and variants (raw, boiled, fried…). The variant closest to the
+// entered protein / fat / carbs is used, so «гречка» at 313 kcal is the dry groats and at 110 kcal the cooked ones.
+const FOODS = MICRO_FOODS.map((f) => ({ re: rx(f.re), v: f.v }));
+const COL = Object.fromEntries(MICRO_FOOD_COLUMNS.map((c, i) => [c, i])) as Record<(typeof MICRO_FOOD_COLUMNS)[number], number>;
+
+/** Reference values of the specific food named by `f.name`, or null when none matches or its macros are too far off. */
+function specificRef(f: FoodLike, category: CategoryKey): Record<string, number> | null {
+  const n = norm(f.name);
+  const item = FOODS.find((x) => x.re.test(n));
+  if (!item) return null;
+  const p = f.protein ?? 0;
+  const fat = f.fat ?? 0;
+  const c = f.carbs ?? 0;
+  let best = item.v[0];
+  let dist = Infinity;
+  for (const v of item.v) {
+    const d = Math.abs(v[COL.protein] - p) + Math.abs(v[COL.fat] - fat) + Math.abs(v[COL.carb] - c);
+    if (d < dist) {
+      dist = d;
+      best = v;
+    }
+  }
+  // the name matched an ingredient, not the food itself («куриный суп» is not chicken): leave it to the category
+  if (dist > 12 + 0.25 * (p + fat + c)) return null;
+  const out: Record<string, number> = {};
+  for (const k of REF_KEYS) out[k] = best[COL[k as keyof typeof COL]];
+  const carb = best[COL.carb];
+  out.sugar_per_carb = carb > 0.5 ? Math.min(best[COL.sugar] / carb, 1) : 0;
+  out.fiber_per_carb = carb > 0.5 ? Math.min(best[COL.fiber] / carb, 1) : 0;
+  out.sat_per_fat = best[COL.fat] > 0.3 ? Math.min(best[COL.satfat] / best[COL.fat], 1) : 0;
+  out.added_share = refOf(category).added_share;
+  return out;
+}
+
+export function microsPer100(f: FoodLike): { values: Micros; estimated: boolean; category: CategoryKey; parts: Part[] | null; specific: boolean } {
   const guessed = guessCategory(f.name);
   const category = (f.category && f.category in MICRO_REF ? f.category : guessed) as CategoryKey;
   // A category the user picked by hand wins; otherwise a dish is estimated as a blend of its parts.
   const parts = category === guessed ? partsOf(f) : null;
-  const ref = parts ? blendRef(parts) : (MICRO_REF[category].per100 as Record<string, number>);
+  // then a specific food from the USDA table, and only then the average of the category
+  const own = !parts && category === guessed ? specificRef(f, category) : null;
+  const ref = parts ? blendRef(parts) : (own ?? refOf(category));
   let real: Micros = {};
   if (f.micros) {
     try {
@@ -292,7 +327,7 @@ export function microsPer100(f: FoodLike): { values: Micros; estimated: boolean;
   out.fiber = real.fiber ?? f.fiber ?? carbs * ref.fiber_per_carb;
   out.sat_fat = real.sat_fat ?? fat * ref.sat_per_fat;
   if (real.added_sugar == null || f.sugar == null) estimated = true;
-  return { values: out, estimated, category, parts };
+  return { values: out, estimated, category, parts, specific: own != null };
 }
 
 /** Reference values of a blend: micros by share; the sugar / fiber / saturated-fat ratios by each part's carbs or fat. */
@@ -303,7 +338,7 @@ function blendRef(parts: Part[]): Record<string, number> {
   const ratio = { sugar_per_carb: 0, fiber_per_carb: 0, added: 0, sat_per_fat: 0 };
   for (const p of parts) {
     if (p.key === 'water') continue;
-    const ref = MICRO_REF[p.key].per100 as Record<string, number>;
+    const ref = refOf(p.key);
     for (const k of REF_KEYS) out[k] = (out[k] ?? 0) + (ref[k] ?? 0) * p.share;
     const [, f, c] = CATEGORY_MACROS[p.key];
     carbs += c * p.share;

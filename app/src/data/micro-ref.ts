@@ -30,7 +30,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.008,
    "fiber_per_carb": 0.067,
    "sat_per_fat": 0.176,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    3.7,
+    0.8,
+    32.1
+   ]
   }
  },
  "grains_dry": {
@@ -60,7 +65,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.008,
    "fiber_per_carb": 0.052,
    "sat_per_fat": 0.226,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    10.2,
+    1.8,
+    75.1
+   ]
   }
  },
  "pasta": {
@@ -90,7 +100,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.031,
    "fiber_per_carb": 0.093,
    "sat_per_fat": 0.156,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    9.5,
+    1.5,
+    47.1
+   ]
   }
  },
  "legumes": {
@@ -120,7 +135,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.061,
    "fiber_per_carb": 0.391,
    "sat_per_fat": 0.144,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    8.0,
+    0.6,
+    20.9
+   ]
   }
  },
  "bread": {
@@ -150,7 +170,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.075,
    "fiber_per_carb": 0.084,
    "sat_per_fat": 0.183,
-   "added_share": 0.3
+   "added_share": 0.3,
+   "macros": [
+    9.6,
+    2.8,
+    49.2
+   ]
   }
  },
  "bakery": {
@@ -180,7 +205,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.181,
    "fiber_per_carb": 0.072,
    "sat_per_fat": 0.248,
-   "added_share": 0.8
+   "added_share": 0.8,
+   "macros": [
+    8.2,
+    13.7,
+    64.5
+   ]
   }
  },
  "potato": {
@@ -210,7 +240,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.037,
    "fiber_per_carb": 0.109,
    "sat_per_fat": 0.298,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    2.4,
+    2.9,
+    23.8
+   ]
   }
  },
  "red_meat": {
@@ -240,7 +275,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0,
    "fiber_per_carb": 0,
    "sat_per_fat": 0.38,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    27.6,
+    12.7,
+    0.0
+   ]
   }
  },
  "poultry": {
@@ -270,7 +310,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0,
    "fiber_per_carb": 0,
    "sat_per_fat": 0.274,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    27.5,
+    6.7,
+    0.2
+   ]
   }
  },
  "processed_meat": {
@@ -300,7 +345,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.213,
    "fiber_per_carb": 0.078,
    "sat_per_fat": 0.329,
-   "added_share": 0.5
+   "added_share": 0.5,
+   "macros": [
+    15.1,
+    21.6,
+    4.5
+   ]
   }
  },
  "liver": {
@@ -330,7 +380,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.0,
    "fiber_per_carb": 0.0,
    "sat_per_fat": 0.402,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    26.4,
+    5.5,
+    3.2
+   ]
   }
  },
  "fatty_fish": {
@@ -360,7 +415,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0,
    "fiber_per_carb": 0,
    "sat_per_fat": 0.226,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    22.8,
+    8.6,
+    0.3
+   ]
   }
  },
  "lean_fish": {
@@ -390,7 +450,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0,
    "fiber_per_carb": 0,
    "sat_per_fat": 0.224,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    25.2,
+    1.9,
+    0.4
+   ]
   }
  },
  "seafood": {
@@ -420,7 +485,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.058,
    "fiber_per_carb": 0.004,
    "sat_per_fat": 0.222,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    20.6,
+    3.8,
+    5.2
+   ]
   }
  },
  "eggs": {
@@ -450,7 +520,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.734,
    "fiber_per_carb": 0.0,
    "sat_per_fat": 0.305,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    11.8,
+    9.6,
+    0.9
+   ]
   }
  },
  "milk": {
@@ -480,7 +555,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.985,
    "fiber_per_carb": 0.0,
    "sat_per_fat": 0.582,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    5.6,
+    1.6,
+    5.5
+   ]
   }
  },
  "sweet_dairy": {
@@ -510,7 +590,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.656,
    "fiber_per_carb": 0.041,
    "sat_per_fat": 0.595,
-   "added_share": 0.7
+   "added_share": 0.7,
+   "macros": [
+    4.0,
+    5.2,
+    21.5
+   ]
   }
  },
  "cottage_cheese": {
@@ -540,7 +625,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.655,
    "fiber_per_carb": 0.026,
    "sat_per_fat": 0.561,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    11.3,
+    2.1,
+    3.8
+   ]
   }
  },
  "cheese": {
@@ -570,7 +660,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.241,
    "fiber_per_carb": 0.023,
    "sat_per_fat": 0.611,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    24.9,
+    20.7,
+    3.9
+   ]
   }
  },
  "cream": {
@@ -600,7 +695,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.929,
    "fiber_per_carb": 0.0,
    "sat_per_fat": 0.596,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    2.7,
+    23.4,
+    3.7
+   ]
   }
  },
  "butter": {
@@ -630,7 +730,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0,
    "fiber_per_carb": 0,
    "sat_per_fat": 0.628,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    0.8,
+    81.1,
+    0.1
+   ]
   }
  },
  "oils": {
@@ -660,7 +765,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0,
    "fiber_per_carb": 0,
    "sat_per_fat": 0.117,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    0.0,
+    100.0,
+    0.0
+   ]
   }
  },
  "sauces": {
@@ -690,7 +800,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.413,
    "fiber_per_carb": 0.078,
    "sat_per_fat": 0.149,
-   "added_share": 0.6
+   "added_share": 0.6,
+   "macros": [
+    3.8,
+    21.0,
+    12.3
+   ]
   }
  },
  "leafy": {
@@ -720,7 +835,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.215,
    "fiber_per_carb": 0.531,
    "sat_per_fat": 0.117,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    3.0,
+    0.9,
+    5.0
+   ]
   }
  },
  "vegetables": {
@@ -750,7 +870,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.4,
    "fiber_per_carb": 0.263,
    "sat_per_fat": 0.153,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    2.1,
+    0.7,
+    9.2
+   ]
   }
  },
  "pickles": {
@@ -780,7 +905,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.787,
    "fiber_per_carb": 0.115,
    "sat_per_fat": 0.214,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    0.6,
+    0.3,
+    11.9
+   ]
   }
  },
  "mushrooms": {
@@ -810,7 +940,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.263,
    "fiber_per_carb": 0.287,
    "sat_per_fat": 0.136,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    2.7,
+    0.3,
+    6.8
+   ]
   }
  },
  "avocado_olives": {
@@ -840,7 +975,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.097,
    "fiber_per_carb": 0.655,
    "sat_per_fat": 0.156,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    1.5,
+    12.2,
+    6.7
+   ]
   }
  },
  "citrus": {
@@ -870,7 +1010,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.742,
    "fiber_per_carb": 0.179,
    "sat_per_fat": 0,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    0.8,
+    0.2,
+    10.7
+   ]
   }
  },
  "fruits": {
@@ -900,7 +1045,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.659,
    "fiber_per_carb": 0.148,
    "sat_per_fat": 0,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    0.6,
+    0.2,
+    16.0
+   ]
   }
  },
  "berries": {
@@ -930,7 +1080,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.692,
    "fiber_per_carb": 0.201,
    "sat_per_fat": 0.081,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    1.3,
+    0.3,
+    20.2
+   ]
   }
  },
  "dried_fruit": {
@@ -960,7 +1115,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.84,
    "fiber_per_carb": 0.076,
    "sat_per_fat": 0.301,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    2.7,
+    0.3,
+    77.6
+   ]
   }
  },
  "nuts_seeds": {
@@ -990,7 +1150,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.252,
    "fiber_per_carb": 0.394,
    "sat_per_fat": 0.124,
-   "added_share": 0.05
+   "added_share": 0.05,
+   "macros": [
+    21.0,
+    48.7,
+    23.7
+   ]
   }
  },
  "sweets": {
@@ -1020,7 +1185,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.718,
    "fiber_per_carb": 0.046,
    "sat_per_fat": 0.419,
-   "added_share": 0.95
+   "added_share": 0.95,
+   "macros": [
+    5.3,
+    19.6,
+    63.8
+   ]
   }
  },
  "sweet_drinks": {
@@ -1050,7 +1220,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.841,
    "fiber_per_carb": 0.005,
    "sat_per_fat": 0,
-   "added_share": 0.5
+   "added_share": 0.5,
+   "macros": [
+    0.2,
+    0.1,
+    12.7
+   ]
   }
  },
  "drinks": {
@@ -1080,7 +1255,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0,
    "fiber_per_carb": 0,
    "sat_per_fat": 0,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    0.0,
+    0.0,
+    0.4
+   ]
   }
  },
  "alcohol": {
@@ -1110,7 +1290,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.34,
    "fiber_per_carb": 0.0,
    "sat_per_fat": 0,
-   "added_share": 0
+   "added_share": 0,
+   "macros": [
+    0.1,
+    0.0,
+    3.6
+   ]
   }
  },
  "mixed_dish": {
@@ -1140,7 +1325,12 @@ export const MICRO_REF = {
    "sugar_per_carb": 0.146,
    "fiber_per_carb": 0.087,
    "sat_per_fat": 0.406,
-   "added_share": 0.2
+   "added_share": 0.2,
+   "macros": [
+    8.8,
+    8.1,
+    19.4
+   ]
   }
  }
 } as const;
