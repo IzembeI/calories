@@ -23,25 +23,28 @@ const label = (key: string) => {
 };
 
 /** With `trend`, raw `points` are drawn as small dots and the trend as the solid line. */
-export function LineChart({ points, unit, target, trend }: { points: Point[]; unit?: string; target?: number | null; trend?: Point[] }) {
+/** `forecast` continues the line to the right as a dashed projection; its first point is where the line ends. */
+export function LineChart({ points, unit, target, trend, forecast }: { points: Point[]; unit?: string; target?: number | null; trend?: Point[]; forecast?: Point[] }) {
   const t = useTheme();
   const [w, setW] = useState(0);
   if (points.length === 0) return <T dim>Нет данных за период</T>;
   const values = points
     .map((p) => p.value)
     .concat(trend ? trend.map((p) => p.value) : [])
+    .concat(forecast ? forecast.map((p) => p.value) : [])
     .concat(target != null ? [target] : []);
   const { lo, hi } = niceRange(Math.min(...values), Math.max(...values));
   const first = points[0].date;
-  const span = Math.max(diffDays(first, points[points.length - 1].date), 1);
+  const lastDate = forecast?.length ? forecast[forecast.length - 1].date : points[points.length - 1].date;
+  const span = Math.max(diffDays(first, lastDate), 1);
   const iw = Math.max(w - PAD.l - PAD.r, 1);
   const ih = H - PAD.t - PAD.b;
-  const x = (d: string) => PAD.l + (points.length === 1 ? iw / 2 : (diffDays(first, d) / span) * iw);
+  const x = (d: string) => PAD.l + (points.length === 1 && !forecast?.length ? iw / 2 : (diffDays(first, d) / span) * iw);
   const y = (v: number) => PAD.t + (1 - (v - lo) / (hi - lo)) * ih;
   const line = trend ?? points;
   const path = line.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   const ticks = [lo + (hi - lo) * 0.1, (lo + hi) / 2, hi - (hi - lo) * 0.1];
-  const last = points[points.length - 1];
+  const dashed = forecast?.length ? forecast.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ') : null;
   return (
     <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height: H }}>
       {w > 0 && (
@@ -61,6 +64,7 @@ export function LineChart({ points, unit, target, trend }: { points: Point[]; un
             ? points.map((p) => <Circle key={p.date} cx={x(p.date)} cy={y(p.value)} r={2.5} fill={t.textDim} />)
             : null}
           {line.length > 0 && <Path d={path} stroke={t.accent} strokeWidth={2.5} fill="none" strokeLinejoin="round" strokeLinecap="round" />}
+          {dashed && <Path d={dashed} stroke={t.accent} strokeWidth={2} strokeDasharray="2 6" fill="none" strokeLinecap="round" opacity={0.8} />}
           {!trend &&
             points.length <= 40 &&
             points.map((p) => <Circle key={p.date} cx={x(p.date)} cy={y(p.value)} r={3} fill={t.accent} />)}
@@ -68,7 +72,7 @@ export function LineChart({ points, unit, target, trend }: { points: Point[]; un
             {label(first)}
           </SvgText>
           <SvgText x={w - PAD.r} y={H - 6} fontSize={10} fill={t.textDim} textAnchor="end">
-            {label(last.date)}
+            {label(lastDate)}
           </SvgText>
         </Svg>
       )}
