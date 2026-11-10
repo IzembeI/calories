@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { categoryTitle, microsPer100, NUTRIENTS, pctDV, scaleMicros } from '@/lib/micros';
+import { categoryTitle, microsPer100, NUTRIENTS, partsText, pctDV, scaleMicros } from '@/lib/micros';
 import { useApp } from '@/lib/app-state';
 import { fmt } from '@/lib/nutrition';
 import { Card, Divider, Row, T } from './components';
@@ -13,7 +13,7 @@ export function MicrosCard({ food, grams }: { food: FoodLike; grams: number }) {
   const t = useTheme();
   const { profile } = useApp();
   const [all, setAll] = useState(false);
-  const { values, estimated, category } = microsPer100(food);
+  const { values, estimated, category, parts } = microsPer100(food);
   const m = scaleMicros(values, grams);
   const rows = NUTRIENTS.map((d) => ({ d, v: m[d.key] ?? 0, pct: pctDV(d, m[d.key], profile) }));
   const top = rows.filter((r) => r.d.group !== 'other' && !r.d.limit).sort((a, b) => b.pct - a.pct);
@@ -28,7 +28,7 @@ export function MicrosCard({ food, grams }: { food: FoodLike; grams: number }) {
         </T>
       </Row>
       <T dim size={12}>
-        {estimated ? `≈ оценка по типу «${categoryTitle(category)}»` : 'по данным с этикетки'}
+        {!estimated ? 'по данным с этикетки' : parts ? `≈ оценка по составу: ${partsText(parts)}` : `≈ оценка по типу «${categoryTitle(category)}»`}
       </T>
       {shown.map(({ d, v, pct }, i) => (
         <View key={d.key}>

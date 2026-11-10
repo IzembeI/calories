@@ -83,7 +83,7 @@ const RULES: [RegExp, CategoryKey][] = (
     // before poultry: «яйцо куриное» is an egg
     [String.raw`яйцо\b|яйца\b|яиц\b|яичниц|омлет`, 'eggs'],
     [String.raw`курица|куриц|курин|индейк|индюш|цыпл|утка|утки|утиная|гусь|chicken|turkey|duck`, 'poultry'],
-    [String.raw`говядин|свинин|баранин|телятин|фарш|котлет|шашлык|стейк|мясо|мясн|бифштекс|тефтел|beef|pork|lamb|veal|steak|meat`, 'red_meat'],
+    [String.raw`говядин|говяж|свинин|свиной|свиная|свиные|баранин|бараньи|телятин|фарш|котлет|шашлык|стейк|мясо|мясн|бифштекс|тефтел|beef|pork|lamb|veal|steak|meat`, 'red_meat'],
     [String.raw`яйц|яичн|омлет|egg|omelet`, 'eggs'],
     [String.raw`пельмен|вареник|борщ|щи\b|суп\b|супа\b|солянк|рассольник|плов|голубц|салат(?! лист)|винегрет|оливье|шаурм|бургер|пицц|ролл|суши|лазань|болоньез|запеканк|soup|pizza|burger|lasagn|sushi|stew`, 'mixed_dish'],
     [String.raw`шпинат|салат лист|руккол|айсберг|латук|петрушк|укроп|кинз|зелень|щавел|spinach|lettuce|arugula|kale|parsley|dill|herbs`, 'leafy'],
@@ -109,10 +109,136 @@ const RULES: [RegExp, CategoryKey][] = (
   ] as [string, CategoryKey][]
 ).map(([src, cat]) => [rx(src), cat]);
 
-export function guessCategory(name: string): CategoryKey {
-  const n = name.toLowerCase().replace(/ё/g, 'е').replace(/без сахара|без добавления сахара|без сах\S*/g, '');
+const norm = (name: string) => name.toLowerCase().replace(/ё/g, 'е').replace(/без сахара|без добавления сахара|без сах\S*/g, '');
+
+/** Category by keywords, or null when nothing in the name is recognised. */
+function matchCategory(name: string): CategoryKey | null {
+  const n = norm(name);
   for (const [re, cat] of RULES) if (re.test(n)) return cat;
-  return 'mixed_dish';
+  return null;
+}
+
+export function guessCategory(name: string): CategoryKey {
+  return matchCategory(name) ?? 'mixed_dish';
+}
+
+// ---------- composite foods: a dish is estimated as a blend of categories ----------
+// One category is a poor guess for «бургер» or «гречка с курицей». A dish is described as parts
+// (bun + patty + cheese…), and the shares are then fitted to the КБЖУ the user entered, so the
+// estimate follows the real product: more protein and fat → more of the meat part, and so on.
+
+/** A part of a blend; 'water' dilutes (soups, porridge on water) and carries nothing. */
+export type PartKey = CategoryKey | 'water';
+export interface Part { key: PartKey; share: number }
+
+/** Typical protein / fat / carbs per 100 g of a category: only used to fit the shares of a blend. */
+const CATEGORY_MACROS: Record<PartKey, [p: number, f: number, c: number]> = {
+  grains_cooked: [3.5, 1, 22], grains_dry: [11, 3, 68], pasta: [5, 1, 27], legumes: [8, 0.6, 20], bread: [8, 2.5, 48],
+  bakery: [7, 15, 50], potato: [2, 2, 18], red_meat: [24, 15, 0], poultry: [25, 6, 0], processed_meat: [14, 25, 2],
+  liver: [20, 5, 4], fatty_fish: [21, 12, 0], lean_fish: [20, 1.5, 0], seafood: [18, 1.5, 2], eggs: [12.6, 10.6, 1],
+  milk: [3, 2.5, 4.7], sweet_dairy: [4, 8, 22], cottage_cheese: [16, 5, 2], cheese: [24, 27, 2], cream: [3, 18, 3.5],
+  butter: [0.6, 82, 0.8], oils: [0, 100, 0], sauces: [2, 25, 12], leafy: [2.5, 0.4, 3], vegetables: [1.3, 0.2, 6],
+  pickles: [1, 0.1, 2.5], mushrooms: [3.5, 0.7, 2], avocado_olives: [1.6, 15, 3], citrus: [0.9, 0.2, 8], fruits: [0.6, 0.3, 12],
+  berries: [0.8, 0.4, 8], dried_fruit: [3, 0.5, 62], nuts_seeds: [18, 53, 13], sweets: [4, 15, 65], sweet_drinks: [0.2, 0, 10.5],
+  drinks: [0.1, 0, 0.2], alcohol: [0.3, 0, 3], mixed_dish: [5, 5, 12], water: [0, 0, 0],
+};
+
+/** Which meat a dish is made of, by its name. */
+const meatOf = (n: string): CategoryKey =>
+  /кури|курин|цыпл|индейк|chicken|turkey/.test(n) ? 'poultry'
+  : /лосос|семг|форел|salmon/.test(n) ? 'fatty_fish'
+  : /рыб|треск|тунц|минта|fish|tuna/.test(n) ? 'lean_fish'
+  : /кревет|shrimp/.test(n) ? 'seafood'
+  : 'red_meat';
+
+type Recipe = Partial<Record<PartKey, number>>;
+/** Known dishes: typical shares by weight. Checked before anything else; `m` is the meat from the name. */
+const DISHES: [RegExp, (n: string, m: CategoryKey) => Recipe][] = [
+  [/бургер|burger/, (n, m) => ({ bread: 0.33, [m]: 0.35, vegetables: 0.12, sauces: 0.1, ...(/чиз|сыр|cheese/.test(n) ? { cheese: 0.1 } : {}) })],
+  [/шаурм|шаверм|донер|кебаб в лаваше|буррито|shawarma|burrito|wrap/, (n, m) => ({ bread: 0.28, [m === 'red_meat' && !/говя|свин|баран|beef|pork|lamb/.test(n) ? 'poultry' : m]: 0.32, vegetables: 0.28, sauces: 0.12 })],
+  [/пицц|pizza/, () => ({ bread: 0.5, cheese: 0.2, sauces: 0.1, processed_meat: 0.1, vegetables: 0.1 })],
+  [/пельмен|манты|хинкал|dumpling/, (_n, m) => ({ pasta: 0.55, [m]: 0.4, vegetables: 0.05 })],
+  [/вареник/, (n) => ({ pasta: 0.6, [/творог/.test(n) ? 'cottage_cheese' : /вишн|ягод/.test(n) ? 'berries' : 'potato']: 0.4 })],
+  [/плов|ризотто|паэль|risotto|paella/, (_n, m) => ({ grains_cooked: 0.62, [m]: 0.25, vegetables: 0.08, oils: 0.05 })],
+  [/сырник/, () => ({ cottage_cheese: 0.7, grains_dry: 0.15, eggs: 0.1, sweets: 0.05 })],
+  [/блин|оладь|pancake|crepe/, () => ({ grains_dry: 0.35, milk: 0.45, eggs: 0.15, oils: 0.05 })],
+  [/оливье/, () => ({ potato: 0.3, processed_meat: 0.2, eggs: 0.15, vegetables: 0.15, pickles: 0.1, sauces: 0.1 })],
+  [/цезар|caesar/, (_n, m) => ({ leafy: 0.4, [m]: 0.3, cheese: 0.1, bread: 0.1, sauces: 0.1 })],
+  [/винегрет/, () => ({ vegetables: 0.6, potato: 0.2, pickles: 0.15, oils: 0.05 })],
+  [/ролл|суши|sushi|roll/, () => ({ grains_cooked: 0.7, fatty_fish: 0.2, vegetables: 0.1 })],
+  [/голубц|перец фарширован/, (_n, m) => ({ vegetables: 0.5, [m]: 0.3, grains_cooked: 0.2 })],
+  [/лазань|болоньез|карбонар|lasagn|bolognese|carbonara/, (_n, m) => ({ pasta: 0.5, [m]: 0.22, cheese: 0.1, sauces: 0.18 })],
+  [/омлет|omelet/, () => ({ eggs: 0.75, milk: 0.25 })],
+  [/бутерброд|сэндвич|сендвич|тост с|sandwich/, (n, m) => ({ bread: 0.5, [/сыр|cheese/.test(n) ? 'cheese' : /колбас|ветчин|ham/.test(n) ? 'processed_meat' : m]: 0.35, vegetables: 0.15 })],
+  [/запеканк\S* творож|творожн\S* запеканк/, () => ({ cottage_cheese: 0.7, eggs: 0.1, grains_dry: 0.12, sweets: 0.08 })],
+  [/котлет|тефтел|фрикадел|биточк|meatball|cutlet/, (_n, m) => ({ [m]: 0.75, bread: 0.15, vegetables: 0.07, eggs: 0.03 })],
+];
+
+/** Words that join two foods in a name: «гречка с курицей», «овсянка на молоке», «рис и овощи». */
+const JOIN = /\s+(?:с|со|и|на|в|под|with|and|in)\s+|\s*[,+]\s*/;
+
+/** Starting shares for a food: a known dish, or the foods named around «с / и / на», or null for a plain food. */
+function recipeFor(name: string): { prior: Recipe; strength: number } | null {
+  const n = norm(name);
+  for (const [re, make] of DISHES) if (re.test(n)) return { prior: make(n, meatOf(n)), strength: 300 };
+  const cats: CategoryKey[] = [];
+  for (const part of n.split(JOIN)) {
+    const c = part.trim() ? matchCategory(part) : null;
+    if (c && !cats.includes(c)) cats.push(c);
+  }
+  if (cats.length < 2) return null;
+  // the first word is the base of the dish, the rest are additions
+  const rest = 0.4 / (cats.length - 1);
+  return { prior: Object.fromEntries(cats.slice(0, 4).map((c, i) => [c, i === 0 ? 0.6 : rest])), strength: 30 };
+}
+
+/** Euclidean projection onto the simplex {w ≥ 0, Σw = 1}. */
+function toSimplex(v: number[]): number[] {
+  const u = [...v].sort((a, b) => b - a);
+  let sum = 0;
+  let theta = 0;
+  for (let i = 0; i < u.length; i++) {
+    sum += u[i];
+    const t = (sum - 1) / (i + 1);
+    if (u[i] - t > 0) theta = t;
+  }
+  return v.map((x) => Math.max(x - theta, 0));
+}
+
+/**
+ * Shares of the parts that best explain the entered protein / fat / carbs while staying near the recipe:
+ * minimise |Σ wᵢ·macrosᵢ − entered|² + strength·|w − prior|² over w ≥ 0, Σw = 1 (projected gradient).
+ */
+function fitShares(prior: Recipe, strength: number, macros: [number, number, number]): Part[] {
+  const keys = Object.keys(prior) as PartKey[];
+  if (!keys.includes('water')) keys.push('water');
+  const w0 = keys.map((k) => prior[k] ?? 0);
+  const M = keys.map((k) => CATEGORY_MACROS[k]);
+  const L = 2 * M.reduce((a, m) => a + m[0] * m[0] + m[1] * m[1] + m[2] * m[2], 0) + 2 * strength;
+  let w = toSimplex(w0);
+  for (let it = 0; it < 300; it++) {
+    const err = [0, 1, 2].map((j) => w.reduce((a, wi, i) => a + wi * M[i][j], 0) - macros[j]);
+    const grad = w.map((wi, i) => 2 * (err[0] * M[i][0] + err[1] * M[i][1] + err[2] * M[i][2]) + 2 * strength * (wi - w0[i]));
+    w = toSimplex(w.map((wi, i) => wi - grad[i] / L));
+  }
+  return keys.map((key, i) => ({ key, share: w[i] })).filter((p) => p.share >= 0.02);
+}
+
+/** Parts of a composite food fitted to its КБЖУ, or null when the food is a single category. */
+export function partsOf(f: { name: string; protein?: number | null; fat?: number | null; carbs?: number | null }): Part[] | null {
+  const r = recipeFor(f.name);
+  if (!r) return null;
+  const parts = fitShares(r.prior, r.strength, [f.protein ?? 0, f.fat ?? 0, f.carbs ?? 0]);
+  return parts.filter((p) => p.key !== 'water').length >= 2 ? parts : null;
+}
+
+/** «хлеб 35%, говядина 33%, овощи 12%» */
+export function partsText(parts: Part[]): string {
+  return parts
+    .filter((p) => p.key !== 'water')
+    .sort((a, b) => b.share - a.share)
+    .map((p) => `${MICRO_REF[p.key as CategoryKey].title.split(',')[0].toLowerCase()} ${Math.round(p.share * 100)}%`)
+    .join(', ');
 }
 
 export function categoryTitle(key: string | null | undefined): string {
@@ -124,6 +250,7 @@ interface FoodLike {
   category?: string | null;
   micros?: string | null;
   kcal: number;
+  protein?: number | null;
   carbs: number | null;
   fat: number | null;
   sugar?: number | null;
@@ -132,9 +259,12 @@ interface FoodLike {
 }
 
 /** Per 100 g. `estimated` = some values came from the category reference rather than the product label. */
-export function microsPer100(f: FoodLike): { values: Micros; estimated: boolean; category: CategoryKey } {
-  const category = (f.category && f.category in MICRO_REF ? f.category : guessCategory(f.name)) as CategoryKey;
-  const ref = MICRO_REF[category].per100 as Record<string, number>;
+export function microsPer100(f: FoodLike): { values: Micros; estimated: boolean; category: CategoryKey; parts: Part[] | null } {
+  const guessed = guessCategory(f.name);
+  const category = (f.category && f.category in MICRO_REF ? f.category : guessed) as CategoryKey;
+  // A category the user picked by hand wins; otherwise a dish is estimated as a blend of its parts.
+  const parts = category === guessed ? partsOf(f) : null;
+  const ref = parts ? blendRef(parts) : (MICRO_REF[category].per100 as Record<string, number>);
   let real: Micros = {};
   if (f.micros) {
     try {
@@ -162,7 +292,32 @@ export function microsPer100(f: FoodLike): { values: Micros; estimated: boolean;
   out.fiber = real.fiber ?? f.fiber ?? carbs * ref.fiber_per_carb;
   out.sat_fat = real.sat_fat ?? fat * ref.sat_per_fat;
   if (real.added_sugar == null || f.sugar == null) estimated = true;
-  return { values: out, estimated, category };
+  return { values: out, estimated, category, parts };
+}
+
+/** Reference values of a blend: micros by share; the sugar / fiber / saturated-fat ratios by each part's carbs or fat. */
+function blendRef(parts: Part[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  let carbs = 0;
+  let fat = 0;
+  const ratio = { sugar_per_carb: 0, fiber_per_carb: 0, added: 0, sat_per_fat: 0 };
+  for (const p of parts) {
+    if (p.key === 'water') continue;
+    const ref = MICRO_REF[p.key].per100 as Record<string, number>;
+    for (const k of REF_KEYS) out[k] = (out[k] ?? 0) + (ref[k] ?? 0) * p.share;
+    const [, f, c] = CATEGORY_MACROS[p.key];
+    carbs += c * p.share;
+    fat += f * p.share;
+    ratio.sugar_per_carb += ref.sugar_per_carb * c * p.share;
+    ratio.fiber_per_carb += ref.fiber_per_carb * c * p.share;
+    ratio.added += ref.sugar_per_carb * ref.added_share * c * p.share;
+    ratio.sat_per_fat += ref.sat_per_fat * f * p.share;
+  }
+  out.sugar_per_carb = carbs > 0 ? ratio.sugar_per_carb / carbs : 0;
+  out.fiber_per_carb = carbs > 0 ? ratio.fiber_per_carb / carbs : 0;
+  out.added_share = ratio.sugar_per_carb > 0 ? ratio.added / ratio.sugar_per_carb : 0;
+  out.sat_per_fat = fat > 0 ? ratio.sat_per_fat / fat : 0;
+  return out;
 }
 
 export function scaleMicros(m: Micros, grams: number): Micros {
@@ -183,7 +338,7 @@ type Row = FoodLike & { grams: number; date: string };
 /** Sum of micros over diary entries in a date range, per day. Quick-add entries have no food and are skipped. */
 export async function microsByDay(db: SQLiteDatabase, from: string, to: string): Promise<Map<string, Micros>> {
   const rows = await db.getAllAsync<Row>(
-    `select e.date, e.grams, f.name, f.category, f.micros, f.kcal, f.carbs, f.fat, f.sugar, f.fiber, f.salt
+    `select e.date, e.grams, f.name, f.category, f.micros, f.kcal, f.protein, f.carbs, f.fat, f.sugar, f.fiber, f.salt
      from diary_entries e join foods f on f.id = e.food_id
      where e.date between ? and ? and e.grams is not null`,
     from,
@@ -192,7 +347,7 @@ export async function microsByDay(db: SQLiteDatabase, from: string, to: string):
   const cache = new Map<string, Micros>();
   const out = new Map<string, Micros>();
   for (const r of rows) {
-    const key = `${r.name}|${r.category}|${r.micros}|${r.kcal}|${r.carbs}|${r.fat}`;
+    const key = `${r.name}|${r.category}|${r.micros}|${r.kcal}|${r.protein}|${r.carbs}|${r.fat}`;
     let per100 = cache.get(key);
     if (!per100) {
       per100 = microsPer100(r).values;
