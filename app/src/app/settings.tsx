@@ -5,6 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { getSetting, setSetting } from '@/db/repo';
 import { useApp } from '@/lib/app-state';
 import { setDayStartHour } from '@/lib/dates';
+import { setHapticsEnabled } from '@/lib/haptics';
 import { autoBackup, exportBackup, importBackup } from '@/lib/backup';
 import { DEFAULT_REMINDERS, applyReminders, ensurePermission, type Reminder } from '@/lib/reminders';
 import { type WeighHint } from '@/lib/trend';
@@ -23,6 +24,7 @@ export default function Settings() {
   const [autoOn, setAutoOn] = useState(true);
   const [dayStart, setDayStart] = useState('0');
   const [gameOn, setGameOn] = useState(true);
+  const [haptics, setHaptics] = useState(true);
   const [lastAuto, setLastAuto] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function Settings() {
     getSetting<WeighHint>(db, 'weigh_hint', 'daily').then((h) => setWeighHint(h === 'weekly' ? 'weekly' : 'daily'));
     getSetting<boolean>(db, 'protein_hint', true).then((v) => setProteinHint(v !== false));
     getSetting<number>(db, 'day_start_hour', 0).then((h) => setDayStart(String(h)));
+    getSetting<boolean>(db, 'haptics', true).then((v) => setHaptics(v !== false));
     getSetting<boolean>(db, 'game_card', true).then((v) => setGameOn(v !== false));
     getSetting<boolean>(db, 'auto_backup', true).then((v) => setAutoOn(v !== false));
     getSetting<string | null>(db, 'last_auto_backup', null).then(setLastAuto);
@@ -164,6 +167,24 @@ export default function Settings() {
             onValueChange={(v) => {
               setGameOn(v);
               setSetting(db, 'game_card', v);
+            }}
+            trackColor={{ true: t.accent }}
+          />
+        </Row>
+        <Divider />
+        <Row style={{ justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <T>Вибрация</T>
+            <T dim size={12}>
+              Лёгкий отклик, когда еда добавлена или штрихкод найден.
+            </T>
+          </View>
+          <Switch
+            value={haptics}
+            onValueChange={(v) => {
+              setHaptics(v);
+              setHapticsEnabled(v);
+              setSetting(db, 'haptics', v);
             }}
             trackColor={{ true: t.accent }}
           />

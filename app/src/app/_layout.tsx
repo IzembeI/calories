@@ -3,6 +3,8 @@ import { ActivityIndicator, AppState, View } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
+import * as QuickActions from 'expo-quick-actions';
+import { useQuickActionRouting, type RouterAction } from 'expo-quick-actions/router';
 import * as Notifications from 'expo-notifications';
 import { migrate } from '@/db/migrations';
 import { AppStateProvider, useApp } from '@/lib/app-state';
@@ -44,6 +46,18 @@ function Nav() {
   const t = useTheme();
   const { profile, loaded } = useApp();
   useAutoBackup(loaded && !!profile);
+  // Long press on the app icon: each action opens its screen; the meal is chosen there by the time of day.
+  useQuickActionRouting();
+  const ready = loaded && !!profile;
+  useEffect(() => {
+    if (!ready) return;
+    QuickActions.setItems<RouterAction>([
+      { id: 'scan', title: 'Сканировать штрихкод', icon: 'symbol:barcode.viewfinder', params: { href: '/scanner' } },
+      { id: 'add', title: 'Добавить еду', icon: 'symbol:plus', params: { href: '/add-food' } },
+      { id: 'quick', title: 'Быстрые калории', icon: 'symbol:bolt', params: { href: '/quick-add' } },
+      { id: 'weight', title: 'Вес и замеры', icon: 'symbol:scalemass', params: { href: '/measurements' } },
+    ]).catch(() => {});
+  }, [ready]);
   if (!loaded) return <Loading />;
   const hasProfile = !!profile;
 

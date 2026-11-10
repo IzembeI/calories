@@ -23,7 +23,8 @@ import {
 import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
 import { OffError, offSearch } from '@/lib/off';
-import { fmt, mealTitle, type MealType } from '@/lib/nutrition';
+import { tap } from '@/lib/haptics';
+import { fmt, mealForNow, mealTitle, type MealType } from '@/lib/nutrition';
 import { groupHits, variantsLabel, type Hit, type HitGroup } from '@/lib/search-groups';
 import { Button, Divider, Empty, Field, IconButton, ListItem, Plus, Row, Segmented, T } from '@/ui/components';
 import { artFor, FoodPic } from '@/ui/icons';
@@ -37,7 +38,9 @@ export default function AddFood() {
   const db = useSQLiteContext();
   const t = useTheme();
   const { date, showToast } = useApp();
-  const { meal = 'breakfast' } = useLocalSearchParams<{ meal: MealType }>();
+  const params = useLocalSearchParams<{ meal?: MealType }>();
+  const [fallbackMeal] = useState(mealForNow);
+  const meal = params.meal ?? fallbackMeal;
   const [q, setQ] = useState('');
   const [tab, setTab] = useState<Tab>('recent');
   const [local, setLocal] = useState<FoodRow[]>([]);
@@ -131,6 +134,7 @@ export default function AddFood() {
     try {
       const prev = await foodUsage(db, f.id);
       const id = await addFoodEntry(db, date, meal, f, d.grams, d.label);
+      tap();
       showToast({
         text: `Добавлено: ${f.name} ${d.label ?? `${fmt(d.grams)} г`} · ${fmt(portion(f, d.grams).kcal)} ккал`,
         action: {

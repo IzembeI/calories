@@ -4,6 +4,7 @@ import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router
 import { useSQLiteContext } from 'expo-sqlite';
 import { addFoodEntry, defaultPortion, foodUsage, getBuiltinByName, getFood, portion, saveFood, servingsOf, toggleFavourite, undoFoodEntry, type FoodRow, type Serving } from '@/db/repo';
 import { pairOf } from '@/data/food-pairs';
+import { tap } from '@/lib/haptics';
 import { useApp } from '@/lib/app-state';
 import { formatDay } from '@/lib/dates';
 import { guessCategory } from '@/lib/micros';
@@ -62,6 +63,7 @@ export default function FoodDetail() {
     try {
       const prev = await foodUsage(db, food.id);
       const id = await addFoodEntry(db, date, meal, food, grams, label);
+      tap();
       router.dismissTo('/');
       showToast({
         text: `Добавлено: ${food.name} ${label ?? `${fmt(grams)} г`} · ${fmt(n.kcal)} ккал`,

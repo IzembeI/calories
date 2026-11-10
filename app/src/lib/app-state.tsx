@@ -4,6 +4,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { getProfile, getSetting, type Profile } from '@/db/repo';
 import { ToastHost, type ToastMsg } from '@/ui/components';
 import { setDayStartHour, todayKey } from './dates';
+import { setHapticsEnabled } from './haptics';
 import { setKcalSchedule, type KcalSchedule } from './schedule';
 
 interface AppState {
@@ -48,6 +49,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     // «Начало дня» moves the boundary of today; apply it before anything reads todayKey()
     const before = todayKey();
     setDayStartHour(await getSetting<number>(db, 'day_start_hour', 0));
+    setHapticsEnabled((await getSetting<boolean>(db, 'haptics', true)) !== false);
     setKcalSchedule(await getSetting<KcalSchedule | null>(db, 'kcal_schedule', null));
     const after = todayKey();
     lastToday.current = after;

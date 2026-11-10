@@ -6,6 +6,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { addFoodEntry, dailyTotals, defaultPortion, favouriteFoods, foodUsage, portion, recentFoods, undoFoodEntry, type FoodRow } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
 import { todayKey, weekStart } from '@/lib/dates';
+import { tap } from '@/lib/haptics';
 import { fmt } from '@/lib/nutrition';
 import { goalForDate } from '@/lib/schedule';
 import { Button, Card, Divider, ListItem, Plus, Screen, T } from '@/ui/components';
@@ -95,6 +96,7 @@ export default function Sos() {
     try {
       const prev = await foodUsage(db, o.f.id);
       const id = await addFoodEntry(db, todayKey(), 'snack', o.f, o.grams, o.label);
+      tap();
       showToast({
         text: `Добавлено в перекусы: ${o.f.name} · ${fmt(o.kcal)} ккал`,
         action: { label: 'Отменить', onPress: async () => { await undoFoodEntry(db, id, prev); load(); } },

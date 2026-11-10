@@ -12,6 +12,12 @@ export const MEALS: { type: MealType; title: string }[] = [
   { type: 'snack', title: 'Перекусы' },
 ];
 
+/** Meal for «now», used when a screen is opened without one (the icon's quick actions). */
+export function mealForNow(now: Date = new Date()): MealType {
+  const h = now.getHours();
+  return h >= 5 && h < 11 ? 'breakfast' : h >= 11 && h < 16 ? 'lunch' : h >= 18 && h < 22 ? 'dinner' : 'snack';
+}
+
 export const mealTitle = (t: MealType) => MEALS.find((m) => m.type === t)?.title ?? t;
 
 export const ACTIVITY_LEVELS: { value: ActivityLevel; title: string; hint: string; factor: number }[] = [

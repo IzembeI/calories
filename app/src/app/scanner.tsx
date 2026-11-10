@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import { success } from '@/lib/haptics';
+import { mealForNow } from '@/lib/nutrition';
 import { ActivityIndicator, Alert, Linking, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -13,7 +15,9 @@ import { space, useTheme } from '@/ui/theme';
 export default function Scanner() {
   const db = useSQLiteContext();
   const t = useTheme();
-  const { meal = 'breakfast' } = useLocalSearchParams<{ meal: MealType }>();
+  const params = useLocalSearchParams<{ meal?: MealType }>();
+  const [fallbackMeal] = useState(mealForNow);
+  const meal = params.meal ?? fallbackMeal;
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -52,12 +56,14 @@ export default function Scanner() {
       const local = await getFoodByBarcode(db, code);
       if (local) {
         router.replace({ pathname: '/food/[id]', params: { id: local.id, meal } });
+        setTimeout(success, 400); // the Taptic Engine is silent while the camera is on
         return;
       }
       const f = await offByBarcode(code);
       if (f) {
         const id = await saveFood(db, f);
         router.replace({ pathname: '/food/[id]', params: { id, meal } });
+        setTimeout(success, 400);
         return;
       }
       Alert.alert('Продукт не найден', `Штрихкода ${code} нет в базе. Создать продукт вручную?`, [
