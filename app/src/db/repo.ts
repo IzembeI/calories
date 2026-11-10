@@ -446,6 +446,56 @@ export async function copyMeal(db: SQLiteDatabase, fromDate: string, meal: MealT
   return rows.length;
 }
 
+const marks = (n: number) => Array.from({ length: n }, () => '?').join(',');
+
+/** Copies diary entries to another day; `toMeal` null keeps each entry's own meal. Returns the new ids (for undo). */
+export async function copyEntries(db: SQLiteDatabase, ids: string[], toDate: string, toMeal: MealType | null): Promise<string[]> {
+  if (!ids.length) return [];
+  const rows = await db.getAllAsync<Entry>(`select * from diary_entries where id in (${marks(ids.length)}) order by created_at`, ...ids);
+  const now = nowIso();
+  const out: string[] = [];
+  await db.withTransactionAsync(async () => {
+    for (const e of rows) {
+      const id = uuid();
+      out.push(id);
+      await db.runAsync(
+        `insert into diary_entries (id, date, meal_type, food_id, name, grams, serving_label, kcal, protein, fat, carbs, created_at, updated_at)
+         values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        id, toDate, toMeal ?? e.meal_type, e.food_id, e.name, e.grams, e.serving_label, e.kcal, e.protein, e.fat, e.carbs, now, now,
+      );
+    }
+  });
+  return out;
+}
+
+/** Moves diary entries to another day and/or meal. Returns where they were (for undo). */
+export async function moveEntries(db: SQLiteDatabase, ids: string[], toDate: string, toMeal: MealType | null) {
+  if (!ids.length) return [];
+  const before = await db.getAllAsync<{ id: string; date: string; meal_type: MealType }>(
+    `select id, date, meal_type from diary_entries where id in (${marks(ids.length)})`,
+    ...ids,
+  );
+  const now = nowIso();
+  await db.withTransactionAsync(async () => {
+    for (const e of before)
+      await db.runAsync('update diary_entries set date = ?, meal_type = ?, updated_at = ? where id = ?', toDate, toMeal ?? e.meal_type, now, e.id);
+  });
+  return before;
+}
+
+/** Puts moved entries back where `moveEntries` found them. */
+export async function unmoveEntries(db: SQLiteDatabase, before: { id: string; date: string; meal_type: MealType }[]) {
+  for (const e of before) await db.runAsync('update diary_entries set date = ?, meal_type = ? where id = ?', e.date, e.meal_type, e.id);
+}
+
+/** Deletes diary entries and returns them (for undo via restoreEntry). */
+export async function deleteEntries(db: SQLiteDatabase, ids: string[]): Promise<Entry[]> {
+  if (!ids.length) return [];
+  const rows = await db.getAllAsync<Entry>(`select * from diary_entries where id in (${marks(ids.length)})`, ...ids);
+  await db.runAsync(`delete from diary_entries where id in (${marks(ids.length)})`, ...ids);
+  return rows;
+}
+
 export async function clearMeal(db: SQLiteDatabase, date: string, meal: MealType) {
   await db.runAsync('delete from diary_entries where date = ? and meal_type = ?', date, meal);
 }

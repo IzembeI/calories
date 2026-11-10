@@ -1,11 +1,11 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActionSheetIOS, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { clearMeal, copyMeal, currentWeight, entriesForDate, getSetting, measurementsForDate, setMeasurement, type Entry } from '@/db/repo';
+import { clearMeal, copyEntries, copyMeal, currentWeight, deleteEntries, entriesForDate, moveEntries, restoreEntry, unmoveEntries, getSetting, measurementsForDate, setMeasurement, type Entry } from '@/db/repo';
 import { useApp, useProfile } from '@/lib/app-state';
-import { WEEKDAYS_SHORT, addDays, fromKey, relativeDayTitle, todayKey, weekStart } from '@/lib/dates';
+import { WEEKDAYS_SHORT, addDays, formatDay, fromKey, relativeDayTitle, todayKey, weekStart } from '@/lib/dates';
 import { daysWord, type Game } from '@/lib/game';
 import { loadGame } from '@/lib/game-load';
 import { NUTRIENTS, dayFiberExact, dayMicros, dvFor, microsScore, type Micros } from '@/lib/micros';
@@ -14,13 +14,14 @@ import { BackupNudge } from '@/ui/backup-nudge';
 import { CalendarModal } from '@/ui/calendar';
 import { Bar, Button, Card, Divider, IconButton, ListItem, NumField, Plus, Ring, Row, Screen, T } from '@/ui/components';
 import { artFor, FoodPic, Icon, MEAL_ART, Plant } from '@/ui/icons';
+import { sheet } from '@/ui/sheet';
 import { radius, space, useTheme } from '@/ui/theme';
 
 export default function Diary() {
   const db = useSQLiteContext();
   const t = useTheme();
   const profile = useProfile();
-  const { date, setDate, diaryVersion } = useApp();
+  const { date, setDate, diaryVersion, showToast } = useApp();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [micros, setMicros] = useState<Micros>({});
   const [calendar, setCalendar] = useState(false);
@@ -31,6 +32,19 @@ export default function Diary() {
   const [fiberExact, setFiberExact] = useState(false);
   const req = useRef(0);
   const [game, setGame] = useState<Game | null>(null);
+  /** ids of the entries picked by a long press: copy, move or delete several at once */
+  const [sel, setSel] = useState<Set<string>>(() => new Set());
+  /** when set, the calendar picks a target day for copy / move instead of changing the diary day */
+  const pickDay = useRef<((d: string) => void) | null>(null);
+  const selecting = sel.size > 0;
+  useEffect(() => setSel(new Set()), [date]);
+  const toggle = (id: string) =>
+    setSel((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
 
   const load = useCallback(async () => {
     void diaryVersion; // an undo from the toast bumps it, so the open diary reloads
@@ -100,6 +114,70 @@ export default function Diary() {
     } else {
       Alert.alert(title, undefined, [...actions.map((a, i) => ({ text: a.label, onPress: () => run(i) })), { text: 'Отмена', style: 'cancel' }]);
     }
+  };
+
+  /** Asks for a target day (and a meal, unless a whole day is copied). Null = cancelled. */
+  const chooseTarget = async (title: string, withMeal: boolean): Promise<{ day: string; meal: MealType | null } | null> => {
+    const today = todayKey();
+    const days = [
+      { label: 'Сегодня', day: today },
+      { label: 'Завтра', day: addDays(today, 1) },
+      { label: 'Вчера', day: addDays(today, -1) },
+    ];
+    const i = await sheet(title, [...days.map((d) => d.label), 'Выбрать день…']);
+    if (i == null) return null;
+    const day =
+      i < days.length
+        ? days[i].day
+        : await new Promise<string | null>((resolve) => {
+            pickDay.current = resolve;
+            setCalendar(true);
+          });
+    if (!day) return null;
+    if (!withMeal) return { day, meal: null };
+    const m = await sheet(`${title}: ${formatDay(day)}`, ['Тот же приём пищи', ...MEALS.map((x) => x.title)]);
+    if (m == null) return null;
+    return { day, meal: m === 0 ? null : MEALS[m - 1].type };
+  };
+
+  const copySelected = async () => {
+    const target = await chooseTarget('Скопировать', true);
+    if (!target) return;
+    const ids = await copyEntries(db, [...sel], target.day, target.meal);
+    // the selection stays, so the same items can go to one more day; «Готово» ends it
+    showToast({ text: `Скопировано: ${ids.length} · ${formatDay(target.day)}`, action: { label: 'Отменить', onPress: () => deleteEntries(db, ids) } });
+    load();
+  };
+
+  const moveSelected = async () => {
+    const target = await chooseTarget('Перенести', true);
+    if (!target) return;
+    const before = await moveEntries(db, [...sel], target.day, target.meal);
+    setSel(new Set());
+    showToast({ text: `Перенесено: ${before.length} · ${formatDay(target.day)}`, action: { label: 'Отменить', onPress: () => unmoveEntries(db, before) } });
+    load();
+  };
+
+  const deleteSelected = async () => {
+    const rows = await deleteEntries(db, [...sel]);
+    setSel(new Set());
+    showToast({
+      text: `Удалено записей: ${rows.length}`,
+      action: {
+        label: 'Отменить',
+        onPress: async () => {
+          for (const e of rows) await restoreEntry(db, e);
+        },
+      },
+    });
+    load();
+  };
+
+  const copyDay = async () => {
+    const target = await chooseTarget('Скопировать весь день', false);
+    if (!target || target.day === date) return;
+    const ids = await copyEntries(db, entries.map((e) => e.id), target.day, null);
+    showToast({ text: `День скопирован: ${ids.length} записей · ${formatDay(target.day)}`, action: { label: 'Отменить', onPress: () => deleteEntries(db, ids) } });
   };
 
   const week = Array.from({ length: 7 }, (_, i) => addDays(weekStart(date), i));
@@ -254,11 +332,31 @@ export default function Diary() {
               {items.map((e) => (
                 <ListItem
                   key={e.id}
-                  left={<FoodPic art={e.food_id == null && e.grams == null ? 'flame' : artFor(e.name)} size={36} />}
+                  left={
+                    selecting ? (
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          borderWidth: sel.has(e.id) ? 0 : 2,
+                          borderColor: t.border,
+                          backgroundColor: sel.has(e.id) ? t.accent : 'transparent',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {sel.has(e.id) ? <Icon name="check" size={20} color={t.onAccent} /> : null}
+                      </View>
+                    ) : (
+                      <FoodPic art={e.food_id == null && e.grams == null ? 'flame' : artFor(e.name)} size={36} />
+                    )
+                  }
+                  onLongPress={() => toggle(e.id)}
                   title={e.name}
                   subtitle={e.grams != null ? `${fmt(e.grams)} г${e.serving_label ? ` · ${e.serving_label}` : ''}` : 'быстрое добавление'}
                   right={<T dim>{fmt(e.kcal)} ккал</T>}
-                  onPress={() => router.push({ pathname: '/entry/[id]', params: { id: e.id } })}
+                  onPress={() => (selecting ? toggle(e.id) : router.push({ pathname: '/entry/[id]', params: { id: e.id } }))}
                 />
               ))}
             </Card>
@@ -285,7 +383,47 @@ export default function Diary() {
             </>
           )}
         </Card>
+        {entries.length > 0 ? (
+          <>
+            <Button title="Скопировать весь день…" kind="ghost" onPress={copyDay} />
+            <T dim size={12} center>
+              Долгое нажатие на запись — выбрать несколько, чтобы скопировать, перенести или удалить.
+            </T>
+          </>
+        ) : null}
+        {selecting ? <View style={{ height: 70 }} /> : null}
       </Screen>
+
+      {selecting ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: space.m,
+            right: space.m,
+            bottom: space.m,
+            backgroundColor: t.card,
+            borderRadius: radius.l,
+            borderWidth: 1,
+            borderColor: t.border,
+            padding: space.s,
+            gap: space.s,
+            shadowColor: '#000',
+            shadowOpacity: 0.18,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 4 },
+          }}
+        >
+          <Row style={{ justifyContent: 'space-between', paddingHorizontal: space.s }}>
+            <T weight="700">Выбрано: {sel.size}</T>
+            <IconButton label="Готово" onPress={() => setSel(new Set())} />
+          </Row>
+          <Row>
+            <Button small title="Копировать" onPress={copySelected} style={{ flex: 1 }} />
+            <Button small kind="secondary" title="Перенести" onPress={moveSelected} style={{ flex: 1 }} />
+            <Button small kind="secondary" title="Удалить" onPress={deleteSelected} style={{ flex: 1 }} />
+          </Row>
+        </View>
+      ) : null}
 
       <WeightModal
         visible={weighing}
@@ -301,9 +439,16 @@ export default function Diary() {
       <CalendarModal
         visible={calendar}
         value={date}
-        onClose={() => setCalendar(false)}
+        onClose={() => {
+          pickDay.current?.('');
+          pickDay.current = null;
+          setCalendar(false);
+        }}
         onPick={(d) => {
-          setDate(d);
+          if (pickDay.current) {
+            pickDay.current(d);
+            pickDay.current = null;
+          } else setDate(d);
           setCalendar(false);
         }}
       />
