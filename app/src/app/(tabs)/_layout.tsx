@@ -1,8 +1,9 @@
 import { Tabs } from 'expo-router';
-import { Text, type ColorValue } from 'react-native';
+import type { ColorValue } from 'react-native';
+import { Icon, type IconName } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 
-const icon = (glyph: string) => ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 20 }}>{glyph}</Text>;
+const icon = (name: IconName) => ({ color }: { color: ColorValue }) => <Icon name={name} size={24} color={color} />;
 
 export default function TabsLayout() {
   const t = useTheme();
@@ -17,9 +18,9 @@ export default function TabsLayout() {
         headerShadowVisible: false,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Дневник', headerShown: false, tabBarIcon: icon('▤') }} />
-      <Tabs.Screen name="progress" options={{ title: 'Прогресс', tabBarIcon: icon('↗') }} />
-      <Tabs.Screen name="profile" options={{ title: 'Профиль', tabBarIcon: icon('◉') }} />
+      <Tabs.Screen name="index" options={{ title: 'Дневник', headerShown: false, tabBarIcon: icon('diary') }} />
+      <Tabs.Screen name="progress" options={{ title: 'Прогресс', tabBarIcon: icon('progress') }} />
+      <Tabs.Screen name="profile" options={{ title: 'Профиль', tabBarIcon: icon('profile') }} />
     </Tabs>
   );
 }

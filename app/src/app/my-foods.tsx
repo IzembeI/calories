@@ -5,6 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { customFoods, listMeals, type FoodRow, type MealRow } from '@/db/repo';
 import { fmt } from '@/lib/nutrition';
 import { Card, Divider, Empty, IconButton, ListItem, Row, Screen, T } from '@/ui/components';
+import { artFor, FoodPic } from '@/ui/icons';
 
 export default function MyFoods() {
   const db = useSQLiteContext();
@@ -28,7 +29,7 @@ export default function MyFoods() {
         {meals.map((m, i) => (
           <View key={m.id}>
             {i > 0 && <Divider />}
-            <ListItem title={m.name} subtitle={`${m.items} прод. · ${fmt(m.kcal)} ккал`} onPress={() => router.push({ pathname: '/meal-edit', params: { id: m.id } })} />
+            <ListItem left={<FoodPic art="plate" />} title={m.name} subtitle={`${m.items} прод. · ${fmt(m.kcal)} ккал`} onPress={() => router.push({ pathname: '/meal-edit', params: { id: m.id } })} />
           </View>
         ))}
       </Card>
@@ -37,11 +38,12 @@ export default function MyFoods() {
         <IconButton label="+ Продукт" onPress={() => router.push('/food-edit')} />
       </Row>
       <Card>
-        {foods.length === 0 ? <Empty text="Своих продуктов пока нет" /> : null}
+        {foods.length === 0 ? <Empty text="Своих продуктов пока нет" art="porridge" /> : null}
         {foods.map((f, i) => (
           <View key={f.id}>
             {i > 0 && <Divider />}
             <ListItem
+              left={<FoodPic art={artFor(f.name, f.category)} />}
               title={f.name}
               subtitle={`${fmt(f.kcal)} ккал · Б ${fmt(f.protein, 1)} Ж ${fmt(f.fat, 1)} У ${fmt(f.carbs, 1)} на 100 г`}
               onPress={() => router.push({ pathname: '/food-edit', params: { id: f.id } })}

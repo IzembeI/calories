@@ -7,6 +7,7 @@ import { useProfile } from '@/lib/app-state';
 import { ageFrom, todayKey } from '@/lib/dates';
 import { ACTIVITY_LEVELS, GOALS, bmi, fmt, macroTargets } from '@/lib/nutrition';
 import { Card, Divider, ListItem, Row, Screen, T } from '@/ui/components';
+import { Icon, type IconName } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 
 export default function ProfileTab() {
@@ -21,7 +22,12 @@ export default function ProfileTab() {
   );
   const m = macroTargets(p, w);
   const go = (path: '/goals' | '/export' | '/settings' | '/my-foods' | '/measurements') => () => router.push(path);
-  const chevron = <T dim>›</T>;
+  const chevron = <Icon name="chevRight" size={18} color={t.textDim} />;
+  const badge = (name: IconName) => (
+    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+      <Icon name={name} size={20} />
+    </View>
+  );
 
   return (
     <Screen>
@@ -44,15 +50,15 @@ export default function ProfileTab() {
         </T>
       </Card>
       <Card>
-        <ListItem title="Цели и данные" subtitle="Норма калорий, БЖУ, вес" onPress={go('/goals')} right={chevron} />
+        <ListItem left={badge('target')} title="Цели и данные" subtitle="Норма калорий, БЖУ, вес" onPress={go('/goals')} right={chevron} />
         <Divider />
-        <ListItem title="Замеры тела" subtitle="Вес и объёмы за выбранный день" onPress={go('/measurements')} right={chevron} />
+        <ListItem left={badge('ruler')} title="Замеры тела" subtitle="Вес и объёмы за выбранный день" onPress={go('/measurements')} right={chevron} />
         <Divider />
-        <ListItem title="Экспорт в PDF и CSV" subtitle="Дневник питания и замеры за период, таблицы для Excel" onPress={go('/export')} right={chevron} />
+        <ListItem left={badge('doc')} title="Экспорт в PDF и CSV" subtitle="Дневник питания и замеры за период, таблицы для Excel" onPress={go('/export')} right={chevron} />
         <Divider />
-        <ListItem title="Мои продукты и блюда" onPress={go('/my-foods')} right={chevron} />
+        <ListItem left={badge('bookmark')} title="Мои продукты и блюда" onPress={go('/my-foods')} right={chevron} />
         <Divider />
-        <ListItem title="Настройки" subtitle="Напоминания, резервная копия" onPress={go('/settings')} right={chevron} />
+        <ListItem left={badge('sliders')} title="Настройки" subtitle="Напоминания, резервная копия" onPress={go('/settings')} right={chevron} />
       </Card>
       <T dim size={12} center>
         Все данные хранятся только на этом iPhone. База продуктов — встроенная и Open Food Facts (ODbL).

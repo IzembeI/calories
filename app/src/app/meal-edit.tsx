@@ -5,6 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { deleteMeal, getMeal, portion, saveMeal, searchFoods, type FoodRow } from '@/db/repo';
 import { fmt, parseNum } from '@/lib/nutrition';
 import { Button, Card, Divider, Field, IconButton, ListItem, NumField, Row, Screen, T } from '@/ui/components';
+import { artFor, FoodPic } from '@/ui/icons';
 import { NutrientCard } from '@/ui/portion';
 import { useTheme } from '@/ui/theme';
 
@@ -95,6 +96,7 @@ export default function MealEdit() {
         <View key={f.id}>
           {i > 0 && <Divider />}
           <ListItem
+            left={<FoodPic art={artFor(f.name, f.category)} size={36} />}
             title={f.name}
             subtitle={`${fmt(f.kcal)} ккал / 100 г`}
             onPress={() => {

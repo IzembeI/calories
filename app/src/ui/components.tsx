@@ -16,6 +16,8 @@ import {
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { ArtKey } from './art-data';
+import { FoodPic, Icon, type IconName } from './icons';
 import { radius, space, useTheme } from './theme';
 
 export function Screen({ children, padded = true, style }: { children: React.ReactNode; padded?: boolean; style?: StyleProp<ViewStyle> }) {
@@ -92,6 +94,7 @@ export function Button({
   loading,
   style,
   small,
+  icon,
 }: {
   title: string;
   onPress: () => void;
@@ -100,6 +103,7 @@ export function Button({
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
   small?: boolean;
+  icon?: IconName;
 }) {
   const t = useTheme();
   const bg = kind === 'primary' ? t.accent : kind === 'secondary' ? t.accentSoft : kind === 'danger' ? t.danger : 'transparent';
@@ -114,6 +118,8 @@ export function Button({
           borderRadius: radius.m,
           paddingVertical: small ? 8 : 14,
           paddingHorizontal: small ? 12 : 18,
+          flexDirection: 'row',
+          gap: 6,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: disabled ? 0.45 : pressed ? 0.75 : 1,
@@ -121,7 +127,14 @@ export function Button({
         style,
       ]}
     >
-      {loading ? <ActivityIndicator color={fg} /> : <Text style={{ color: fg, fontSize: small ? 14 : 16, fontWeight: '600' }}>{title}</Text>}
+      {loading ? (
+        <ActivityIndicator color={fg} />
+      ) : (
+        <>
+          {icon ? <Icon name={icon} size={small ? 16 : 20} color={fg} /> : null}
+          <Text style={{ color: fg, fontSize: small ? 14 : 16, fontWeight: '600' }}>{title}</Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -302,9 +315,10 @@ export function Stepper({ onMinus, onPlus, children }: { onMinus: () => void; on
   );
 }
 
-export function Empty({ text }: { text: string }) {
+export function Empty({ text, art = 'plate' }: { text: string; art?: ArtKey }) {
   return (
-    <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+    <View style={{ paddingVertical: 24, alignItems: 'center', gap: space.m }}>
+      <FoodPic art={art} size={72} />
       <T dim center>
         {text}
       </T>
@@ -323,17 +337,34 @@ const GLYPH_LABELS: Record<string, string> = {
   '☆': 'Добавить в избранное',
 };
 
+// Call sites pass a glyph as the label; these glyphs are drawn as vector icons instead of text.
+const GLYPH_ICONS: Record<string, { name: IconName; filled?: boolean }> = {
+  '‹': { name: 'chevLeft' },
+  '›': { name: 'chevRight' },
+  '⋯': { name: 'dots' },
+  '✎': { name: 'edit' },
+  '✕': { name: 'close' },
+  '↗': { name: 'chart' },
+  '★': { name: 'star', filled: true },
+  '☆': { name: 'star' },
+};
+
 export function IconButton({ label, onPress, color, a11y }: { label: string; onPress: () => void; color?: string; a11y?: string }) {
   const t = useTheme();
+  const glyph = GLYPH_ICONS[label];
   return (
     <Pressable
       onPress={onPress}
       hitSlop={10}
       accessibilityRole="button"
       accessibilityLabel={a11y ?? GLYPH_LABELS[label] ?? label}
-      style={({ pressed }) => ({ paddingHorizontal: 6, minHeight: 44, justifyContent: 'center', opacity: pressed ? 0.5 : 1 })}
+      style={({ pressed }) => ({ paddingHorizontal: 6, minHeight: 44, minWidth: glyph ? 34 : undefined, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.5 : 1 })}
     >
-      <Text style={{ color: color ?? t.accent, fontSize: 17, fontWeight: '600' }}>{label}</Text>
+      {glyph ? (
+        <Icon name={glyph.name} color={color ?? t.accent} filled={glyph.filled} />
+      ) : (
+        <Text style={{ color: color ?? t.accent, fontSize: 17, fontWeight: '600' }}>{label}</Text>
+      )}
     </Pressable>
   );
 }

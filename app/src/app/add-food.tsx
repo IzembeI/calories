@@ -25,6 +25,7 @@ import { OffError, offSearch } from '@/lib/off';
 import { fmt, mealTitle, type MealType } from '@/lib/nutrition';
 import { groupHits, variantsLabel, type Hit, type HitGroup } from '@/lib/search-groups';
 import { Button, Divider, Empty, Field, IconButton, ListItem, Plus, Row, Segmented, T } from '@/ui/components';
+import { artFor, FoodPic } from '@/ui/icons';
 import { space, useTheme } from '@/ui/theme';
 
 type Tab = 'recent' | 'fav' | 'mine';
@@ -173,13 +174,14 @@ export default function AddFood() {
   const hitRow = (h: Hit) =>
     h.kind === 'local' ? (
       <ListItem
+        left={<FoodPic art={artFor(h.f.name, h.f.category)} />}
         title={h.f.name}
         subtitle={subtitle(h.f)}
         onPress={() => openFood(h.f.id)}
         right={<Plus a11y={`Быстро добавить ${h.f.name}`} onPress={() => quickAdd(h.f)} />}
       />
     ) : (
-      <ListItem title={h.f.name} subtitle={subtitle(h.f)} onPress={() => openOff(h.f)} />
+      <ListItem left={<FoodPic art={artFor(h.f.name, h.f.category)} />} title={h.f.name} subtitle={subtitle(h.f)} onPress={() => openOff(h.f)} />
     );
 
   const groupRow = (g: HitGroup) => {
@@ -222,7 +224,7 @@ export default function AddFood() {
             onSubmitEditing={runOff}
             clearButtonMode="while-editing"
           />
-          <Button title="▥ Скан" kind="secondary" onPress={() => router.push({ pathname: '/scanner', params: { meal } })} />
+          <Button title="Скан" icon="scan" kind="secondary" onPress={() => router.push({ pathname: '/scanner', params: { meal } })} />
         </Row>
         {!searching && (
           <Segmented
@@ -261,6 +263,7 @@ export default function AddFood() {
                 meals.map((m) => (
                   <ListItem
                     key={m.id}
+                    left={<FoodPic art="plate" />}
                     title={m.name}
                     subtitle={`${m.items} прод. · ${fmt(m.kcal)} ккал`}
                     onPress={() => addMeal(m)}
@@ -283,6 +286,7 @@ export default function AddFood() {
             </T>
           ) : (
             <Empty
+              art={tab === 'recent' ? 'plate' : tab === 'fav' ? 'strawberry' : 'porridge'}
               text={
                 tab === 'recent'
                   ? 'Здесь появятся продукты, которые вы добавляли.'

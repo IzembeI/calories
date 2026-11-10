@@ -135,7 +135,7 @@ export default function Series() {
           <T weight="700">История</T>
         </View>
       }
-      ListEmptyComponent={<Empty text="Записей пока нет" />}
+      ListEmptyComponent={<Empty text="Записей пока нет" art="sunrise" />}
       renderItem={({ item: r }) => {
         const c = isBf ? comp.get(r.date) : undefined;
         return (

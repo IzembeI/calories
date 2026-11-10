@@ -11,6 +11,7 @@ import { MEALS, PROTEIN_MEAL_MIN_G, fmt, macroTargets, parseNum, type MealType }
 import { BackupNudge } from '@/ui/backup-nudge';
 import { CalendarModal } from '@/ui/calendar';
 import { Bar, Button, Card, Divider, IconButton, ListItem, NumField, Plus, Ring, Row, Screen, T } from '@/ui/components';
+import { artFor, FoodPic, Icon, MEAL_ART } from '@/ui/icons';
 import { radius, space, useTheme } from '@/ui/theme';
 
 export default function Diary() {
@@ -197,6 +198,7 @@ export default function Diary() {
           return (
             <Card key={m.type}>
               <Row style={{ justifyContent: 'space-between' }}>
+                <FoodPic art={MEAL_ART[m.type]} size={44} />
                 <Pressable onPress={() => mealMenu(m.type, m.title)} style={{ flex: 1 }} hitSlop={6}>
                   <T size={17} weight="700">
                     {m.title}
@@ -217,6 +219,7 @@ export default function Diary() {
               {items.map((e) => (
                 <ListItem
                   key={e.id}
+                  left={<FoodPic art={e.food_id == null && e.grams == null ? 'flame' : artFor(e.name)} size={36} />}
                   title={e.name}
                   subtitle={e.grams != null ? `${fmt(e.grams)} г${e.serving_label ? ` · ${e.serving_label}` : ''}` : 'быстрое добавление'}
                   right={<T dim>{fmt(e.kcal)} ккал</T>}
@@ -232,7 +235,7 @@ export default function Diary() {
             <T size={17} weight="700">
               Витамины и минералы
             </T>
-            <T dim>›</T>
+            <Icon name="chevRight" size={18} color={t.textDim} />
           </Row>
           {entries.length === 0 ? (
             <T dim size={13}>

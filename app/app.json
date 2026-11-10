@@ -39,7 +39,20 @@
           "recordAudioAndroid": false
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#1B744B",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0F1112"
+          }
+        }
+      ]
     ]
   }
 }

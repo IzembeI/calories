@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { addFoodEntry, defaultPortion, foodUsage, getFood, portion, saveFood, servingsOf, toggleFavourite, undoFoodEntry, type FoodRow, type Serving } from '@/db/repo';
@@ -8,9 +8,10 @@ import { formatDay } from '@/lib/dates';
 import { guessCategory } from '@/lib/micros';
 import { fmt, kcalCheck, kcalCheckText, parseNum, type MealType } from '@/lib/nutrition';
 import { Button, Card, Empty, IconButton, Row, Screen, T, Title } from '@/ui/components';
+import { artFor, FoodPic } from '@/ui/icons';
 import { MicrosCard } from '@/ui/micros-card';
 import { MealPicker, NutrientCard, PortionPicker } from '@/ui/portion';
-import { useTheme } from '@/ui/theme';
+import { space, useTheme } from '@/ui/theme';
 
 export default function FoodDetail() {
   const db = useSQLiteContext();
@@ -94,8 +95,13 @@ export default function FoodDetail() {
           ),
         }}
       />
-      <Title>{food.name}</Title>
-      {food.brand ? <T dim>{food.brand}</T> : null}
+      <Row gap={space.m}>
+        <FoodPic art={artFor(food.name, food.category)} size={64} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Title>{food.name}</Title>
+          {food.brand ? <T dim>{food.brand}</T> : null}
+        </View>
+      </Row>
       {food.source === 'off' ? (
         <T dim size={12}>
           Данные Open Food Facts{food.barcode ? ` · ${food.barcode}` : ''}
